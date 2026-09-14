@@ -14,7 +14,7 @@ namespace Solar::Widgets {
     }
 
     void Spacing(float h) {
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + h);
+        ImGui::Dummy(ImVec2(0.0f, h));
     }
 
 } // namespace Solar::Widgets

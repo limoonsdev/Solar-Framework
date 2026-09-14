@@ -101,4 +101,13 @@ namespace Solar::Widgets {
         return changed;
     }
 
+    bool Combo(const char* label, int* current_item, const std::vector<std::string>& items) {
+        std::vector<const char*> itemPtrs;
+        itemPtrs.reserve(items.size());
+        for (const auto& s : items) {
+            itemPtrs.push_back(s.c_str());
+        }
+        return Combo(label, current_item, itemPtrs.data(), static_cast<int>(itemPtrs.size()));
+    }
+
 } // namespace Solar::Widgets

@@ -113,6 +113,7 @@
 #include "game/spectator_list.hpp"
 #include "game/keybind_list.hpp"
 #include "game/watermark.hpp"
+#include "game/screen_watermark.hpp"
 #include "game/chams_preview.hpp"
 #include "game/visuals_renderer.hpp"
 #include "game/recoil_visualizer.hpp"
@@ -177,7 +178,14 @@ namespace Solar {
     using ESPPreviewSettings = Game::ESPSettings;
     using ESPPreview = Game::ESPPreview;
     using WatermarkInfo = Game::WatermarkInfo;
+    using WatermarkPosition = Game::WatermarkPosition;
     using Watermark = Game::Watermark;
+    using ScreenWatermarkLayout = Game::ScreenWatermarkLayout;
+    using ScreenWatermarkEffect = Game::ScreenWatermarkEffect;
+    using ScreenWatermarkSettings = Game::ScreenWatermarkSettings;
+    using ScreenWatermark = Game::ScreenWatermark;
+    using GamingFontPreset = Render::GamingFontPreset;
+    using FontManager = Render::FontManager;
     using Visuals = Game::VisualsRenderer;
     using VisualsRenderer = Game::VisualsRenderer;
     using BoxStyle = Game::BoxStyle;

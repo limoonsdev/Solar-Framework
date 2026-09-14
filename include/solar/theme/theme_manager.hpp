@@ -19,6 +19,8 @@ namespace Solar {
         Style& GetStyle() { return m_style; }
         const Style& GetStyle() const { return m_style; }
 
+        ThemePreset GetCurrentPreset() const { return m_currentPreset; }
+
         void SyncWithImGui();
 
         static u32 ToU32(const Color& c) { return c.ToU32(); }

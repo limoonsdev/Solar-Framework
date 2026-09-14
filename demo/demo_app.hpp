@@ -16,9 +16,9 @@ namespace Solar {
             m_currentTab = tab;
             PushNavHistory(tab);
         }
-        void SetWidgetsPage(int page) {
-            m_widgetsPage = page;
-        }
+        void SetWidgetsPage(int page) { m_widgetsPage = page; }
+        void SetMiscSubTab(int sub) { m_miscSubTab = sub; }
+        void SetThemeSubTab(int sub) { m_themeSubTab = sub; }
 
     private:
         DemoApp() = default;
@@ -135,6 +135,14 @@ namespace Solar {
         bool m_fastCrouch = false;
         int  m_fakeLag = 4;
         bool m_showWatermark = true;
+        WatermarkInfo m_watermarkInfo;
+        ScreenWatermarkSettings m_screenWatermark;
+        char m_customLinkInput[128] = "discord.gg/solarud";
+        char m_screenWatermarkTextInput[128] = ".gg/solarud";
+        int  m_watermarkPosIndex = 0;
+        int  m_screenFontIndex = 0;
+        int  m_screenLayoutIndex = 0;
+        int  m_screenEffectIndex = 0;
         bool m_showSpectators = true;
         bool m_showKeybinds = true;
         bool m_showRadarWindow = true;

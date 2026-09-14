@@ -42,3 +42,5 @@
 #define ICON_FA_BROOM                "\xef\x94\x9a" // 0xf51a
 #define ICON_FA_CIRCLE_INFO          "\xef\x81\x9a" // 0xf05a
 #define ICON_FA_TRIANGLE_EXCLAMATION "\xef\x81\xb1" // 0xf071
+#define ICON_FA_LINK                 "\xef\x83\x81" // 0xf0c1
+#define ICON_FA_GAMEPAD              "\xef\x84\x9b" // 0xf11b

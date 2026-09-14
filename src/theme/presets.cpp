@@ -61,7 +61,7 @@ namespace Solar {
             p.AccentMuted  = Color::FromHex("#222733");
             break;
 
-        case ThemePreset::ObsidianViolet:
+        case ThemePreset::ObsidianVeil:
             p.Background   = Color::FromHex("#101010");
             p.Header       = Color::FromHex("#161616");
             p.Sidebar      = Color::FromHex("#121212");
@@ -77,21 +77,57 @@ namespace Solar {
             p.TextSecondary= Color::FromHex("#8C8C8C");
             p.TextDisabled = Color::FromHex("#525252");
             break;
+
+        case ThemePreset::PhantomSpectre:
+            p.Background   = Color::FromHex("#0B0D11");
+            p.Header       = Color::FromHex("#10131A");
+            p.Sidebar      = Color::FromHex("#0E1015");
+            p.Card         = Color::FromHex("#131720");
+            p.CardHover    = Color::FromHex("#181E29");
+            p.Border       = Color::FromHex("#1F2736");
+            p.BorderHover  = Color::FromHex("#2DD4BF");
+            p.Accent       = Color::FromHex("#2DD4BF"); // Arctic Mint
+            p.AccentHover  = Color::FromHex("#5EEAD4");
+            p.AccentActive = Color::FromHex("#14B8A6");
+            p.AccentMuted  = Color::FromHex("#0F3B36");
+            p.TextPrimary  = Color::FromHex("#F0FDFA");
+            p.TextSecondary= Color::FromHex("#79939E");
+            p.TextDisabled = Color::FromHex("#3D4B53");
+            break;
+
+        case ThemePreset::ChampagneRoyale:
+            p.Background   = Color::FromHex("#0C0B0A");
+            p.Header       = Color::FromHex("#131210");
+            p.Sidebar      = Color::FromHex("#100F0D");
+            p.Card         = Color::FromHex("#161512");
+            p.CardHover    = Color::FromHex("#1F1C18");
+            p.Border       = Color::FromHex("#292520");
+            p.BorderHover  = Color::FromHex("#D4AF37");
+            p.Accent       = Color::FromHex("#D4AF37"); // Champagne Royale Gold
+            p.AccentHover  = Color::FromHex("#F3E5AB");
+            p.AccentActive = Color::FromHex("#AA8C2C");
+            p.AccentMuted  = Color::FromHex("#3D3315");
+            p.TextPrimary  = Color::FromHex("#FFFDF5");
+            p.TextSecondary= Color::FromHex("#9E9585");
+            p.TextDisabled = Color::FromHex("#544E44");
+            break;
         }
         return p;
     }
 
     std::vector<PresetInfo> Presets::GetAll() {
         return {
-            { ThemePreset::SolarFlare, "Solar Flare", "Signature amber gold with obsidian background", Get(ThemePreset::SolarFlare) },
-            { ThemePreset::ObsidianViolet, "Obsidian Violet", "Peach-Framework inspired obsidian glass with electric periwinkle and lavender", Get(ThemePreset::ObsidianViolet) },
-            { ThemePreset::CyberNeon, "Cyber Neon", "Electric cyan hyper-contrast aesthetic", Get(ThemePreset::CyberNeon) },
-            { ThemePreset::VoidAmethyst, "Void Amethyst", "Deep royal purple with glowing magenta hues", Get(ThemePreset::VoidAmethyst) },
-            { ThemePreset::EmeraldMatrix, "Emerald Matrix", "Toxic green cybernetic styling", Get(ThemePreset::EmeraldMatrix) },
-            { ThemePreset::BloodRuby, "Blood Ruby", "Sleek crimson red and dark burgundy tones", Get(ThemePreset::BloodRuby) },
-            { ThemePreset::ArcticWhite, "Arctic White", "High-clarity ice blue and platinum accents", Get(ThemePreset::ArcticWhite) },
-            { ThemePreset::TokyoNight, "Tokyo Night", "Midnight indigo and lavender synthwave", Get(ThemePreset::TokyoNight) },
-            { ThemePreset::MidnightCarbon, "Midnight Carbon", "Ultra-clean stealth monochromatic slate", Get(ThemePreset::MidnightCarbon) }
+            { ThemePreset::SolarApex, "Solar Apex", "Hyperion signature amber gold with obsidian carbon background", Get(ThemePreset::SolarApex) },
+            { ThemePreset::ObsidianVeil, "Obsidian Veil", "Peach-Framework luxury obsidian glass with electric periwinkle and lavender", Get(ThemePreset::ObsidianVeil) },
+            { ThemePreset::CyberNexus, "Cyber Nexus", "High-contrast electric cyan & neon aqua cybernetic aesthetic", Get(ThemePreset::CyberNexus) },
+            { ThemePreset::AstralAmethyst, "Astral Amethyst", "Royal amethyst purple with glowing celestial magenta hues", Get(ThemePreset::AstralAmethyst) },
+            { ThemePreset::ViperMatrix, "Viper Matrix", "Military toxic emerald and bioluminescent mint styling", Get(ThemePreset::ViperMatrix) },
+            { ThemePreset::AresCrimson, "Ares Crimson", "Tactical crimson scarlet and dark burgundy combat tones", Get(ThemePreset::AresCrimson) },
+            { ThemePreset::SubzeroFrost, "Subzero Frost", "Cryogenic ice blue and platinum chrome accents", Get(ThemePreset::SubzeroFrost) },
+            { ThemePreset::NeoTokyo2077, "Neo Tokyo 2077", "Midnight indigo, ultraviolet and synthwave harmonics", Get(ThemePreset::NeoTokyo2077) },
+            { ThemePreset::StealthMonolith, "Stealth Monolith", "Ultra-clean aerospace matte carbon and stealth slate", Get(ThemePreset::StealthMonolith) },
+            { ThemePreset::PhantomSpectre, "Phantom Spectre", "Ghost stealth monochrome with vibrant arctic mint accents", Get(ThemePreset::PhantomSpectre) },
+            { ThemePreset::ChampagneRoyale, "Champagne Royale", "Prestige champagne gold with dark velvet obsidian framing", Get(ThemePreset::ChampagneRoyale) }
         };
     }
 

@@ -91,8 +91,25 @@ namespace Solar {
         m_showSpectators = true;
         m_showKeybinds = true;
         m_showWatermark = true;
+        m_watermarkInfo.frameworkName = "SOLAR";
+        m_watermarkInfo.version = "v1.0.2-dev";
+        m_watermarkInfo.username = "SolarDev";
+        m_watermarkInfo.customLink = "discord.gg/solarud";
+        m_watermarkInfo.pingMs = 12;
+        m_watermarkInfo.showLink = true;
+
+        m_screenWatermark.enabled = true;
+        m_screenWatermark.text = ".gg/solarud";
+        m_screenWatermark.fontPreset = GamingFontPreset::ValorantTactical;
+        m_screenWatermark.opacity = 0.12f;
+        m_screenWatermark.scale = 1.0f;
+        m_screenWatermark.layout = ScreenWatermarkLayout::CenterDiagonal;
+        m_screenWatermark.effect = ScreenWatermarkEffect::SolidAlpha;
+        m_screenWatermark.useThemeColor = true;
+        m_screenWatermark.animatedPulse = true;
+
         PushNavHistory(0);
-        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
+        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianVeil);
     }
 
     void DemoApp::Render() {
@@ -117,14 +134,20 @@ namespace Solar {
                                                       ThemeManager::Get().GetPalette().Accent);
         }
 
-        // Floating Watermark HUD
+        // Floating Watermark HUD (with Custom Links & Copy-to-Clipboard)
         if (m_showWatermark) {
-            WatermarkInfo wm;
-            wm.frameworkName = "SOLAR";
-            wm.version = "v1.0.1";
-            wm.username = "SolarDev";
-            wm.pingMs = 12;
-            Watermark::Render(wm);
+            m_watermarkInfo.customLink = m_customLinkInput;
+            m_watermarkInfo.position = static_cast<WatermarkPosition>(m_watermarkPosIndex);
+            Watermark::Render(m_watermarkInfo);
+        }
+
+        // Advanced Screen Watermark Overlay (Gaming Typography Suite)
+        if (m_screenWatermark.enabled) {
+            m_screenWatermark.text = m_screenWatermarkTextInput;
+            m_screenWatermark.fontPreset = static_cast<GamingFontPreset>(m_screenFontIndex);
+            m_screenWatermark.layout = static_cast<ScreenWatermarkLayout>(m_screenLayoutIndex);
+            m_screenWatermark.effect = static_cast<ScreenWatermarkEffect>(m_screenEffectIndex);
+            ScreenWatermark::Render(m_screenWatermark);
         }
 
         // Floating HUD Windows: Tactical Radar, Spectators & Keybinds
@@ -813,57 +836,125 @@ namespace Solar {
                     // ==========================================
                     else if (m_currentTab == 2) {
                         Widgets::SubTab("Tactical Radar", 0, &m_miscSubTab);
-                        Widgets::SubTab("HUD Overlays", 1, &m_miscSubTab);
+                        Widgets::SubTab("Watermarks & HUD", 1, &m_miscSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
-                        if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                            static Widgets::RadarSettings radarSettings;
-                            static std::vector<Widgets::RadarEntity> radarEntities;
-                            if (radarEntities.empty()) {
-                                radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
-                                radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
-                                radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
-                                radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
-                            }
-                            Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
-                            Widgets::Separator();
+                        if (m_miscSubTab == 0) {
+                            if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                static Widgets::RadarSettings radarSettings;
+                                static std::vector<Widgets::RadarEntity> radarEntities;
+                                if (radarEntities.empty()) {
+                                    radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
+                                    radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
+                                    radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
+                                    radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
+                                }
+                                Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
+                                Widgets::Separator();
 
-                            Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
-                            Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
-                            Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
+                                Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
+                                Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
+                                Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
 
-                            Widgets::EndCard();
-                        }
-
-                        ImGui::SameLine(0, 10.0f);
-
-                        if (Widgets::BeginCard("##HUDCard", "HUD Elements & Windows", IconType::Bell, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
-                            Widgets::Toggle("Show External Radar Window", &m_showRadarWindow, "Floating square HUD box with tactical grid & sweep");
-                            Widgets::Toggle("Show Watermark Overlay", &m_showWatermark);
-                            Widgets::Toggle("Show Spectator List Window", &m_showSpectators);
-                            Widgets::Toggle("Show Active Keybinds Window", &m_showKeybinds);
-                            Widgets::Toggle("Show Engine Telemetry Profiler", &m_showProfiler);
-                            Widgets::Separator();
-
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Trigger Notification Toasts:");
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Success Notification", ImVec2(0, 34), ButtonStyle::Primary)) {
-                                Notify::Success("Solar Framework", "Operation finished successfully!");
-                            }
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Warning Notification", ImVec2(0, 34), ButtonStyle::Secondary)) {
-                                Notify::Warning("Security Alert", "High memory signature detected.");
-                            }
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Error Notification", ImVec2(0, 34), ButtonStyle::Danger)) {
-                                Notify::Error("Hook Failure", "Failed to resolve swapchain pointer.");
+                                Widgets::EndCard();
                             }
 
-                            Widgets::EndCard();
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##HUDCard", "HUD Elements & Windows", IconType::Bell, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                                Widgets::Toggle("Show External Radar Window", &m_showRadarWindow, "Floating square HUD box with tactical grid & sweep");
+                                Widgets::Toggle("Show Watermark Overlay", &m_showWatermark);
+                                Widgets::Toggle("Show Spectator List Window", &m_showSpectators);
+                                Widgets::Toggle("Show Active Keybinds Window", &m_showKeybinds);
+                                Widgets::Toggle("Show Engine Telemetry Profiler", &m_showProfiler);
+                                Widgets::Separator();
+
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Trigger Notification Toasts:");
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Success Notification", ImVec2(0, 34), ButtonStyle::Primary)) {
+                                    Notify::Success("Solar Framework", "Operation finished successfully!");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Warning Notification", ImVec2(0, 34), ButtonStyle::Secondary)) {
+                                    Notify::Warning("Security Alert", "High memory signature detected.");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Error Notification", ImVec2(0, 34), ButtonStyle::Danger)) {
+                                    Notify::Error("Hook Failure", "Failed to resolve swapchain pointer.");
+                                }
+
+                                Widgets::EndCard();
+                            }
+                        } else if (m_miscSubTab == 1) {
+                            if (Widgets::BeginCard("##HUDWatermarkCard", "HUD Status Watermark (Links & Interactivity)", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_LINK)) {
+                                Widgets::Toggle("Enable HUD Watermark", &m_showWatermark, "Show sleek status pill in viewport");
+                                Widgets::Spacing(4.0f);
+                                Widgets::InputText("Custom Link URL", m_customLinkInput, sizeof(m_customLinkInput));
+                                Widgets::Toggle("Display Link Badge", &m_watermarkInfo.showLink, "Include interactive link in HUD bar");
+                                Widgets::Toggle("Display Latency (Ping)", &m_watermarkInfo.showPing);
+                                Widgets::Toggle("Display Framerate (FPS)", &m_watermarkInfo.showFps);
+                                Widgets::Toggle("Display System Clock", &m_watermarkInfo.showTime);
+                                Widgets::Toggle("Display User Profile", &m_watermarkInfo.showUser);
+                                Widgets::Toggle("Pulsing Status LED", &m_watermarkInfo.showStatusDot);
+                                Widgets::Separator();
+
+                                std::vector<std::string> posOptions = { "Top Right", "Top Left", "Bottom Right", "Bottom Left", "Free Draggable" };
+                                Widgets::Combo("Position Anchor", &m_watermarkPosIndex, posOptions);
+                                Widgets::Spacing(6.0f);
+
+                                if (Widgets::Button("Test Copy Link to Clipboard", ImVec2(0, 34), ButtonStyle::Secondary)) {
+                                    ImGui::SetClipboardText(m_customLinkInput);
+                                    Audio::PlayClick();
+                                    Notify::Success("Link Copied", (std::string(m_customLinkInput) + " copied to clipboard!").c_str());
+                                }
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##AdvancedScreenWatermarkCard", "Advanced Screen Watermark (Gaming Fonts)", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_GAMEPAD)) {
+                                Widgets::Toggle("Enable Screen Watermark", &m_screenWatermark.enabled, "Large subtle overlay across entire screen");
+                                Widgets::Spacing(4.0f);
+                                Widgets::InputText("Screen Overlay Text", m_screenWatermarkTextInput, sizeof(m_screenWatermarkTextInput));
+
+                                std::vector<std::string> fontOptions = {
+                                    "Valorant / CS2 Tactical (DIN)",
+                                    "Cyberpunk 2077 Matrix (Consolas)",
+                                    "Call of Duty / Warzone (Arial Black)",
+                                    "Arcade Strike / Titan (Impact)",
+                                    "Apex Legends Esports (Segoe Black)",
+                                    "Overwatch Sci-Fi (Corbel Bold)",
+                                    "Halo Spartan HUD (Trebuchet Bold)"
+                                };
+                                Widgets::Combo("Gaming Font Family", &m_screenFontIndex, fontOptions);
+
+                                std::vector<std::string> layoutOptions = {
+                                    "Center Diagonal (-25 deg)",
+                                    "Center Horizontal",
+                                    "Bottom Streamer Banner",
+                                    "Top Header Banner",
+                                    "Tiled Security Matrix (Anti-Leak)"
+                                };
+                                Widgets::Combo("Overlay Layout", &m_screenLayoutIndex, layoutOptions);
+
+                                std::vector<std::string> effectOptions = {
+                                    "Solid Alpha (Crisp Vector)",
+                                    "Outlined Aura Glow"
+                                };
+                                Widgets::Combo("Render Effect", &m_screenEffectIndex, effectOptions);
+
+                                Widgets::SliderFloat("Watermark Opacity", &m_screenWatermark.opacity, 0.03f, 0.45f, "%.2f");
+                                Widgets::SliderFloat("Font Scale Multiplier", &m_screenWatermark.scale, 0.5f, 2.2f, "%.1f", "x");
+                                Widgets::Toggle("Match Theme Color", &m_screenWatermark.useThemeColor, "Tint watermark with active theme accent");
+                                Widgets::Toggle("Breathing Opacity Pulse", &m_screenWatermark.animatedPulse, "Subtle organic luminance wave");
+
+                                Widgets::EndCard();
+                            }
                         }
                     }
 
@@ -1083,48 +1174,24 @@ namespace Solar {
 
                         // SUBTAB 0: COLOR PRESETS
                         if (m_themeSubTab == 0) {
-                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl & Peach Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
-                                if (Widgets::Button("Obsidian Violet (Peach Periwinkle)", ImVec2(0, 36), ButtonStyle::Primary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
-                                    Notify::Success("Theme Applied", "Switched to Obsidian Violet theme.");
+                            if (Widgets::BeginCard("##ThemesList", "Color Presets (Pro Engineering & Esports)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                ImGui::BeginChild("##ThemesScrollArea", ImVec2(0, 420.0f), false, ImGuiWindowFlags_NoBackground);
+                                auto allPresets = Presets::GetAll();
+                                ThemePreset activePreset = ThemeManager::Get().GetCurrentPreset();
+                                for (const auto& pi : allPresets) {
+                                    bool isActive = (pi.preset == activePreset);
+                                    char label[128];
+                                    snprintf(label, sizeof(label), "%s%s", pi.name.c_str(), isActive ? "  [ACTIVE]" : "");
+                                    if (Widgets::Button(label, ImVec2(0, 35), isActive ? ButtonStyle::Primary : ButtonStyle::Secondary)) {
+                                        ThemeManager::Get().ApplyPreset(pi.preset);
+                                        Notify::Success("Theme Applied", (std::string("Switched to ") + pi.name + " theme.").c_str());
+                                    }
+                                    if (ImGui::IsItemHovered()) {
+                                        ImGui::SetTooltip("%s", pi.description.c_str());
+                                    }
+                                    Widgets::Spacing(3.0f);
                                 }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::SolarFlare);
-                                    Notify::Success("Theme Applied", "Switched to Solar Flare theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Cyber Neon (Electric Cyan)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::CyberNeon);
-                                    Notify::Success("Theme Applied", "Switched to Cyber Neon theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Void Amethyst (Deep Purple)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::VoidAmethyst);
-                                    Notify::Success("Theme Applied", "Switched to Void Amethyst theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Emerald Matrix (Vivid Green)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::EmeraldMatrix);
-                                    Notify::Success("Theme Applied", "Switched to Emerald Matrix theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Blood Ruby (Crimson Rose)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::BloodRuby);
-                                    Notify::Success("Theme Applied", "Switched to Blood Ruby theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Arctic White (Ice Blue)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::ArcticWhite);
-                                    Notify::Success("Theme Applied", "Switched to Arctic White theme.");
-                                }
-
+                                ImGui::EndChild();
                                 Widgets::EndCard();
                             }
 

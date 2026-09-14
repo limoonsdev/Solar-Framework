@@ -53,6 +53,7 @@ set(SOLAR_SOURCES
     "src/game/trajectory_renderer.cpp"
     "src/game/visuals_renderer.cpp"
     "src/game/watermark.cpp"
+    "src/game/screen_watermark.cpp"
     "src/hook/hook_bridge.cpp"
     "src/hook/state_guard.cpp"
     "src/icons.cpp"

@@ -176,34 +176,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     float dpiScale = (winDpi > 0) ? (static_cast<float>(winDpi) / 96.0f) : initialDpiScale;
     if (dpiScale < 1.0f) dpiScale = 1.0f;
 
-    // Razor-Sharp Typography with 3x Oversampling & Enhanced Contrast
-    ImFontConfig fontConfig;
-    fontConfig.OversampleH = 3;
-    fontConfig.OversampleV = 3;
-    fontConfig.PixelSnapH = true;
-    fontConfig.RasterizerMultiply = 1.18f; // Crisp contrast, high readability
-
-    float baseFontSize = 15.5f * dpiScale;
-    float iconFontSize = 14.5f * dpiScale;
-
-    ImFont* mainFont = nullptr;
-    if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
-        mainFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", baseFontSize, &fontConfig);
-    } else if (GetFileAttributesA("C:\\Windows\\Fonts\\segoeui.ttf") != INVALID_FILE_ATTRIBUTES) {
-        mainFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseFontSize, &fontConfig);
-    } else {
-        mainFont = io.Fonts->AddFontDefault(&fontConfig);
-    }
-
-    // Merge FontAwesome 6 Solid Icons at native resolution directly from embedded memory
-    ImFontConfig iconConfig;
-    iconConfig.MergeMode = true;
-    iconConfig.PixelSnapH = true;
-    iconConfig.OversampleH = 3;
-    iconConfig.OversampleV = 3;
-    iconConfig.RasterizerMultiply = 1.15f;
-    static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
-    io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconFontSize, &iconConfig, icon_ranges);
+    // Initialize Razor-Sharp High-DPI Fonts & Gaming Typography Suite via FontManager
+    Solar::Render::FontManager::Get().LoadFonts(dpiScale);
 
     // Note: With modern Dear ImGui backends, io.Fonts->Build() is called automatically by ImGui_ImplDX11_NewFrame().
 
@@ -224,6 +198,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
         if (strstr(fullCmd, "--screenshot-radar") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(2);
+            Solar::DemoApp::Get().SetMiscSubTab(0);
+        } else if (strstr(fullCmd, "--screenshot-watermarks") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(2);
+            Solar::DemoApp::Get().SetMiscSubTab(1);
+        } else if (strstr(fullCmd, "--screenshot-themes") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(6);
+            Solar::DemoApp::Get().SetThemeSubTab(0);
         } else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(3);
             Solar::DemoApp::Get().SetWidgetsPage(1);
@@ -285,6 +266,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             if (screenshotFrame >= 15) {
                 const char* targetFile = "demo_capture.bmp";
                 if (strstr(fullCmd, "--screenshot-visuals") != nullptr) targetFile = "visuals_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-watermarks") != nullptr) targetFile = "watermarks_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-themes") != nullptr) targetFile = "themes_capture.bmp";
                 else if (strstr(fullCmd, "--screenshot-radar") != nullptr) targetFile = "radar_capture.bmp";
                 else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) targetFile = "widgets_capture.bmp";
                 char envPath[MAX_PATH];
