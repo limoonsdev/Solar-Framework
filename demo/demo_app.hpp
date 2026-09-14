@@ -16,6 +16,9 @@ namespace Solar {
             m_currentTab = tab;
             PushNavHistory(tab);
         }
+        void SetWidgetsPage(int page) {
+            m_widgetsPage = page;
+        }
 
     private:
         DemoApp() = default;
@@ -89,6 +92,7 @@ namespace Solar {
         float  m_acousticWaveTimer = 0.0f;
 
         // Widget Suite State
+        int   m_widgetsPage = 0;
         int   m_widgetSubTab = 0;
         int   m_segmentedIdx = 0;
         float m_rangeMin = 20.0f;
@@ -98,6 +102,9 @@ namespace Solar {
         std::vector<bool> m_multiDropdownSelections = { true, false, true, false };
         std::vector<std::string> m_multiDropdownItems = { "Chams Shading", "Glow Contour", "Bullet Tracers", "Sound Wave Rings" };
         float m_knobVal = 55.0f;
+        std::vector<bool> m_chipSelections = { true, true, false, true, false };
+        std::vector<std::string> m_chipItems = { "Players", "Bots", "NPCs", "Weapons", "Vehicles" };
+        float m_radialGaugeVal = 74.5f;
         bool  m_accordion1Open = true;
         bool  m_accordion2Open = false;
         float m_fpsSparkline[16] = { 142.0f, 144.0f, 141.0f, 150.0f, 158.0f, 162.0f, 165.0f, 164.0f, 170.0f, 168.0f, 172.0f, 175.0f, 174.0f, 178.0f, 180.0f, 185.0f };

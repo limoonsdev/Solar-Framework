@@ -95,6 +95,9 @@ namespace Solar::Game {
         static void DrawDistanceTag(ImDrawList* draw, const ImVec2& pos, float distanceMeters,
                                     Color color = Color(1.0f, 0.70f, 0.15f, 1.0f));
 
+        static void DrawFlagTags(ImDrawList* draw, const ImVec2& boxMin, const ImVec2& boxMax,
+                                 const std::vector<std::pair<std::string, Color>>& flags);
+
         static void DrawFlagTags(ImDrawList* draw, const ImVec2& boxMax,
                                  const std::vector<std::pair<std::string, Color>>& flags);
 

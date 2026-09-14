@@ -102,6 +102,8 @@ set(SOLAR_SOURCES
     "src/widgets/performance_graph.cpp"
     "src/widgets/progress_bar.cpp"
     "src/widgets/radar.cpp"
+    "src/widgets/chip_selector.cpp"
+    "src/widgets/radial_gauge.cpp"
     "src/widgets/range_slider.cpp"
     "src/widgets/search_input.cpp"
     "src/widgets/segmented_control.cpp"

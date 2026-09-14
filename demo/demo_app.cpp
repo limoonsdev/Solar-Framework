@@ -227,36 +227,94 @@ namespace Solar {
                     if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
                     if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
 
-                    // User Profile at bottom of sidebar (luxury glass chip)
+                    // User Profile at bottom of sidebar (luxury glass chip with interactive profile menu)
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
                     ImGui::SetCursorPosX(10.0f);
                     ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    const auto& pal = ThemeManager::Get().GetPalette();
                     ImVec2 userPos = ImGui::GetCursorScreenPos();
                     float userCardW = 185.0f;
                     float userCardH = 46.0f;
 
-                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                           ThemeManager::Get().GetPalette().Card.WithAlpha(0.70f).ToU32(), 6.0f);
+                    ImGui::InvisibleButton("##UserProfileBtn", ImVec2(userCardW, userCardH));
+                    bool userHovered = ImGui::IsItemHovered();
+                    bool userActive = ImGui::IsItemActive();
+                    if (ImGui::IsItemClicked()) {
+                        Audio::PlayClick();
+                        ImGui::OpenPopup("##UserProfilePopup");
+                    }
+
+                    u32 cardBg = userActive ? pal.CardHover.ToU32() : (userHovered ? pal.CardHover.WithAlpha(0.85f).ToU32() : pal.Card.WithAlpha(0.70f).ToU32());
+                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH), cardBg, 6.0f);
                     Render::ImGuiExt::DrawSpecularEdge(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                                       IM_COL32(255, 255, 255, 20), 4.0f, 1.0f);
+                                                       IM_COL32(255, 255, 255, userHovered ? 38 : 20), 4.0f, 1.0f);
                     Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                                      ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 1.0f);
+                                                      (userHovered ? pal.Accent.WithAlpha(0.65f).ToU32() : pal.Border.WithAlpha(0.60f).ToU32()), 6.0f, 1.0f);
 
                     // User avatar circle
                     ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
-                    drawList->AddCircleFilled(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.18f).ToU32(), 20);
-                    drawList->AddCircle(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.50f).ToU32(), 20, 1.0f);
+                    drawList->AddCircleFilled(avatarC, 12.0f, pal.Accent.WithAlpha(0.18f).ToU32(), 20);
+                    drawList->AddCircle(avatarC, 12.0f, pal.Accent.WithAlpha(userHovered ? 0.85f : 0.50f).ToU32(), 20, 1.0f);
                     IconRenderer::DrawIcon(drawList, IconType::User, avatarC, 11.0f,
-                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.4f);
+                                          ThemeManager::ToU32(pal.Accent), 1.4f);
 
                     // Status online dot
                     drawList->AddCircleFilled(ImVec2(avatarC.x + 8.0f, avatarC.y + 8.0f), 3.0f, IM_COL32(35, 215, 95, 255), 10);
 
                     // Text labels
                     drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 7.0f),
-                                      ThemeManager::ToU32(ThemeManager::Get().GetPalette().TextPrimary), "SolarDev");
+                                      pal.TextPrimary.ToU32(), "SolarDev");
                     drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 23.0f),
-                                      ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), "LIFETIME VIP");
+                                      pal.Accent.ToU32(), "LIFETIME VIP");
+
+                    // Small indicator chevron on right
+                    drawList->AddText(ImVec2(userPos.x + userCardW - 18.0f, userPos.y + 16.0f),
+                                      userHovered ? pal.Accent.ToU32() : pal.TextDisabled.ToU32(), ICON_FA_CHEVRON_RIGHT);
+
+                    // Floating User Profile Context Menu
+                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 200.0f), ImGuiCond_Always);
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, pal.Card.WithAlpha(0.96f).ToVec4());
+                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Border.ToVec4());
+
+                    if (ImGui::BeginPopup("##UserProfilePopup")) {
+                        ImGui::TextColored(pal.Accent, "SolarDev Account");
+                        ImGui::TextColored(pal.TextDisabled, "ID: #SLR-9842 | Tier: VIP");
+                        Widgets::Separator();
+
+                        if (Widgets::Button("Copy HWID", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                            ImGui::SetClipboardText("HWID-SOLAR-7F9A-4B21-99CE-DEV");
+                            Notify::Success("HWID Copied", "Client hardware identifier copied to clipboard.");
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button("Switch Profile", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 7; // Profiles tab
+                            PushNavHistory(7);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button("Themes & Engine", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 6; // Themes tab
+                            PushNavHistory(6);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button("Sign Out / Lock", ImVec2(165.0f, 28.0f), ButtonStyle::Danger)) {
+                            m_currentTab = 5; // License tab
+                            PushNavHistory(5);
+                            Notify::Warning("Session Locked", "Authorization locked. Please re-enter license key.");
+                            ImGui::CloseCurrentPopup();
+                        }
+
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopStyleColor(2);
+                    ImGui::PopStyleVar(2);
                 }
                 Widgets::EndSidebar();
 
@@ -524,7 +582,7 @@ namespace Solar {
                                 ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 305.0f), m_espSettings);
 
                                 Widgets::Separator();
-                                std::vector<std::string> stanceItems = { "Stand", "Crouch", "Scope", "Jump", "Defuse" };
+                                std::vector<std::string> stanceItems = { "T-Pose", "Stand", "Crouch", "Scope", "Jump" };
                                 if (Widgets::SegmentedControl("Stance Pose", &m_espSettings.stance, stanceItems)) {
                                     Audio::PlayClick();
                                 }
@@ -813,28 +871,38 @@ namespace Solar {
                     // TAB 3: UI CONTROLS & WIDGET SUITE
                     // ==========================================
                     else if (m_currentTab == 3) {
-                        if (Widgets::BeginCard("##WidgetsCard1", "Advanced PastOwl Controls", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_SLIDERS)) {
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "SEGMENTED PILL CONTROL");
-                            std::vector<std::string> segModes = { "Stealth", "Adaptive", "Rage", "Legit" };
-                            Widgets::SegmentedControl("Aimbot Mode", &m_segmentedIdx, segModes);
+                        if (Widgets::BeginCard("##WidgetsCard1", "Advanced Controls Suite", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_SLIDERS)) {
+                            if (m_widgetsPage == 0) {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "SEGMENTED PILL CONTROL");
+                                std::vector<std::string> segModes = { "Stealth", "Adaptive", "Rage", "Legit" };
+                                Widgets::SegmentedControl("Aimbot Mode", &m_segmentedIdx, segModes);
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DUAL-THUMB RANGE SLIDER");
-                            Widgets::RangeSlider("Field of View Range", &m_rangeMin, &m_rangeMax, 0.0f, 120.0f, "%.0f", "deg");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DUAL-THUMB RANGE SLIDER");
+                                Widgets::RangeSlider("Field of View Range", &m_rangeMin, &m_rangeMax, 0.0f, 120.0f, "%.0f", "deg");
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "NUMERIC STEPPER & SEARCH FILTER");
-                            Widgets::NumberStepper("Simulation Tickrate", &m_stepperVal, 16, 256, 16);
-                            Widgets::SearchInput("##WidgetSearch", m_searchQuery, sizeof(m_searchQuery), "Search component signatures...");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "NUMERIC STEPPER & SEARCH FILTER");
+                                Widgets::NumberStepper("Simulation Tickrate", &m_stepperVal, 16, 256, 16);
+                                Widgets::SearchInput("##WidgetSearch", m_searchQuery, sizeof(m_searchQuery), "Search component signatures...");
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DROPDOWN MULTI-TAG SELECTOR");
-                            Widgets::DropdownMultiSelect("Active Visual Shaders", m_multiDropdownSelections, m_multiDropdownItems);
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DROPDOWN MULTI-TAG SELECTOR");
+                                Widgets::DropdownMultiSelect("Active Visual Shaders", m_multiDropdownSelections, m_multiDropdownItems);
+                            } else {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "INTERACTIVE FILTER CHIPS");
+                                Widgets::ChipSelector("Target Filter", m_chipSelections, m_chipItems);
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "270-DEGREE ROTARY KNOB");
-                            Widgets::KnobSlider("Gain Master", &m_knobVal, 0.0f, 100.0f, 26.0f, "%.0f", "%");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "240-DEGREE RADIAL GAUGE");
+                                Widgets::RadialGauge("Core Compute Load", &m_radialGaugeVal, 0.0f, 100.0f, 36.0f, "%.1f", "%");
 
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "270-DEGREE ROTARY KNOB");
+                                Widgets::KnobSlider("Gain Master", &m_knobVal, 0.0f, 100.0f, 26.0f, "%.0f", "%");
+                            }
+
+                            RenderCardPagination(&m_widgetsPage, 2, "WidgetsCard1Page");
                             Widgets::EndCard();
                         }
 

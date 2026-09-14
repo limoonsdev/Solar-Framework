@@ -66,30 +66,68 @@ namespace Solar::UI {
             draw->AddCircle(mousePos, rippleRadius, pal.Accent.WithAlpha(m_clickRipple * 0.70f).ToU32(), 28, 1.2f);
         }
 
-        // 6. Ambient Luminous Glow Halo
-        float glowRad = 13.0f + 3.0f * m_hoverAnim - 2.0f * m_clickAnim;
-        draw->AddCircleFilled(mousePos, glowRad, pal.Accent.WithAlpha(0.14f).ToU32(), 24);
-        draw->AddCircleFilled(mousePos, glowRad * 0.65f, pal.Accent.WithAlpha(0.24f).ToU32(), 20);
-        draw->AddCircleFilled(mousePos, glowRad * 0.35f, pal.Accent.WithAlpha(0.40f).ToU32(), 16);
+        // 6. Ambient Luminous Glow Halo (Reactive to Theme Accent)
+        float glowRad = (12.0f + 4.0f * m_hoverAnim - 2.0f * m_clickAnim);
+        draw->AddCircleFilled(mousePos, glowRad, pal.Accent.WithAlpha(0.12f).ToU32(), 24);
+        draw->AddCircleFilled(mousePos, glowRad * 0.65f, pal.Accent.WithAlpha(0.22f).ToU32(), 20);
 
-        // 7. Outer Accent Ring
-        float ringRadius = 4.0f + 1.2f * m_hoverAnim - 0.7f * m_clickAnim;
-        draw->AddCircle(mousePos, ringRadius, pal.Accent.ToU32(), 20, 1.2f);
+        // 7. Cyber Pointer Arrow (Free Flight Mode when not hovering widgets)
+        float arrowAlpha = 1.0f - m_hoverAnim;
+        if (arrowAlpha > 0.01f) {
+            float s = 1.0f - m_clickAnim * 0.12f;
+            // High-tech angular chevron geometry
+            ImVec2 tip = mousePos;
+            ImVec2 left(mousePos.x + 0.5f, mousePos.y + 16.0f * s);
+            ImVec2 right(mousePos.x + 12.0f * s, mousePos.y + 11.5f * s);
+            ImVec2 notch(mousePos.x + 3.8f * s, mousePos.y + 10.0f * s);
 
-        // 8. Precision Reticle Crosshair Ticks on Hover
-        if (m_hoverAnim > 0.05f) {
-            float tickInner = ringRadius + 2.0f;
-            float tickOuter = ringRadius + 4.5f * m_hoverAnim;
-            u32 tickCol = pal.Accent.WithAlpha(m_hoverAnim * 0.85f).ToU32();
+            u32 outCol = IM_COL32(0, 0, 0, static_cast<int>(arrowAlpha * 220.0f));
+            u32 fillFacetL = pal.Accent.WithAlpha(arrowAlpha * 0.95f).ToU32();
+            u32 fillFacetR = IM_COL32(24, 28, 40, static_cast<int>(arrowAlpha * 230.0f));
+            u32 borderCol = IM_COL32(255, 255, 255, static_cast<int>(arrowAlpha * 200.0f));
 
-            draw->AddLine(ImVec2(mousePos.x, mousePos.y - tickOuter), ImVec2(mousePos.x, mousePos.y - tickInner), tickCol, 1.0f);
-            draw->AddLine(ImVec2(mousePos.x, mousePos.y + tickInner), ImVec2(mousePos.x, mousePos.y + tickOuter), tickCol, 1.0f);
-            draw->AddLine(ImVec2(mousePos.x - tickOuter, mousePos.y), ImVec2(mousePos.x - tickInner, mousePos.y), tickCol, 1.0f);
-            draw->AddLine(ImVec2(mousePos.x + tickInner, mousePos.y), ImVec2(mousePos.x + tickOuter, mousePos.y), tickCol, 1.0f);
+            // Shadow
+            ImVec2 shOff(1.0f, 1.5f);
+            draw->AddTriangleFilled(ImVec2(tip.x + shOff.x, tip.y + shOff.y),
+                                    ImVec2(left.x + shOff.x, left.y + shOff.y),
+                                    ImVec2(notch.x + shOff.x, notch.y + shOff.y), IM_COL32(0, 0, 0, 100));
+            draw->AddTriangleFilled(ImVec2(tip.x + shOff.x, tip.y + shOff.y),
+                                    ImVec2(notch.x + shOff.x, notch.y + shOff.y),
+                                    ImVec2(right.x + shOff.x, right.y + shOff.y), IM_COL32(0, 0, 0, 100));
+
+            // Dual facet fill
+            draw->AddTriangleFilled(tip, left, notch, fillFacetL);
+            draw->AddTriangleFilled(tip, notch, right, fillFacetR);
+
+            // Specular perimeter border
+            draw->AddLine(tip, left, borderCol, 1.2f);
+            draw->AddLine(left, notch, borderCol, 1.0f);
+            draw->AddLine(notch, right, borderCol, 1.0f);
+            draw->AddLine(right, tip, borderCol, 1.2f);
+
+            // Razor-sharp tip dot
+            draw->AddCircleFilled(tip, 1.4f, IM_COL32(255, 255, 255, static_cast<int>(arrowAlpha * 255.0f)), 8);
         }
 
-        // 9. Ultra-Sharp Core Star Dot
-        draw->AddCircleFilled(mousePos, 1.8f, IM_COL32(255, 255, 255, 255), 16);
+        // 8. Tactical Precision Crosshair Reticle (Morphs in on Hovering Interactive Elements)
+        if (m_hoverAnim > 0.01f) {
+            float ringRadius = 4.2f + 1.2f * m_hoverAnim - 0.8f * m_clickAnim;
+            u32 ringCol = pal.Accent.WithAlpha(m_hoverAnim * 0.90f).ToU32();
+            draw->AddCircle(mousePos, ringRadius, ringCol, 20, 1.2f);
+
+            // 4-Axis Precision Reticle Ticks
+            float tickInner = ringRadius + 2.0f;
+            float tickOuter = ringRadius + 4.8f * m_hoverAnim;
+            u32 tickCol = pal.Accent.WithAlpha(m_hoverAnim * 0.95f).ToU32();
+
+            draw->AddLine(ImVec2(mousePos.x, mousePos.y - tickOuter), ImVec2(mousePos.x, mousePos.y - tickInner), tickCol, 1.2f);
+            draw->AddLine(ImVec2(mousePos.x, mousePos.y + tickInner), ImVec2(mousePos.x, mousePos.y + tickOuter), tickCol, 1.2f);
+            draw->AddLine(ImVec2(mousePos.x - tickOuter, mousePos.y), ImVec2(mousePos.x - tickInner, mousePos.y), tickCol, 1.2f);
+            draw->AddLine(ImVec2(mousePos.x + tickInner, mousePos.y), ImVec2(mousePos.x + tickOuter, mousePos.y), tickCol, 1.2f);
+
+            // Central laser star core
+            draw->AddCircleFilled(mousePos, 1.6f, IM_COL32(255, 255, 255, static_cast<int>(m_hoverAnim * 255.0f)), 12);
+        }
     }
 
 } // namespace Solar::UI

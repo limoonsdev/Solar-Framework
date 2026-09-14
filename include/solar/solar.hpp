@@ -100,6 +100,8 @@
 #include "widgets/stat_card.hpp"
 #include "widgets/performance_graph.hpp"
 #include "widgets/radar.hpp"
+#include "widgets/radial_gauge.hpp"
+#include "widgets/chip_selector.hpp"
 
 // ==============================================================================
 // 8. Game, Visuals & ESP Components

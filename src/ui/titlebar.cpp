@@ -20,6 +20,18 @@ namespace Solar::UI {
         draw->AddRectFilled(startPos, endPos, pal.Header.ToU32(), sty.WindowRounding, ImDrawFlags_RoundCornersTop);
         draw->AddLine(ImVec2(startPos.x, endPos.y), ImVec2(endPos.x, endPos.y), pal.Border.ToU32(), 1.0f);
 
+        // Dedicated titlebar window dragging surface
+        float dragW = winWidth - (16.0f + 28.0f * 2.0f + 20.0f);
+        if (dragW > 60.0f) {
+            ImGui::SetCursorScreenPos(startPos);
+            ImGui::InvisibleButton("##TitlebarDragSurface", ImVec2(dragW, barHeight));
+            if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                ImVec2 delta = ImGui::GetIO().MouseDelta;
+                ImVec2 curPos = ImGui::GetWindowPos();
+                ImGui::SetWindowPos(ImVec2(curPos.x + delta.x, curPos.y + delta.y));
+            }
+        }
+
         // Logo Sun Mark
         ImVec2 logoCenter(startPos.x + 28.0f, startPos.y + 26.0f);
         draw->AddCircleFilled(logoCenter, 7.5f, pal.Accent.ToU32(), 24);

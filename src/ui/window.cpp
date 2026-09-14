@@ -15,7 +15,8 @@ namespace Solar::UI {
                                | ImGuiWindowFlags_NoResize
                                | ImGuiWindowFlags_NoCollapse
                                | ImGuiWindowFlags_NoScrollbar
-                               | ImGuiWindowFlags_NoScrollWithMouse;
+                               | ImGuiWindowFlags_NoScrollWithMouse
+                               | ImGuiWindowFlags_NoMove;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);

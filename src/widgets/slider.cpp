@@ -59,7 +59,7 @@ namespace Solar::Widgets {
         ImVec2 trackMax(p.x + availX - 4.0f, trackY + trackH);
         float trackW = trackMax.x - trackMin.x;
 
-        ImRect hitBB(ImVec2(trackMin.x, trackMin.y - 8.0f), ImVec2(trackMax.x, trackMax.y + 8.0f));
+        ImRect hitBB(ImVec2(trackMin.x - 4.0f, p.y + 14.0f), ImVec2(trackMax.x + 4.0f, p.y + height));
         bool hovered, held;
         bool changed = false;
         ImGui::ButtonBehavior(hitBB, id, &hovered, &held);

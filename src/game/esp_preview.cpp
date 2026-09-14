@@ -49,10 +49,25 @@ namespace Solar::Game {
         float boxH = 205.0f;
         float crouchShift = 0.0f;
 
-        if (s.stance == 1) { // Crouching
+        if (s.stance == 0) { // Canonical T-Pose (Fortnite / Valorant Tactical Agent)
+            boxW = 145.0f;
+            boxH = 205.0f;
+            crouchShift = 0.0f;
+        } else if (s.stance == 1) { // Combat Stand
+            boxW = 100.0f;
+            boxH = 205.0f;
+            crouchShift = 0.0f;
+        } else if (s.stance == 2) { // Crouching
+            boxW = 105.0f;
             boxH = 155.0f;
             crouchShift = 25.0f;
-        } else if (s.stance == 3) { // Jumping
+        } else if (s.stance == 3) { // Scoped ADS
+            boxW = 100.0f;
+            boxH = 205.0f;
+            crouchShift = 0.0f;
+        } else if (s.stance == 4) { // Jumping
+            boxW = 100.0f;
+            boxH = 205.0f;
             crouchShift = -18.0f;
         }
 
@@ -124,7 +139,7 @@ namespace Solar::Game {
             VisualsRenderer::DrawSnapline(draw, ImVec2(center.x, boxMax.y), SnaplineOrigin::ScreenBottom, boxColor, 1.4f, false);
         }
 
-        // 9. Volumetric 3D Skeleton
+        // 9. Valorant / Fortnite Stylized Tactical Agent Mesh & Volumetric Skeleton
         if (s.enableSkeleton) {
             float headY = -boxH * 0.5f + 20.0f + crouchShift;
             float neckY = headY + 16.0f;
@@ -136,25 +151,105 @@ namespace Solar::Game {
             ImVec2 spine = Project3D(0, spineY, 0);
             ImVec2 pelvis = Project3D(0, pelvisY, 0);
 
-            float shoulderW = (s.stance == 2) ? 18.0f : 24.0f;
-            ImVec2 lShoulder = Project3D(-shoulderW, neckY + 6.0f, 0);
-            ImVec2 rShoulder = Project3D(shoulderW, neckY + 6.0f, 0);
-
-            float armZ = (s.stance == 2) ? 18.0f : 8.0f;
-            ImVec2 lElbow = Project3D(-28.0f, neckY + 38.0f, armZ);
-            ImVec2 rElbow = Project3D(28.0f, neckY + 38.0f, armZ);
-            ImVec2 lHand = Project3D(-14.0f, neckY + 62.0f, armZ + 12.0f);
-            ImVec2 rHand = Project3D(18.0f, neckY + 62.0f, armZ + 12.0f);
-
-            float kneeY = pelvisY + ((s.stance == 1) ? 22.0f : 42.0f);
+            float shoulderW = 24.0f;
+            ImVec2 lShoulder, rShoulder, lElbow, rElbow, lHand, rHand;
+            float legSpread = (s.stance == 2) ? 22.0f : 14.0f;
+            float kneeY = pelvisY + ((s.stance == 2) ? 22.0f : 42.0f);
             float footY = floorY - 6.0f;
-            float legSpread = (s.stance == 1) ? 22.0f : 16.0f;
 
-            ImVec2 lKnee = Project3D(-legSpread, kneeY, 0);
-            ImVec2 rKnee = Project3D(legSpread, kneeY, 0);
-            ImVec2 lFoot = Project3D(-legSpread - 2.0f, footY, 0);
-            ImVec2 rFoot = Project3D(legSpread + 2.0f, footY, 0);
+            if (s.stance == 0) {
+                // Canonical T-Pose (Valorant / Fortnite 90-degree horizontal arms, straight posture)
+                shoulderW = 22.0f;
+                lShoulder = Project3D(-shoulderW, neckY + 4.0f, 0.0f);
+                rShoulder = Project3D(shoulderW, neckY + 4.0f, 0.0f);
+                lElbow    = Project3D(-48.0f, neckY + 4.0f, 0.0f);
+                rElbow    = Project3D(48.0f, neckY + 4.0f, 0.0f);
+                lHand     = Project3D(-74.0f, neckY + 4.0f, 0.0f);
+                rHand     = Project3D(74.0f, neckY + 4.0f, 0.0f);
+                legSpread = 12.0f;
+            } else if (s.stance == 3) { // Scoped ADS
+                shoulderW = 18.0f;
+                lShoulder = Project3D(-shoulderW, neckY + 6.0f, 0.0f);
+                rShoulder = Project3D(shoulderW, neckY + 6.0f, 0.0f);
+                lElbow    = Project3D(-24.0f, neckY + 34.0f, 18.0f);
+                rElbow    = Project3D(24.0f, neckY + 34.0f, 18.0f);
+                lHand     = Project3D(-10.0f, neckY + 46.0f, 32.0f);
+                rHand     = Project3D(14.0f, neckY + 46.0f, 32.0f);
+            } else { // Stand, Crouch, Jump
+                lShoulder = Project3D(-shoulderW, neckY + 6.0f, 0.0f);
+                rShoulder = Project3D(shoulderW, neckY + 6.0f, 0.0f);
+                float armZ = (s.stance == 2) ? 14.0f : 8.0f;
+                lElbow    = Project3D(-28.0f, neckY + 38.0f, armZ);
+                rElbow    = Project3D(28.0f, neckY + 38.0f, armZ);
+                lHand     = Project3D(-14.0f, neckY + 62.0f, armZ + 12.0f);
+                rHand     = Project3D(18.0f, neckY + 62.0f, armZ + 12.0f);
+            }
 
+            ImVec2 lKnee = Project3D(-legSpread, kneeY, 0.0f);
+            ImVec2 rKnee = Project3D(legSpread, kneeY, 0.0f);
+            ImVec2 lFoot = Project3D(-legSpread - 2.0f, footY, 0.0f);
+            ImVec2 rFoot = Project3D(legSpread + 2.0f, footY, 0.0f);
+
+            // =========================================================================
+            // A. TACTICAL AGENT MESH SILHOUETTE (Valorant / Fortnite Style Armor)
+            // =========================================================================
+            u32 armorFill = IM_COL32(18, 22, 32, 190);
+            u32 armorBorder = pal.Accent.WithAlpha(0.40f).ToU32();
+            u32 plateFill = IM_COL32(28, 33, 48, 210);
+
+            // 1. Tactical Torso Vest & Chest Armor Plate
+            ImVec2 vestTL = Project3D(-17.0f, neckY + 3.0f, 4.0f);
+            ImVec2 vestTR = Project3D(17.0f, neckY + 3.0f, 4.0f);
+            ImVec2 vestBR = Project3D(13.0f, pelvisY - 4.0f, 3.0f);
+            ImVec2 vestBL = Project3D(-13.0f, pelvisY - 4.0f, 3.0f);
+            draw->AddQuadFilled(vestTL, vestTR, vestBR, vestBL, armorFill);
+            draw->AddQuad(vestTL, vestTR, vestBR, vestBL, armorBorder, 1.0f);
+
+            // Center Chevron Accent on Vest
+            ImVec2 chevA = Project3D(-8.0f, neckY + 14.0f, 6.0f);
+            ImVec2 chevB = Project3D(0.0f, neckY + 23.0f, 7.0f);
+            ImVec2 chevC = Project3D(8.0f, neckY + 14.0f, 6.0f);
+            draw->AddLine(chevA, chevB, pal.Accent.WithAlpha(0.85f).ToU32(), 1.5f);
+            draw->AddLine(chevB, chevC, pal.Accent.WithAlpha(0.85f).ToU32(), 1.5f);
+
+            // 2. Tactical Shoulder Pauldrons
+            ImVec2 pL1 = Project3D(-shoulderW - 4.0f, neckY + 2.0f, 2.0f);
+            ImVec2 pL2 = Project3D(-shoulderW + 3.0f, neckY + 2.0f, 2.0f);
+            ImVec2 pL3 = Project3D(-shoulderW + 1.0f, neckY + 14.0f, 2.0f);
+            ImVec2 pL4 = Project3D(-shoulderW - 6.0f, neckY + 12.0f, 2.0f);
+            draw->AddQuadFilled(pL1, pL2, pL3, pL4, plateFill);
+            draw->AddQuad(pL1, pL2, pL3, pL4, armorBorder, 1.0f);
+
+            ImVec2 pR1 = Project3D(shoulderW - 3.0f, neckY + 2.0f, 2.0f);
+            ImVec2 pR2 = Project3D(shoulderW + 4.0f, neckY + 2.0f, 2.0f);
+            ImVec2 pR3 = Project3D(shoulderW + 6.0f, neckY + 12.0f, 2.0f);
+            ImVec2 pR4 = Project3D(shoulderW - 1.0f, neckY + 14.0f, 2.0f);
+            draw->AddQuadFilled(pR1, pR2, pR3, pR4, plateFill);
+            draw->AddQuad(pR1, pR2, pR3, pR4, armorBorder, 1.0f);
+
+            // 3. Tactical Utility Belt with Pouches at Pelvis
+            ImVec2 beltL = Project3D(-14.0f, pelvisY - 3.0f, 3.0f);
+            ImVec2 beltR = Project3D(14.0f, pelvisY - 3.0f, 3.0f);
+            draw->AddLine(beltL, beltR, IM_COL32(35, 42, 58, 255), 4.5f);
+            draw->AddLine(beltL, beltR, pal.Accent.WithAlpha(0.50f).ToU32(), 1.2f);
+            ImVec2 pouchA = Project3D(-6.0f, pelvisY + 1.0f, 4.0f);
+            ImVec2 pouchB = Project3D(6.0f, pelvisY + 1.0f, 4.0f);
+            draw->AddRectFilled(ImVec2(pouchA.x - 3.0f, pouchA.y - 3.0f), ImVec2(pouchA.x + 3.0f, pouchA.y + 4.0f), plateFill, 2.0f);
+            draw->AddRectFilled(ImVec2(pouchB.x - 3.0f, pouchB.y - 3.0f), ImVec2(pouchB.x + 3.0f, pouchB.y + 4.0f), plateFill, 2.0f);
+
+            // 4. Tactical Combat Boots at Feet
+            ImVec2 bootL_T = Project3D(-legSpread - 2.0f, footY - 10.0f, 0.0f);
+            ImVec2 bootL_B = Project3D(-legSpread - 2.0f, footY, 3.0f);
+            ImVec2 bootR_T = Project3D(legSpread + 2.0f, footY - 10.0f, 0.0f);
+            ImVec2 bootR_B = Project3D(legSpread + 2.0f, footY, 3.0f);
+            draw->AddLine(bootL_T, bootL_B, IM_COL32(24, 28, 40, 255), 5.5f);
+            draw->AddLine(bootL_T, bootL_B, pal.Accent.WithAlpha(0.60f).ToU32(), 1.2f);
+            draw->AddLine(bootR_T, bootR_B, IM_COL32(24, 28, 40, 255), 5.5f);
+            draw->AddLine(bootR_T, bootR_B, pal.Accent.WithAlpha(0.60f).ToU32(), 1.2f);
+
+            // =========================================================================
+            // B. VOLUMETRIC SKELETON RIG & GLOWING BONES
+            // =========================================================================
             std::vector<std::pair<ImVec2, ImVec2>> bones = {
                 { neck, spine }, { spine, pelvis },
                 { neck, lShoulder }, { neck, rShoulder },
@@ -164,30 +259,41 @@ namespace Solar::Game {
                 { lKnee, lFoot }, { rKnee, rFoot }
             };
 
-            // Render Volumetric Capsule Limbs
             for (const auto& bone : bones) {
-                // Outer shadow
-                draw->AddLine(bone.first, bone.second, IM_COL32(0, 0, 0, 200), 4.2f);
-                // Core volumetric limb
+                draw->AddLine(bone.first, bone.second, IM_COL32(0, 0, 0, 220), 4.2f);
                 draw->AddLine(bone.first, bone.second, skelColor.ToU32(), 2.4f);
-                // Spherical joint node
-                draw->AddCircleFilled(bone.first, 3.0f, IM_COL32(255, 255, 255, 220), 12);
+                draw->AddCircleFilled(bone.first, 3.0f, IM_COL32(255, 255, 255, 240), 12);
                 draw->AddCircle(bone.first, 3.0f, skelColor.ToU32(), 12, 1.0f);
             }
+            draw->AddCircleFilled(lFoot, 3.0f, IM_COL32(255, 255, 255, 240), 12);
+            draw->AddCircleFilled(rFoot, 3.0f, IM_COL32(255, 255, 255, 240), 12);
 
-            // Head Spherical Node with Visor
+            // 5. Stylized Head with Valorant Cyber Visor
             VisualsRenderer::DrawHeadCircle(draw, head, 11.5f, skelColor, Color(0.08f, 0.09f, 0.13f, 0.95f), true);
+            ImVec2 visorL = Project3D(-5.5f, headY + 1.0f, 9.0f);
+            ImVec2 visorR = Project3D(5.5f, headY + 1.0f, 9.0f);
+            draw->AddLine(visorL, visorR, pal.Accent.ToU32(), 2.2f);
+            draw->AddCircleFilled(visorL, 1.2f, IM_COL32(255, 255, 255, 255), 8);
+            draw->AddCircleFilled(visorR, 1.2f, IM_COL32(255, 255, 255, 255), 8);
 
-            // Weapon Vector in hands
-            ImVec2 barrelTip = Project3D(12.0f, neckY + 54.0f, armZ + 42.0f);
-            draw->AddLine(lHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
-            draw->AddLine(rHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
+            // 6. Weapon / Barrel Logic
+            if (s.stance == 0) {
+                // In T-Pose: Weapon slung diagonally across tactical back holster
+                ImVec2 slingTop = Project3D(-12.0f, neckY + 2.0f, -8.0f);
+                ImVec2 slingBot = Project3D(16.0f, pelvisY + 18.0f, -6.0f);
+                draw->AddLine(slingTop, slingBot, IM_COL32(140, 145, 160, 240), 3.5f);
+                draw->AddCircleFilled(slingTop, 2.0f, pal.Accent.ToU32(), 8);
+            } else {
+                // In Combat Stance: Weapon held forward in hands
+                ImVec2 barrelTip = Project3D(12.0f, neckY + 54.0f, 48.0f);
+                draw->AddLine(lHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
+                draw->AddLine(rHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
 
-            // Barrel Ray (Line of sight forward vector)
-            if (s.enableBarrelRay) {
-                ImVec2 rayEnd = Project3D(12.0f, neckY + 54.0f, armZ + 120.0f);
-                VisualsRenderer::DrawLineOfSightTracer(draw, barrelTip, rayEnd,
-                                                      pal.Accent.WithAlpha(0.85f), pal.Accent, 1.5f);
+                if (s.enableBarrelRay) {
+                    ImVec2 rayEnd = Project3D(12.0f, neckY + 54.0f, 125.0f);
+                    VisualsRenderer::DrawLineOfSightTracer(draw, barrelTip, rayEnd,
+                                                          pal.Accent.WithAlpha(0.85f), pal.Accent, 1.5f);
+                }
             }
         }
 
@@ -214,13 +320,16 @@ namespace Solar::Game {
             VisualsRenderer::DrawArmorBar(draw, boxMin, boxMax, s.armor, 100.0f, BarPosition::Left);
         }
 
-        // 12. Non-Overlapping HUD Flags
+        // 12. Non-Overlapping HUD Flags & Tags (Clean vertical spacing)
         if (s.enableName) {
-            VisualsRenderer::DrawNameTag(draw, ImVec2(center.x, boxMin.y - 18.0f), s.playerName,
+            VisualsRenderer::DrawNameTag(draw, ImVec2(center.x, boxMin.y - 12.0f), s.playerName,
                                          s.isFriendly ? Color(0.24f, 0.72f, 1.0f, 1.0f) : Color(1, 1, 1, 1));
         }
 
-        float bottomY = boxMax.y + 6.0f;
+        // Generous breathing room below the bounding box, never overlapping bottom borders
+        float bottomBarPad = (s.enableArmorBar ? 8.0f : 0.0f);
+        float bottomY = boxMax.y + 10.0f + bottomBarPad;
+
         if (s.enableWeapon) {
             std::string wName = s.weaponName;
             if (wName.find('[') != std::string::npos) {
@@ -228,20 +337,21 @@ namespace Solar::Game {
             } else {
                 VisualsRenderer::DrawWeaponTag(draw, ImVec2(center.x, bottomY), wName, 25, 75);
             }
-            bottomY += 15.0f;
+            bottomY += 16.0f;
         }
 
         if (s.enableDistance) {
             VisualsRenderer::DrawDistanceTag(draw, ImVec2(center.x, bottomY), s.distance);
         }
 
-        // 13. Stacked Badge Flags on Right
+        // 13. Stacked Badge Flags on Right (Starting from top-right down, never colliding with bottom text)
         std::vector<std::pair<std::string, Color>> flags;
-        if (s.stance == 2) flags.push_back({ "SCOPED", Color(0.25f, 0.72f, 1.0f, 1.0f) });
-        if (s.stance == 4) flags.push_back({ "DEFUSING", Color(1.0f, 0.25f, 0.25f, 1.0f) });
+        if (s.stance == 0) flags.push_back({ "T-POSE", pal.Accent });
+        else if (s.stance == 3) flags.push_back({ "SCOPED", Color(0.25f, 0.72f, 1.0f, 1.0f) });
+        else if (s.stance == 4) flags.push_back({ "JUMPING", Color(1.0f, 0.75f, 0.20f, 1.0f) });
         if (s.armor > 0.0f) flags.push_back({ "ARMOR", Color(0.35f, 0.85f, 0.40f, 1.0f) });
         flags.push_back({ "KIT", Color(0.85f, 0.40f, 0.95f, 1.0f) });
-        VisualsRenderer::DrawFlagTags(draw, boxMax, flags);
+        VisualsRenderer::DrawFlagTags(draw, boxMin, boxMax, flags);
 
         // 14. 3D Orbital HUD Guidance Overlay
         char orbitText[64];

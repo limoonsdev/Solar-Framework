@@ -226,6 +226,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Solar::DemoApp::Get().SetCurrentTab(2);
         } else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(3);
+            Solar::DemoApp::Get().SetWidgetsPage(1);
         } else if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(1);
         }
