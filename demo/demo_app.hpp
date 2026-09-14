@@ -12,6 +12,7 @@ namespace Solar {
 
         void Initialize();
         void Render();
+        void SetCurrentTab(int tab) { m_currentTab = tab; }
 
     private:
         DemoApp() = default;

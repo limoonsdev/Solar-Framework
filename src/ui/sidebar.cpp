@@ -2,6 +2,7 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -30,14 +31,15 @@ namespace Solar::UI {
     void Sidebar::Category(const char* label) {
         ImGui::SetCursorPosX(16.0f);
         const auto& pal = ThemeManager::Get().GetPalette();
+        auto lv = Render::CleanLabel(label);
         
         // Micro indicator dot
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImDrawList* draw = ImGui::GetWindowDrawList();
-        draw->AddCircleFilled(ImVec2(p.x - 4.0f, p.y + 7.0f), 1.8f, pal.Accent.WithAlpha(0.6f).ToU32(), 8);
+        draw->AddCircleFilled(ImVec2(p.x - 4.0f, p.y + 7.0f), 2.0f, pal.Accent.WithAlpha(0.7f).ToU32(), 8);
 
         ImGui::PushStyleColor(ImGuiCol_Text, pal.TextDisabled);
-        ImGui::TextUnformatted(label);
+        ImGui::TextUnformatted(lv.textBegin, lv.textEnd);
         ImGui::PopStyleColor();
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
     }
@@ -53,7 +55,9 @@ namespace Solar::UI {
         float itemWidth = g_sidebarWidth - 20.0f;
         float itemHeight = 36.0f;
 
-        ImGuiID imguiId = ImGui::GetID((std::string("##Tab_") + label).c_str());
+        auto lv = Render::CleanLabel(label);
+
+        ImGuiID imguiId = ImGui::GetID(label);
         ImVec2 p = ImGui::GetCursorScreenPos();
 
         bool clicked = ImGui::InvisibleButton(label, ImVec2(itemWidth, itemHeight));
@@ -95,9 +99,9 @@ namespace Solar::UI {
             draw->AddRectFilled(min, max, pal.CardHover.WithAlpha(0.50f).ToU32(), 6.0f);
         }
 
-        // Text & Icon Rendering
+        // Text & Icon Rendering without ## hash
         Color textCol = selected ? pal.TextPrimary : (hovered ? pal.TextPrimary : pal.TextSecondary);
-        float textOffsetX = p.x + 16.0f + (anim * 2.0f); // Subtle smooth sliding shift
+        float textOffsetX = p.x + 16.0f + (anim * 2.0f);
         float textOffsetY = p.y + (itemHeight - ImGui::GetTextLineHeight()) * 0.5f;
 
         if (icon) {
@@ -106,7 +110,7 @@ namespace Solar::UI {
             textOffsetX += 24.0f;
         }
 
-        draw->AddText(ImVec2(textOffsetX, textOffsetY), textCol.ToU32(), label);
+        draw->AddText(ImVec2(textOffsetX, textOffsetY), textCol.ToU32(), lv.textBegin, lv.textEnd);
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
         return clicked;

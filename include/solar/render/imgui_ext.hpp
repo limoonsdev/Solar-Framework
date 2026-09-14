@@ -7,6 +7,30 @@
 namespace Solar::Render {
 
     /**
+     * @brief Sanitized Label View (strips Dear ImGui '##' unique IDs from visual display)
+     */
+    struct LabelView {
+        const char* textBegin;
+        const char* textEnd;
+        ImVec2      size;
+    };
+
+    inline LabelView CleanLabel(const char* label) {
+        if (!label || label[0] == '\0') {
+            return { "", "", ImVec2(0.0f, 0.0f) };
+        }
+        const char* textEnd = label;
+        while (*textEnd != '\0') {
+            if (textEnd[0] == '#' && textEnd[1] == '#') {
+                break;
+            }
+            textEnd++;
+        }
+        ImVec2 size = ImGui::CalcTextSize(label, textEnd);
+        return { label, textEnd, size };
+    }
+
+    /**
      * @brief High-Performance Modded ImGui Drawlist Extensions
      * Provides pre-allocated vertex batching, custom gradient primitives,
      * and crash-safe drawing utilities.

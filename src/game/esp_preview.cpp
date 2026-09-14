@@ -2,6 +2,7 @@
 #include "solar/game/visuals_renderer.hpp"
 #include "solar/game/obb_renderer.hpp"
 #include "solar/theme/theme_manager.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include "solar/core/math.hpp"
 #include <imgui.h>
 #include <cmath>
@@ -33,26 +34,23 @@ namespace Solar::Game {
         if (isActive && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             s.orbitYaw += io.MouseDelta.x * 0.75f;
             s.orbitPitch += io.MouseDelta.y * 0.5f;
-            s.orbitPitch = (std::clamp)(s.orbitPitch, -45.0f, 45.0f);
+            s.orbitPitch = (std::clamp)(s.orbitPitch, -35.0f, 35.0f);
         }
 
-        // 2. Dark Obsidian Viewport Canvas
-        draw->AddRectFilled(pos, ImVec2(pos.x + sz.x, pos.y + sz.y), IM_COL32(10, 11, 15, 255), 6.0f);
+        // 2. Dark Obsidian Viewport Canvas with Inner Shadow
+        draw->AddRectFilled(pos, ImVec2(pos.x + sz.x, pos.y + sz.y), IM_COL32(9, 10, 14, 255), 8.0f);
         draw->AddRect(pos, ImVec2(pos.x + sz.x, pos.y + sz.y),
-                      isActive ? pal.Accent.ToU32() : IM_COL32(255, 255, 255, 18), 6.0f);
+                      isActive ? pal.Accent.ToU32() : (isHovered ? IM_COL32(255, 255, 255, 32) : IM_COL32(255, 255, 255, 14)), 8.0f, 0, 1.0f);
 
-        // Tactical range rings in backdrop
-        ImVec2 center(pos.x + sz.x * 0.5f, pos.y + sz.y * 0.52f);
-        draw->AddCircle(center, 95.0f, IM_COL32(255, 255, 255, 6), 36, 1.0f);
-        draw->AddCircle(center, 140.0f, IM_COL32(255, 255, 255, 5), 48, 1.0f);
+        ImVec2 center(pos.x + sz.x * 0.5f, pos.y + sz.y * 0.48f);
 
         // 3. Stance Height & Dimensions Configuration
-        float boxW = 105.0f;
-        float boxH = 210.0f;
+        float boxW = 100.0f;
+        float boxH = 205.0f;
         float crouchShift = 0.0f;
 
         if (s.stance == 1) { // Crouching
-            boxH = 160.0f;
+            boxH = 155.0f;
             crouchShift = 25.0f;
         } else if (s.stance == 3) { // Jumping
             crouchShift = -18.0f;
@@ -64,73 +62,98 @@ namespace Solar::Game {
         Color boxColor = s.isFriendly ? Color(0.24f, 0.72f, 1.0f, 1.0f) : Color(s.boxColor.x, s.boxColor.y, s.boxColor.z, s.boxColor.w);
         Color skelColor = s.isFriendly ? Color(0.6f, 0.9f, 1.0f, 0.85f) : Color(s.skeletonColor.x, s.skeletonColor.y, s.skeletonColor.z, s.skeletonColor.w);
 
-        // 4. Acoustic Wave Rings at Feet (Sound ESP)
+        // 4. 3D Projector with Euler Yaw & Pitch
+        float radYaw = s.orbitYaw * DEG2RAD;
+        float radPitch = s.orbitPitch * DEG2RAD;
+        float cosY = std::cos(radYaw), sinY = std::sin(radYaw);
+        float cosP = std::cos(radPitch), sinP = std::sin(radPitch);
+
+        auto Project3D = [&](float lx, float ly, float lz) -> ImVec2 {
+            // Rotate Yaw (around Y axis)
+            float rx = lx * cosY + lz * sinY;
+            float rz = -lx * sinY + lz * cosY;
+            // Rotate Pitch (around X axis)
+            float ry = ly * cosP - rz * sinP;
+            float rzFinal = ly * sinP + rz * cosP;
+            // Perspective Projection
+            float scale = 340.0f / (340.0f + rzFinal);
+            return ImVec2(center.x + rx * scale, center.y + ry * scale);
+        };
+
+        // 5. 3D Perspective Floor Grid
+        float floorY = boxH * 0.5f + crouchShift + 6.0f;
+        for (int gx = -3; gx <= 3; ++gx) {
+            float lx = static_cast<float>(gx) * 26.0f;
+            ImVec2 gP1 = Project3D(lx, floorY, -75.0f);
+            ImVec2 gP2 = Project3D(lx, floorY, 75.0f);
+            draw->AddLine(gP1, gP2, IM_COL32(255, 255, 255, (gx == 0) ? 35 : 16), 1.0f);
+        }
+        for (int gz = -2; gz <= 2; ++gz) {
+            float lz = static_cast<float>(gz) * 35.0f;
+            ImVec2 gP1 = Project3D(-78.0f, floorY, lz);
+            ImVec2 gP2 = Project3D(78.0f, floorY, lz);
+            float alphaFade = (std::clamp)(1.0f - (lz + 75.0f) / 150.0f, 0.2f, 1.0f);
+            draw->AddLine(gP1, gP2, IM_COL32(255, 255, 255, static_cast<int>(24 * alphaFade)), 1.0f);
+        }
+
+        // 6. Acoustic Wave Rings at Feet (Sound ESP)
         if (s.enableAcousticWaves) {
             float wavePulse = std::fmod(timeSec * 45.0f, 75.0f);
             float waveAlpha = (1.0f - wavePulse / 75.0f);
-            VisualsRenderer::DrawAcousticWave(draw, ImVec2(center.x, boxMax.y), wavePulse, wavePulse * 0.35f, 0.0f,
+            ImVec2 feetPos = Project3D(0.0f, floorY, 0.0f);
+            VisualsRenderer::DrawAcousticWave(draw, feetPos, wavePulse, wavePulse * 0.35f, 0.0f,
                                               pal.Accent.WithAlpha(waveAlpha * 0.8f), 1.5f);
         }
 
-        // 5. 3D Oriented Bounding Box (OBB)
+        // 7. 3D Oriented Bounding Box (OBB)
         if (s.enable3DBox) {
             OBB3D obb;
             obb.screenCenter = ImVec2(center.x, center.y + crouchShift);
             obb.width = boxW;
             obb.height = boxH;
-            obb.depth = boxW * 0.7f;
+            obb.depth = boxW * 0.65f;
             obb.yawDeg = s.orbitYaw;
             obb.pitchDeg = s.orbitPitch;
             obb.rollDeg = 0.0f;
 
-            OBBRenderer::Render(draw, obb, boxColor, boxColor.WithAlpha(0.12f), 1.5f, true);
+            OBBRenderer::Render(draw, obb, boxColor, boxColor.WithAlpha(0.10f), 1.5f, true);
         }
 
-        // 6. Targeting Snapline
+        // 8. Targeting Snapline
         if (s.enableSnapline) {
             VisualsRenderer::DrawSnapline(draw, ImVec2(center.x, boxMax.y), SnaplineOrigin::ScreenBottom, boxColor, 1.4f, false);
         }
 
-        // 7. 3D Rotational Skeleton Transform
-        float radY = s.orbitYaw * DEG2RAD;
-        float cosY = std::cos(radY), sinY = std::sin(radY);
-
-        auto RotatePt = [&](float lx, float ly, float lz) -> ImVec2 {
-            float rx = lx * cosY + lz * sinY;
-            float rz = -lx * sinY + lz * cosY;
-            float scale = 320.0f / (320.0f + rz);
-            return ImVec2(center.x + rx * scale, center.y + (ly + crouchShift) * scale);
-        };
-
+        // 9. Volumetric 3D Skeleton
         if (s.enableSkeleton) {
-            float headY = -boxH * 0.5f + 20.0f;
+            float headY = -boxH * 0.5f + 20.0f + crouchShift;
             float neckY = headY + 16.0f;
             float spineY = neckY + 45.0f;
             float pelvisY = spineY + 30.0f;
 
-            ImVec2 head = RotatePt(0, headY, 0);
-            ImVec2 neck = RotatePt(0, neckY, 0);
-            ImVec2 spine = RotatePt(0, spineY, 0);
-            ImVec2 pelvis = RotatePt(0, pelvisY, 0);
+            ImVec2 head = Project3D(0, headY, 0);
+            ImVec2 neck = Project3D(0, neckY, 0);
+            ImVec2 spine = Project3D(0, spineY, 0);
+            ImVec2 pelvis = Project3D(0, pelvisY, 0);
 
-            float shoulderW = (s.stance == 2) ? 18.0f : 24.0f; // Scoped narrower shoulders
-            ImVec2 lShoulder = RotatePt(-shoulderW, neckY + 6.0f, 0);
-            ImVec2 rShoulder = RotatePt(shoulderW, neckY + 6.0f, 0);
+            float shoulderW = (s.stance == 2) ? 18.0f : 24.0f;
+            ImVec2 lShoulder = Project3D(-shoulderW, neckY + 6.0f, 0);
+            ImVec2 rShoulder = Project3D(shoulderW, neckY + 6.0f, 0);
 
             float armZ = (s.stance == 2) ? 18.0f : 8.0f;
-            ImVec2 lElbow = RotatePt(-28.0f, neckY + 38.0f, armZ);
-            ImVec2 rElbow = RotatePt(28.0f, neckY + 38.0f, armZ);
-            ImVec2 lHand = RotatePt(-14.0f, neckY + 62.0f, armZ + 12.0f);
-            ImVec2 rHand = RotatePt(18.0f, neckY + 62.0f, armZ + 12.0f);
+            ImVec2 lElbow = Project3D(-28.0f, neckY + 38.0f, armZ);
+            ImVec2 rElbow = Project3D(28.0f, neckY + 38.0f, armZ);
+            ImVec2 lHand = Project3D(-14.0f, neckY + 62.0f, armZ + 12.0f);
+            ImVec2 rHand = Project3D(18.0f, neckY + 62.0f, armZ + 12.0f);
 
             float kneeY = pelvisY + ((s.stance == 1) ? 22.0f : 42.0f);
-            float footY = boxH * 0.5f - 4.0f;
+            float footY = floorY - 6.0f;
             float legSpread = (s.stance == 1) ? 22.0f : 16.0f;
 
-            ImVec2 lKnee = RotatePt(-legSpread, kneeY, 0);
-            ImVec2 rKnee = RotatePt(legSpread, kneeY, 0);
-            ImVec2 lFoot = RotatePt(-legSpread - 2.0f, footY, 0);
-            ImVec2 rFoot = RotatePt(legSpread + 2.0f, footY, 0);
+            ImVec2 lKnee = Project3D(-legSpread, kneeY, 0);
+            ImVec2 rKnee = Project3D(legSpread, kneeY, 0);
+            ImVec2 lFoot = Project3D(-legSpread - 2.0f, footY, 0);
+            ImVec2 rFoot = Project3D(legSpread + 2.0f, footY, 0);
 
             std::vector<std::pair<ImVec2, ImVec2>> bones = {
                 { neck, spine }, { spine, pelvis },
@@ -141,23 +164,34 @@ namespace Solar::Game {
                 { lKnee, lFoot }, { rKnee, rFoot }
             };
 
-            VisualsRenderer::DrawHeadCircle(draw, head, 11.0f, skelColor, Color(0, 0, 0, 0.9f), true);
-            VisualsRenderer::DrawSkeleton(draw, bones, skelColor, 1.8f, true, Color(1, 1, 1, 0.95f));
+            // Render Volumetric Capsule Limbs
+            for (const auto& bone : bones) {
+                // Outer shadow
+                draw->AddLine(bone.first, bone.second, IM_COL32(0, 0, 0, 200), 4.2f);
+                // Core volumetric limb
+                draw->AddLine(bone.first, bone.second, skelColor.ToU32(), 2.4f);
+                // Spherical joint node
+                draw->AddCircleFilled(bone.first, 3.0f, IM_COL32(255, 255, 255, 220), 12);
+                draw->AddCircle(bone.first, 3.0f, skelColor.ToU32(), 12, 1.0f);
+            }
+
+            // Head Spherical Node with Visor
+            VisualsRenderer::DrawHeadCircle(draw, head, 11.5f, skelColor, Color(0.08f, 0.09f, 0.13f, 0.95f), true);
 
             // Weapon Vector in hands
-            ImVec2 barrelTip = RotatePt(12.0f, neckY + 54.0f, armZ + 42.0f);
-            draw->AddLine(lHand, barrelTip, IM_COL32(200, 200, 215, 220), 2.8f);
-            draw->AddLine(rHand, barrelTip, IM_COL32(200, 200, 215, 220), 2.8f);
+            ImVec2 barrelTip = Project3D(12.0f, neckY + 54.0f, armZ + 42.0f);
+            draw->AddLine(lHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
+            draw->AddLine(rHand, barrelTip, IM_COL32(190, 195, 210, 240), 2.8f);
 
             // Barrel Ray (Line of sight forward vector)
             if (s.enableBarrelRay) {
-                ImVec2 rayEnd = RotatePt(12.0f, neckY + 54.0f, armZ + 120.0f);
+                ImVec2 rayEnd = Project3D(12.0f, neckY + 54.0f, armZ + 120.0f);
                 VisualsRenderer::DrawLineOfSightTracer(draw, barrelTip, rayEnd,
                                                       pal.Accent.WithAlpha(0.85f), pal.Accent, 1.5f);
             }
         }
 
-        // 8. 2D Bounding Boxes (Standard or Visuals 2.0 Glow/Gradient)
+        // 10. 2D Bounding Boxes
         if (s.enableBox && !s.enable3DBox) {
             if (s.enableGlowOutline) {
                 VisualsRenderer::DrawGlowOutlineBox2D(draw, boxMin, boxMax, boxColor, pal.Accent, 10.0f, 1.5f);
@@ -172,7 +206,7 @@ namespace Solar::Game {
             }
         }
 
-        // 9. Status Bars (Health & Armor)
+        // 11. Status Bars (Health & Armor) on Left
         if (s.enableHealthBar) {
             VisualsRenderer::DrawHealthBar(draw, boxMin, boxMax, s.health, 100.0f, BarPosition::Left, true, true);
         }
@@ -180,19 +214,28 @@ namespace Solar::Game {
             VisualsRenderer::DrawArmorBar(draw, boxMin, boxMax, s.armor, 100.0f, BarPosition::Left);
         }
 
-        // 10. Typography Elements
+        // 12. Non-Overlapping HUD Flags
         if (s.enableName) {
-            VisualsRenderer::DrawNameTag(draw, ImVec2(center.x, boxMin.y - 4.0f), s.playerName,
+            VisualsRenderer::DrawNameTag(draw, ImVec2(center.x, boxMin.y - 18.0f), s.playerName,
                                          s.isFriendly ? Color(0.24f, 0.72f, 1.0f, 1.0f) : Color(1, 1, 1, 1));
         }
+
+        float bottomY = boxMax.y + 6.0f;
         if (s.enableWeapon) {
-            VisualsRenderer::DrawWeaponTag(draw, ImVec2(center.x, boxMax.y + 8.0f), s.weaponName, 25, 75);
-        }
-        if (s.enableDistance) {
-            VisualsRenderer::DrawDistanceTag(draw, ImVec2(center.x, boxMax.y + 24.0f), s.distance);
+            std::string wName = s.weaponName;
+            if (wName.find('[') != std::string::npos) {
+                VisualsRenderer::DrawWeaponTag(draw, ImVec2(center.x, bottomY), wName, -1, -1);
+            } else {
+                VisualsRenderer::DrawWeaponTag(draw, ImVec2(center.x, bottomY), wName, 25, 75);
+            }
+            bottomY += 15.0f;
         }
 
-        // 11. Stacked Badge Flags
+        if (s.enableDistance) {
+            VisualsRenderer::DrawDistanceTag(draw, ImVec2(center.x, bottomY), s.distance);
+        }
+
+        // 13. Stacked Badge Flags on Right
         std::vector<std::pair<std::string, Color>> flags;
         if (s.stance == 2) flags.push_back({ "SCOPED", Color(0.25f, 0.72f, 1.0f, 1.0f) });
         if (s.stance == 4) flags.push_back({ "DEFUSING", Color(1.0f, 0.25f, 0.25f, 1.0f) });
@@ -200,12 +243,12 @@ namespace Solar::Game {
         flags.push_back({ "KIT", Color(0.85f, 0.40f, 0.95f, 1.0f) });
         VisualsRenderer::DrawFlagTags(draw, boxMax, flags);
 
-        // 12. 3D Orbital HUD Guidance Overlay
+        // 14. 3D Orbital HUD Guidance Overlay
         char orbitText[64];
-        snprintf(orbitText, sizeof(orbitText), "Drag to Orbit: Yaw %.0f deg | Pitch %.0f deg", s.orbitYaw, s.orbitPitch);
+        snprintf(orbitText, sizeof(orbitText), "360 Orbit: Yaw %.0f deg | Pitch %.0f deg", s.orbitYaw, s.orbitPitch);
         ImVec2 ts = ImGui::CalcTextSize(orbitText);
-        draw->AddText(ImVec2(pos.x + 8.0f, pos.y + sz.y - ts.y - 6.0f),
-                      isHovered ? pal.Accent.ToU32() : IM_COL32(255, 255, 255, 100), orbitText);
+        draw->AddText(ImVec2(pos.x + 10.0f, pos.y + sz.y - ts.y - 8.0f),
+                      isHovered ? pal.Accent.ToU32() : IM_COL32(255, 255, 255, 120), orbitText);
 
         ImGui::EndChild();
     }

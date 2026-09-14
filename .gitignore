@@ -58,3 +58,5 @@ scratch/
 .DS_Store
 Thumbs.db
 Desktop.ini
+*.ini
+imgui.ini

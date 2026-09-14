@@ -1,6 +1,7 @@
 #include "solar/widgets/dropdown_multi.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <string>
@@ -28,9 +29,10 @@ namespace Solar::Widgets {
         ImGuiID id = window->GetID(label);
         std::string popupId = std::string("##popup_") + label;
 
-        // Label above
-        if (label && label[0] != '#' && label[1] != '#') {
-            ImGui::TextColored(pal.TextSecondary, "%s", label);
+        // Label above without ## hash
+        auto lv = Render::CleanLabel(label);
+        if (lv.size.x > 0.0f) {
+            ImGui::TextColored(pal.TextSecondary, "%.*s", (int)(lv.textEnd - lv.textBegin), lv.textBegin);
             pos = ImGui::GetCursorScreenPos();
         }
 
