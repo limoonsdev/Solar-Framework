@@ -106,6 +106,7 @@
 #include "game/esp_preview.hpp"
 #include "game/hitbox_picker.hpp"
 #include "game/radar.hpp"
+#include "game/radar_window.hpp"
 #include "game/spectator_list.hpp"
 #include "game/keybind_list.hpp"
 #include "game/watermark.hpp"
@@ -247,6 +248,10 @@ namespace Solar {
 
         inline void KeybindList(bool* p_open, const std::vector<std::pair<std::string, std::string>>& binds) {
             Game::KeybindList::Render(p_open, binds);
+        }
+
+        inline void RadarWindow(bool* p_open, const Widgets::RadarSettings& settings, const std::vector<Widgets::RadarEntity>& entities) {
+            Game::RadarWindow::Render(p_open, settings, entities);
         }
 
         inline void LicenseScreen(char* keyBuf, size_t bufSize, const char* hwid, bool* rememberMe, bool* loggedIn) {

@@ -47,6 +47,7 @@ set(SOLAR_SOURCES
     "src/game/keybind_list.cpp"
     "src/game/obb_renderer.cpp"
     "src/game/radar.cpp"
+    "src/game/radar_window.cpp"
     "src/game/recoil_visualizer.cpp"
     "src/game/spectator_list.cpp"
     "src/game/trajectory_renderer.cpp"

@@ -50,8 +50,10 @@ namespace Solar::UI {
 
             ImVec2 iconSize = ImGui::CalcTextSize(icon);
             if (iconSize.x > 2.0f) {
-                draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
-                              pal.Accent.ToU32(), icon);
+                // Optical compensation for FontAwesome font metrics
+                float optY = iconBoxMin.y + (26.0f - iconSize.y) * 0.5f - 0.5f;
+                float optX = iconBoxMin.x + (26.0f - iconSize.x) * 0.5f;
+                draw->AddText(ImVec2(optX, optY), pal.Accent.ToU32(), icon);
             } else {
                 Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(iconBoxMin.x + 13.0f, iconBoxMin.y + 13.0f), 14.0f, pal.Accent);
             }

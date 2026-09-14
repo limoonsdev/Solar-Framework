@@ -110,10 +110,11 @@ namespace Solar::UI {
             u32 iconCol = selected ? pal.Accent.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
             ImVec2 sz = ImGui::CalcTextSize(icon);
             if (sz.x > 2.0f) {
-                draw->AddText(ImVec2(textOffsetX, textOffsetY), iconCol, icon);
+                // Optical vertical alignment for FontAwesome icon glyph
+                draw->AddText(ImVec2(textOffsetX, textOffsetY - 0.75f), iconCol, icon);
             } else {
                 Color c = selected ? pal.Accent : (hovered ? pal.TextPrimary : pal.TextSecondary);
-                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(textOffsetX + 7.0f, textOffsetY + 7.0f), 13.0f, c);
+                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(textOffsetX + 7.0f, textOffsetY + 6.5f), 13.0f, c);
             }
             textOffsetX += 24.0f;
         }

@@ -130,6 +130,7 @@ namespace Solar {
         bool m_showWatermark = true;
         bool m_showSpectators = true;
         bool m_showKeybinds = true;
+        bool m_showRadarWindow = true;
         bool m_showProfiler = false;
 
         // Spoofer state

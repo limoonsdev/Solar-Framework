@@ -43,19 +43,26 @@ namespace Solar::Widgets {
         ImDrawList* draw = window->DrawList;
         const auto& pal = ThemeManager::Get().GetPalette();
 
-        // Label without ## hash
-        ImVec2 textPos(p.x, p.y + (height - lv.size.y) * 0.5f);
-        draw->AddText(textPos, pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
+        // Optical alignment & vertical centering
+        float centerY = p.y + totalH * 0.5f;
+        ImVec2 switchPos(p.x + availX - width - 2.0f, centerY - height * 0.5f);
+        ImVec2 switchEnd(switchPos.x + width, switchPos.y + height);
 
         if (description) {
-            ImVec2 descPos(p.x, p.y + height + 1.0f);
+            // Two-line layout: Title at top, description below
+            ImVec2 textPos(p.x, p.y + 2.0f);
+            draw->AddText(textPos, pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
+
+            ImVec2 descPos(p.x, p.y + lv.size.y + 4.0f);
             draw->AddText(descPos, pal.TextDisabled.ToU32(), description);
+        } else {
+            // Single-line layout: Exact vertical centerline alignment with switch
+            ImVec2 textPos(p.x, centerY - lv.size.y * 0.5f - 0.5f);
+            draw->AddText(textPos, pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
         }
 
         // Recessed Switch Track
         float rounding = height * 0.5f;
-        ImVec2 switchPos(p.x + availX - width - 2.0f, p.y + (totalH - height) * 0.5f);
-        ImVec2 switchEnd(switchPos.x + width, switchPos.y + height);
 
         Color offCol = Color::Lerp(Color(0.08f, 0.10f, 0.14f, 1.0f), Color(0.12f, 0.15f, 0.20f, 1.0f), hoverAnim);
         Color trackCol = Color::Lerp(offCol, pal.Accent, anim);

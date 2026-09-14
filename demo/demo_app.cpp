@@ -87,6 +87,10 @@ namespace Solar {
         m_espSettings.distance = 28.5f;
         m_espSettings.health = 85.0f;
         m_espSettings.armor = 60.0f;
+        m_showRadarWindow = true;
+        m_showSpectators = true;
+        m_showKeybinds = true;
+        m_showWatermark = true;
         PushNavHistory(0);
         ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
     }
@@ -112,9 +116,23 @@ namespace Solar {
             Watermark::Render(wm);
         }
 
-        // Floating HUD Windows: Spectators & Keybinds
+        // Floating HUD Windows: Tactical Radar, Spectators & Keybinds
+        const ImGuiIO& io = ImGui::GetIO();
+        if (m_showRadarWindow) {
+            static Widgets::RadarSettings winRadarSettings;
+            static std::vector<Widgets::RadarEntity> winRadarEntities = {
+                { 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f },
+                { -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f },
+                { -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f },
+                { 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f }
+            };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 250.0f, 380.0f), ImGuiCond_FirstUseEver);
+            Widgets::RadarWindow(&m_showRadarWindow, winRadarSettings, winRadarEntities);
+        }
+
         if (m_showSpectators) {
             std::vector<std::string> specs = { "spectator_bot1", "Admin_04" };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 230.0f, 48.0f), ImGuiCond_FirstUseEver);
             Widgets::SpectatorList(&m_showSpectators, specs);
         }
 
@@ -124,6 +142,7 @@ namespace Solar {
                 { "Triggerbot", "ALT [TOGGLE]" },
                 { "Thirdperson", "M4 [TOGGLE]" }
             };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 230.0f, 215.0f), ImGuiCond_FirstUseEver);
             Widgets::KeybindList(&m_showKeybinds, binds);
         }
 
@@ -749,6 +768,7 @@ namespace Solar {
                         ImGui::SameLine(0, 10.0f);
 
                         if (Widgets::BeginCard("##HUDCard", "HUD Elements & Windows", IconType::Bell, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                            Widgets::Toggle("Show External Radar Window", &m_showRadarWindow, "Floating square HUD box with tactical grid & sweep");
                             Widgets::Toggle("Show Watermark Overlay", &m_showWatermark);
                             Widgets::Toggle("Show Spectator List Window", &m_showSpectators);
                             Widgets::Toggle("Show Active Keybinds Window", &m_showKeybinds);

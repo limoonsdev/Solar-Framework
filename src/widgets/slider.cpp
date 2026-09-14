@@ -33,7 +33,7 @@ namespace Solar::Widgets {
         // Label on top without ## hash
         draw->AddText(p, pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
 
-        // Value text pill on top right
+        // Value text pill on top right (exact baseline alignment with label)
         char valBuf[64];
         if (suffix) {
             char fmtBuf[64];
@@ -43,13 +43,14 @@ namespace Solar::Widgets {
             snprintf(valBuf, sizeof(valBuf), format, *v);
         }
         ImVec2 valSize = ImGui::CalcTextSize(valBuf);
-        ImVec2 valPillMin(p.x + availX - valSize.x - 14.0f, p.y - 1.0f);
-        ImVec2 valPillMax(p.x + availX - 2.0f, p.y + valSize.y + 3.0f);
+        float pillH = valSize.y + 4.0f;
+        ImVec2 valPillMin(p.x + availX - valSize.x - 14.0f, p.y - 2.0f);
+        ImVec2 valPillMax(p.x + availX - 2.0f, p.y + pillH - 2.0f);
 
         // Value pill background
         draw->AddRectFilled(valPillMin, valPillMax, pal.CardHover.WithAlpha(0.70f).ToU32(), 4.0f);
         Render::ImGuiExt::AddSmoothBorder(draw, valPillMin, valPillMax, pal.Border.WithAlpha(0.60f).ToU32(), 4.0f, 1.0f);
-        draw->AddText(ImVec2(valPillMin.x + 6.0f, valPillMin.y + 2.0f), pal.Accent.ToU32(), valBuf);
+        draw->AddText(ImVec2(valPillMin.x + 6.0f, p.y), pal.Accent.ToU32(), valBuf);
 
         // Recessed track
         float trackY = p.y + 25.0f;
