@@ -19,6 +19,26 @@
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "shcore.lib")
+#pragma comment(lib, "dwmapi.lib")
+#include <dwmapi.h>
+
+struct ACCENT_POLICY { int State; int Flags; int Color; int AnimationId; };
+struct WINCOMPATTRDATA { int Attr; PVOID Data; ULONG Size; };
+typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
+
+static void EnableWindowAcrylicBlur(HWND hwnd) {
+    MARGINS margins = { -1, -1, -1, -1 };
+    DwmExtendFrameIntoClientArea(hwnd, &margins);
+
+    HMODULE hUser32 = GetModuleHandleA("user32.dll");
+    if (!hUser32) return;
+    auto fn = (pSetWindowCompositionAttribute)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
+    if (fn) {
+        ACCENT_POLICY accent = { 4, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_ACRYLICBLURBEHIND
+        WINCOMPATTRDATA data = { 19, &accent, sizeof(accent) };
+        fn(hwnd, &data);
+    }
+}
 
 static ID3D11Device*           g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -131,6 +151,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Windows 11 Dark Mode Titlebar & Mica/Dark framing
     BOOL darkMode = TRUE;
     ::DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
+    EnableWindowAcrylicBlur(hwnd);
 
     if (!CreateDeviceD3D(hwnd)) {
         CleanupDeviceD3D();
@@ -159,7 +180,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ImFontConfig fontConfig;
     fontConfig.OversampleH = 3;
     fontConfig.OversampleV = 3;
-    fontConfig.PixelSnapH = false;
+    fontConfig.PixelSnapH = true;
     fontConfig.RasterizerMultiply = 1.18f; // Crisp contrast, high readability
 
     float baseFontSize = 15.5f * dpiScale;

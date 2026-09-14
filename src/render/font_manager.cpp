@@ -18,7 +18,7 @@ namespace Solar::Render {
         ImFontConfig fontConfig;
         fontConfig.OversampleH = 3;
         fontConfig.OversampleV = 3;
-        fontConfig.PixelSnapH = false;
+        fontConfig.PixelSnapH = true;
         fontConfig.RasterizerMultiply = 1.15f; // Crisp contrast, zero fuzziness
 
         float baseSize = 16.0f * m_dpiScale;

@@ -20,6 +20,7 @@ namespace Solar::UI {
         // Dark obsidian background with subtle vertical separator
         draw->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + h), pal.Sidebar.ToU32(), 0.0f);
         draw->AddLine(ImVec2(pos.x + width, pos.y), ImVec2(pos.x + width, pos.y + h), pal.Border.ToU32(), 1.0f);
+        Render::ImGuiExt::DrawSpecularEdge(draw, pos, ImVec2(pos.x + width, pos.y + h), IM_COL32(255, 255, 255, 25), 10.0f, 1.0f);
 
         ImGui::BeginChild("##SidebarChild", ImVec2(width, h), false, ImGuiWindowFlags_NoScrollbar);
         ImGui::SetCursorPosY(12.0f);

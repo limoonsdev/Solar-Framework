@@ -88,4 +88,33 @@ namespace Solar::Render {
         }
     }
 
+    void ImGuiExt::DrawSpecularEdge(ImDrawList* draw, const ImVec2& min, const ImVec2& max, u32 peakColor, float insetX, float height) {
+        if (!draw) return;
+        float w = max.x - min.x;
+        if (w <= insetX * 2.0f) return;
+
+        float startX = min.x + insetX;
+        float endX = max.x - insetX;
+        float midX = startX + (endX - startX) * 0.5f;
+        float y = min.y;
+
+        u32 transparent = peakColor & 0x00FFFFFF; // Alpha 0
+
+        // Left half: transparent -> peakColor
+        draw->AddRectFilledMultiColor(
+            ImVec2(startX, y), ImVec2(midX, y + height),
+            transparent, peakColor, peakColor, transparent
+        );
+        // Right half: peakColor -> transparent
+        draw->AddRectFilledMultiColor(
+            ImVec2(midX, y), ImVec2(endX, y + height),
+            peakColor, transparent, transparent, peakColor
+        );
+    }
+
+    void ImGuiExt::DrawHierarchicalRail(ImDrawList* draw, float railX, float topY, float bottomY, u32 railColor) {
+        if (!draw || bottomY <= topY) return;
+        draw->AddLine(ImVec2(railX, topY), ImVec2(railX, bottomY), railColor, 1.5f);
+    }
+
 } // namespace Solar::Render

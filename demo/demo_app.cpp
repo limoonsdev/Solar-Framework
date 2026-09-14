@@ -56,12 +56,39 @@ namespace Solar {
         return instance;
     }
 
+    void DemoApp::PushNavHistory(int tab) {
+        if (m_navHistoryIndex >= 0 && m_navHistoryIndex < static_cast<int>(m_navHistory.size())) {
+            if (m_navHistory[m_navHistoryIndex] == tab) return;
+            m_navHistory.resize(m_navHistoryIndex + 1);
+        }
+        m_navHistory.push_back(tab);
+        m_navHistoryIndex = static_cast<int>(m_navHistory.size()) - 1;
+    }
+
+    void DemoApp::NavBack() {
+        if (CanNavBack()) {
+            m_navHistoryIndex--;
+            m_currentTab = m_navHistory[m_navHistoryIndex];
+            Audio::PlayTabSwitch();
+        }
+    }
+
+    void DemoApp::NavForward() {
+        if (CanNavForward()) {
+            m_navHistoryIndex++;
+            m_currentTab = m_navHistory[m_navHistoryIndex];
+            Audio::PlayTabSwitch();
+        }
+    }
+
     void DemoApp::Initialize() {
         m_espSettings.playerName = "Enemy_01";
         m_espSettings.weaponName = "Vandal [25/75]";
         m_espSettings.distance = 28.5f;
         m_espSettings.health = 85.0f;
         m_espSettings.armor = 60.0f;
+        PushNavHistory(0);
+        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
     }
 
     void DemoApp::Render() {
@@ -153,20 +180,20 @@ namespace Solar {
                     ImGui::Spacing();
 
                     Widgets::SidebarCategory("CHEAT ENGINE");
-                    Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS);
-                    Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE);
-                    Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND);
+                    if (Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS)) PushNavHistory(0);
+                    if (Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE)) PushNavHistory(1);
+                    if (Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND)) PushNavHistory(2);
 
                     Widgets::SidebarCategory("UI & WIDGETS");
-                    Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS);
+                    if (Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS)) PushNavHistory(3);
 
                     Widgets::SidebarCategory("SECURITY & TOOLS");
-                    Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD);
-                    Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK);
+                    if (Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD)) PushNavHistory(4);
+                    if (Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK)) PushNavHistory(5);
 
                     Widgets::SidebarCategory("PREFERENCES");
-                    Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE);
-                    Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK);
+                    if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
+                    if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
 
                     // User Profile at bottom of sidebar (luxury glass chip)
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
@@ -206,6 +233,37 @@ namespace Solar {
                 {
                     float contentWidth = ImGui::GetContentRegionAvail().x - 14.0f;
                     float cardWidth = (contentWidth - 10.0f) * 0.5f;
+
+                    // Navigation Breadcrumbs & History (Peach-Framework inspired)
+                    ImGui::BeginGroup();
+                    {
+                        bool canBack = CanNavBack();
+                        bool canFwd = CanNavForward();
+
+                        if (!canBack) ImGui::BeginDisabled();
+                        if (ImGui::Button(" < ##NavBack", ImVec2(28, 22))) {
+                            NavBack();
+                        }
+                        if (!canBack) ImGui::EndDisabled();
+
+                        ImGui::SameLine(0, 4.0f);
+
+                        if (!canFwd) ImGui::BeginDisabled();
+                        if (ImGui::Button(" > ##NavFwd", ImVec2(28, 22))) {
+                            NavForward();
+                        }
+                        if (!canFwd) ImGui::EndDisabled();
+
+                        ImGui::SameLine(0, 10.0f);
+                        const char* tabNames[] = { "Combat & Aimbot", "Studio Visuals 2.0", "Radar & HUD", "Widget Suite", "Security Suite", "License Screen", "Themes & Engine", "Profiles & Config" };
+                        const char* activeTabName = (m_currentTab >= 0 && m_currentTab < 8) ? tabNames[m_currentTab] : "Overview";
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Workspace >");
+                        ImGui::SameLine(0, 4.0f);
+                        ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "%s", activeTabName);
+                    }
+                    ImGui::EndGroup();
+                    Widgets::Spacing(6.0f);
 
                     // ==========================================
                     // TAB 0: COMBAT & AIMBOT
@@ -912,8 +970,14 @@ namespace Solar {
 
                         // SUBTAB 0: COLOR PRESETS
                         if (m_themeSubTab == 0) {
-                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
-                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl & Peach Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                if (Widgets::Button("Obsidian Violet (Peach Periwinkle)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                                    ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
+                                    Notify::Success("Theme Applied", "Switched to Obsidian Violet theme.");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Secondary)) {
                                     ThemeManager::Get().ApplyPreset(ThemePreset::SolarFlare);
                                     Notify::Success("Theme Applied", "Switched to Solar Flare theme.");
                                 }

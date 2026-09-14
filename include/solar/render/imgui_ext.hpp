@@ -51,6 +51,12 @@ namespace Solar::Render {
 
         // Fast Conic Rotating Gradient around rectangle
         static void AddConicGradientRect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, Color col1, Color col2, float angleOffset, float thickness = 1.5f);
+
+        // Specular top-edge horizontal gradient sheen (Peach-Framework technique)
+        static void DrawSpecularEdge(ImDrawList* draw, const ImVec2& min, const ImVec2& max, u32 peakColor = IM_COL32(255, 255, 255, 22), float insetX = 10.0f, float height = 1.0f);
+
+        // Hierarchical vertical connecting tree rail for nested sub-navigation
+        static void DrawHierarchicalRail(ImDrawList* draw, float railX, float topY, float bottomY, u32 railColor);
     };
 
 } // namespace Solar::Render

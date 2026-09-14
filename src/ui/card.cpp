@@ -33,10 +33,8 @@ namespace Solar::UI {
         draw->AddRectFilled(cardMin, headerMax, pal.Header.WithAlpha(0.60f).ToU32(), rounding, ImDrawFlags_RoundCornersTop);
         draw->AddLine(ImVec2(cardMin.x, cardMin.y + headerH), ImVec2(cardMax.x, cardMin.y + headerH), pal.Border.ToU32(), 1.0f);
 
-        // 4. Top Specular Glass Reflection Line
-        draw->AddLine(ImVec2(cardMin.x + rounding, cardMin.y + 0.5f),
-                      ImVec2(cardMax.x - rounding, cardMin.y + 0.5f),
-                      IM_COL32(255, 255, 255, 30), 1.0f);
+        // 4. Top Specular Glass Horizontal Gradient Sheen (Peach-Framework technique)
+        Render::ImGuiExt::DrawSpecularEdge(draw, cardMin, cardMax, IM_COL32(255, 255, 255, 28), rounding, 1.0f);
 
         // 5. Outer Beveled Border
         draw->AddRect(cardMin, cardMax, pal.Border.ToU32(), rounding, 0, 1.0f);
