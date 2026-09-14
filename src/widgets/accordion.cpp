@@ -40,7 +40,7 @@ namespace Solar::Widgets {
         float rounding = 6.0f;
 
         draw->AddRectFilled(bb.Min, bb.Max, bgCol, rounding);
-        draw->AddRect(bb.Min, bb.Max, borderCol, rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, bb.Min, bb.Max, borderCol, rounding, 1.0f);
 
         // Indicator chevron
         float chevronX = bb.Max.x - 20.0f;

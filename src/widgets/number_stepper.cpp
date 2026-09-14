@@ -38,7 +38,7 @@ namespace Solar::Widgets {
         ImVec2 boxMax(pos.x + width, pos.y + height);
 
         draw->AddRectFilled(boxMin, boxMax, ThemeManager::ToU32(pal.Card), 4.0f);
-        draw->AddRect(boxMin, boxMax, ThemeManager::ToU32(pal.Border), 4.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, boxMin, boxMax, ThemeManager::ToU32(pal.Border), 4.0f, 1.0f);
 
         // Decrement button
         ImRect decBb(boxMin, ImVec2(boxMin.x + btnW, boxMax.y));

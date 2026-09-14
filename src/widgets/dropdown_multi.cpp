@@ -50,7 +50,7 @@ namespace Solar::Widgets {
         ImU32 bgCol = hovered ? ThemeManager::ToU32(pal.CardHover) : ThemeManager::ToU32(pal.Card);
         ImU32 borderCol = ThemeManager::ToU32(hovered ? pal.Accent : pal.Border);
         draw->AddRectFilled(bb.Min, bb.Max, bgCol, 6.0f);
-        draw->AddRect(bb.Min, bb.Max, borderCol, 6.0f, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, bb.Min, bb.Max, borderCol, 6.0f, 1.0f);
 
         // Count selected
         int selectedCount = 0;

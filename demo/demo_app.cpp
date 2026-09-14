@@ -38,7 +38,7 @@ namespace Solar {
         ImDrawList* draw = ImGui::GetWindowDrawList();
         const auto& pal = ThemeManager::Get().GetPalette();
         draw->AddRectFilled(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.CardHover.WithAlpha(0.60f).ToU32(), 4.0f);
-        draw->AddRect(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.Border.WithAlpha(0.50f).ToU32(), 4.0f, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.Border.WithAlpha(0.50f).ToU32(), 4.0f, 1.0f);
         draw->AddText(ImVec2(p.x + (badgeW - ts.x) * 0.5f, p.y + (26.0f - ts.y) * 0.5f), pal.TextSecondary.ToU32(), pageBuf);
         ImGui::Dummy(ImVec2(badgeW, 26.0f));
 
@@ -205,8 +205,10 @@ namespace Solar {
 
                     drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
                                            ThemeManager::Get().GetPalette().Card.WithAlpha(0.70f).ToU32(), 6.0f);
-                    drawList->AddRect(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                     ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 0, 1.0f);
+                    Render::ImGuiExt::DrawSpecularEdge(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                       IM_COL32(255, 255, 255, 20), 4.0f, 1.0f);
+                    Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                      ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 1.0f);
 
                     // User avatar circle
                     ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
@@ -726,15 +728,20 @@ namespace Solar {
                         Widgets::Spacing(6.0f);
 
                         if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Live 2D top-down positional radar with blips:");
-                            Widgets::Spacing(6.0f);
-
-                            Widgets::RadarPreview("##MiniRadar", ImVec2(cardWidth - 24.0f, 260.0f));
+                            static Widgets::RadarSettings radarSettings;
+                            static std::vector<Widgets::RadarEntity> radarEntities;
+                            if (radarEntities.empty()) {
+                                radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
+                                radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
+                                radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
+                                radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
+                            }
+                            Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
                             Widgets::Separator();
 
-                            if (Widgets::Button("Center Radar on Crosshair", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                Audio::PlayClick();
-                            }
+                            Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
+                            Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
+                            Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
 
                             Widgets::EndCard();
                         }
@@ -801,10 +808,15 @@ namespace Solar {
                         ImGui::SameLine(0, 10.0f);
 
                         if (Widgets::BeginCard("##WidgetsCard2", "Telemetry Cards & Accordions", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
-                            // KPI Stat Cards with sparklines
-                            Widgets::StatCard("RENDER PIPELINE FRAMERATE", "185.4 FPS", "+18.2%", true, m_fpsSparkline, 16, cardWidth - 24.0f, 78.0f);
+                            // Live Telemetry Spline Graph with Gradient Fill
+                            Widgets::PerformanceGraph("Pipeline Telemetry Spline", m_fpsSparkline, 16, 130.0f, 195.0f,
+                                                     ImVec2(cardWidth - 24.0f, 85.0f), ThemeManager::Get().GetPalette().Accent, "fps");
                             Widgets::Spacing(6.0f);
-                            Widgets::StatCard("COMPUTE SHADER LATENCY", "0.38 ms", "-24.5%", true, m_latencySparkline, 16, cardWidth - 24.0f, 78.0f);
+
+                            // KPI Stat Cards with sparklines
+                            Widgets::StatCard("RENDER PIPELINE FRAMERATE", "185.4 FPS", "+18.2%", true, m_fpsSparkline, 16, cardWidth - 24.0f, 68.0f);
+                            Widgets::Spacing(4.0f);
+                            Widgets::StatCard("COMPUTE SHADER LATENCY", "0.38 ms", "-24.5%", true, m_latencySparkline, 16, cardWidth - 24.0f, 68.0f);
 
                             Widgets::Separator();
                             ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "COLLAPSIBLE ACCORDION SECTIONS");

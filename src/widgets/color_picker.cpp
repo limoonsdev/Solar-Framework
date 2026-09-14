@@ -58,7 +58,7 @@ namespace Solar::Widgets {
         // Top specular highlight & border
         draw->AddLine(ImVec2(swatchMin.x + 2.0f, swatchMin.y + 0.5f), ImVec2(swatchMax.x - 2.0f, swatchMin.y + 0.5f),
                       IM_COL32(255, 255, 255, 50), 1.0f);
-        draw->AddRect(swatchMin, swatchMax, hovered ? pal.Accent.ToU32() : IM_COL32(255, 255, 255, 30), rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, swatchMin, swatchMax, hovered ? pal.Accent.ToU32() : IM_COL32(255, 255, 255, 30), rounding, 1.0f);
 
         // Custom Popup Menu
         bool changed = false;

@@ -5,21 +5,23 @@ namespace Solar::Render {
 
     void ShadowCaster::DrawShadow(ImDrawList* draw, const ImVec2& min, const ImVec2& max,
                                   f32 radius, f32 rounding, Color shadowColor, ImVec2 offset) {
-        if (!draw || radius <= 0.0f) return;
+        if (!draw || radius <= 0.0f || shadowColor.a <= 0.001f) return;
 
-        const int passes = 6;
-        f32 baseAlpha = shadowColor.a / static_cast<f32>(passes);
+        const int layers = 10;
+        const float baseAlpha = shadowColor.a;
+        const float step = radius / static_cast<float>(layers);
 
-        for (int i = 1; i <= passes; i++) {
-            f32 expand = (radius / static_cast<f32>(passes)) * i;
-            f32 falloff = 1.0f - (static_cast<f32>(i) / static_cast<f32>(passes + 1));
-            f32 passAlpha = baseAlpha * (falloff * falloff);
+        for (int i = layers; i >= 1; --i) {
+            float t = static_cast<float>(i) / static_cast<float>(layers);
+            float expand = static_cast<float>(layers - i) * step;
+            float layerAlpha = (t * t) * (baseAlpha / static_cast<float>(layers)) * 1.85f;
+            if (layerAlpha > 1.0f) layerAlpha = 1.0f;
 
             ImVec2 sMin(min.x + offset.x - expand, min.y + offset.y - expand);
             ImVec2 sMax(max.x + offset.x + expand, max.y + offset.y + expand);
 
-            u32 col = shadowColor.WithAlpha(passAlpha).ToU32();
-            draw->AddRect(sMin, sMax, col, rounding + expand, 0, expand);
+            u32 col = shadowColor.WithAlpha(layerAlpha).ToU32();
+            draw->AddRectFilled(sMin, sMax, col, rounding + expand);
         }
     }
 

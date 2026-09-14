@@ -3,6 +3,7 @@
 #include "solar/audio/audio_engine.hpp"
 #include "solar/core/math.hpp"
 #include "solar/render/shadow_caster.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include "solar/font_awesome.hpp"
 #include <imgui.h>
 
@@ -105,7 +106,8 @@ namespace Solar {
 
             // Background
             draw->AddRectFilled(min, max, pal.Header.WithAlpha(0.96f * fadeProgress).ToU32(), 6.0f);
-            draw->AddRect(min, max, pal.Border.WithAlpha(fadeProgress).ToU32(), 6.0f);
+            Render::ImGuiExt::DrawSpecularEdge(draw, min, max, IM_COL32(255, 255, 255, static_cast<int>(30 * fadeProgress)), 6.0f, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, min, max, pal.Border.WithAlpha(fadeProgress).ToU32(), 6.0f, 1.0f);
 
             // Left accent stripe
             draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), typeCol.WithAlpha(fadeProgress).ToU32(), 6.0f, ImDrawFlags_RoundCornersLeft);

@@ -31,7 +31,7 @@ namespace Solar::Widgets {
 
         // Background & border
         draw->AddRectFilled(bb.Min, bb.Max, color.WithAlpha(0.16f).ToU32(), rounding);
-        draw->AddRect(bb.Min, bb.Max, color.WithAlpha(0.45f).ToU32(), rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, bb.Min, bb.Max, color.WithAlpha(0.45f).ToU32(), rounding, 1.0f);
 
         // Text without ## hash
         draw->AddText(ImVec2(bb.Min.x + pad.x, bb.Min.y + pad.y), color.ToU32(), lv.textBegin, lv.textEnd);

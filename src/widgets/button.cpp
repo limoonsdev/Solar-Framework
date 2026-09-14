@@ -4,6 +4,7 @@
 #include "solar/anim/animation_manager.hpp"
 #include "solar/render/glow_engine.hpp"
 #include "solar/render/imgui_ext.hpp"
+#include "solar/render/shadow_caster.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::Widgets {
@@ -64,29 +65,36 @@ namespace Solar::Widgets {
 
         float rounding = 6.0f;
 
-        // Subtle drop shadow under secondary & primary buttons
-        if (hovered && style != ButtonStyle::Ghost) {
-            draw->AddRectFilled(ImVec2(p.x, p.y + 1.5f), ImVec2(p.x + size.x, p.y + size.y + 1.5f),
-                                IM_COL32(0, 0, 0, 90), rounding);
+        // Tactile micro-depression physics when clicked/held
+        float pressInset = held ? 0.65f : 0.0f;
+        float pressY = held ? 0.75f : 0.0f;
+        ImVec2 btnMin(p.x + pressInset, p.y + pressY + pressInset);
+        ImVec2 btnMax(p.x + size.x - pressInset, p.y + size.y + pressY - pressInset);
+
+        // Soft ambient shadow under interactive buttons
+        if (hovered && !held && style != ButtonStyle::Ghost) {
+            Render::ShadowCaster::DrawShadow(draw, btnMin, btnMax, 8.0f, rounding, Color(0, 0, 0, 0.35f * anim), ImVec2(0, 2.5f));
         }
 
-        draw->AddRectFilled(p, ImVec2(p.x + size.x, p.y + size.y), baseBg.ToU32(), rounding);
+        // Body fill
+        draw->AddRectFilled(btnMin, btnMax, baseBg.ToU32(), rounding);
 
-        // Top specular highlight line for glass feel
+        // Top specular sheen reflection
         if (style != ButtonStyle::Ghost) {
-            draw->AddLine(ImVec2(p.x + rounding, p.y + 0.5f), ImVec2(p.x + size.x - rounding, p.y + 0.5f),
-                          IM_COL32(255, 255, 255, style == ButtonStyle::Primary ? 65 : 25), 1.0f);
+            Render::ImGuiExt::DrawSpecularEdge(draw, btnMin, btnMax,
+                IM_COL32(255, 255, 255, style == ButtonStyle::Primary ? 40 : 20), rounding, 1.0f);
         }
 
-        draw->AddRect(p, ImVec2(p.x + size.x, p.y + size.y), borderCol.ToU32(), rounding, 0, 1.0f);
+        // Smooth pixel-aligned inset border
+        Render::ImGuiExt::AddSmoothBorder(draw, btnMin, btnMax, borderCol.ToU32(), rounding, 1.0f);
 
         if (style == ButtonStyle::Primary && hovered && ThemeManager::Get().GetStyle().EnableGlow) {
-            Render::GlowEngine::DrawGlowRect(draw, p, ImVec2(p.x + size.x, p.y + size.y), pal.Accent, 10.0f, rounding, anim * 0.50f);
+            Render::GlowEngine::DrawGlowRect(draw, btnMin, btnMax, pal.Accent, 10.0f, rounding, anim * 0.45f);
         }
 
         // Render clean label (without ## ID)
-        float textYOffset = held ? 1.0f : 0.0f;
-        ImVec2 tp(p.x + (size.x - lv.size.x) * 0.5f, p.y + (size.y - lv.size.y) * 0.5f + textYOffset);
+        ImVec2 tp(btnMin.x + ((btnMax.x - btnMin.x) - lv.size.x) * 0.5f,
+                  btnMin.y + ((btnMax.y - btnMin.y) - lv.size.y) * 0.5f);
         draw->AddText(tp, textCol.ToU32(), lv.textBegin, lv.textEnd);
 
         return pressed;

@@ -97,6 +97,8 @@
 #include "widgets/knob_slider.hpp"
 #include "widgets/accordion.hpp"
 #include "widgets/stat_card.hpp"
+#include "widgets/performance_graph.hpp"
+#include "widgets/radar.hpp"
 
 // ==============================================================================
 // 8. Game, Visuals & ESP Components

@@ -222,7 +222,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Solar::UI::SplashScreen::Get().Start(0.001f);
             Solar::UI::WelcomeScreen::Get().Hide();
         }
-        if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
+        if (strstr(fullCmd, "--screenshot-radar") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(2);
+        } else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(3);
+        } else if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(1);
         }
     } else {
@@ -274,7 +278,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (autoScreenshot) {
             screenshotFrame++;
             if (screenshotFrame >= 15) {
-                const char* targetFile = (strstr(fullCmd, "--screenshot-visuals") != nullptr) ? "visuals_capture.bmp" : "demo_capture.bmp";
+                const char* targetFile = "demo_capture.bmp";
+                if (strstr(fullCmd, "--screenshot-visuals") != nullptr) targetFile = "visuals_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-radar") != nullptr) targetFile = "radar_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) targetFile = "widgets_capture.bmp";
                 char envPath[MAX_PATH];
                 if (GetEnvironmentVariableA("SOLAR_SCREENSHOT_PATH", envPath, sizeof(envPath)) > 0) {
                     targetFile = envPath;

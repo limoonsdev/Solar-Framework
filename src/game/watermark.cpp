@@ -1,5 +1,6 @@
 #include "solar/game/watermark.hpp"
 #include "solar/theme/theme_manager.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui.h>
 #include <cstdio>
 #include <ctime>
@@ -66,7 +67,7 @@ namespace Solar::Game {
 
         // 2. Obsidian Glass Container
         draw->AddRectFilled(min, max, IM_COL32(13, 14, 18, 238), 6.0f);
-        draw->AddRect(min, max, IM_COL32(255, 255, 255, 18), 6.0f, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, min, max, IM_COL32(255, 255, 255, 18), 6.0f, 1.0f);
 
         // 3. Top Amber Accent Edge (Fluid gradient)
         draw->AddLine(
