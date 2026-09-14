@@ -33,52 +33,73 @@ namespace Solar::FX {
 
     void ParticleSystem::UpdateAndRender(ImDrawList* draw, const ImVec2& min, const ImVec2& max, Color accentColor) {
         if (m_mode == ParticleEffectMode::None) return;
-        if (!m_initialized) Initialize();
 
-        f32 dt = ImGui::GetIO().DeltaTime;
-        m_globalTime += dt;
         f32 width = max.x - min.x;
         f32 height = max.y - min.y;
         if (width <= 0.0f || height <= 0.0f) return;
+
+        if (!m_initialized) {
+            Initialize();
+            for (auto& p : m_particles) {
+                p.pos.x = min.x + (static_cast<f32>(rand()) / RAND_MAX) * width;
+                p.pos.y = min.y + (static_cast<f32>(rand()) / RAND_MAX) * height;
+            }
+        }
+
+        f32 dt = ImGui::GetIO().DeltaTime;
+        m_globalTime += dt;
 
         ImVec2 mouse = ImGui::GetIO().MousePos;
         bool mouseInBounds = mouse.x >= min.x && mouse.x <= max.x && mouse.y >= min.y && mouse.y <= max.y;
 
         for (auto& p : m_particles) {
-            if (p.pos.x < min.x - 10.0f || p.pos.x > max.x + 10.0f || p.pos.y < min.y - 10.0f || p.pos.y > max.y + 10.0f) {
-                p.pos.x = min.x + std::fmod(std::abs(p.pos.x + 149.0f), width);
-                p.pos.y = min.y + std::fmod(std::abs(p.pos.y + 263.0f), height);
-                p.life = p.maxLife;
-            }
-
             p.life -= dt;
             if (p.life <= 0.0f) {
                 p.life = p.maxLife;
                 p.pos.x = min.x + (static_cast<f32>(rand()) / RAND_MAX) * width;
-                p.pos.y = (m_mode == ParticleEffectMode::Snow) ? min.y : ((m_mode == ParticleEffectMode::Embers) ? max.y : min.y + (static_cast<f32>(rand()) / RAND_MAX) * height);
+                p.pos.y = (m_mode == ParticleEffectMode::Snow) ? (min.y - 8.0f) : ((m_mode == ParticleEffectMode::Embers) ? (max.y + 8.0f) : min.y + (static_cast<f32>(rand()) / RAND_MAX) * height);
             }
 
             if (m_mode == ParticleEffectMode::Snow) {
-                f32 fallSpeed = 22.0f + p.radius * 12.0f;
-                f32 sway = std::sin(m_globalTime * p.swaySpeed + p.swayOffset) * 16.0f;
+                f32 fallSpeed = 30.0f + p.radius * 16.0f;
+                f32 sway = std::sin(m_globalTime * p.swaySpeed + p.swayOffset) * 20.0f;
                 p.pos.y += fallSpeed * dt;
                 p.pos.x += sway * dt;
+
+                if (p.pos.y > max.y + 12.0f) {
+                    p.pos.y = min.y - 8.0f;
+                    p.pos.x = min.x + (static_cast<f32>(rand()) / RAND_MAX) * width;
+                    p.life = p.maxLife;
+                }
+                if (p.pos.x < min.x - 12.0f) p.pos.x = max.x + 8.0f;
+                if (p.pos.x > max.x + 12.0f) p.pos.x = min.x - 8.0f;
             } else if (m_mode == ParticleEffectMode::Embers) {
-                f32 riseSpeed = -(26.0f + p.radius * 14.0f);
+                f32 riseSpeed = -(28.0f + p.radius * 14.0f);
                 f32 drift = std::sin(m_globalTime * 2.0f + p.swayOffset) * 18.0f;
                 p.pos.y += riseSpeed * dt;
                 p.pos.x += drift * dt;
+
+                if (p.pos.y < min.y - 12.0f) {
+                    p.pos.y = max.y + 8.0f;
+                    p.pos.x = min.x + (static_cast<f32>(rand()) / RAND_MAX) * width;
+                    p.life = p.maxLife;
+                }
             } else if (m_mode == ParticleEffectMode::Constellation) {
                 p.pos.x += p.vel.x * dt;
                 p.pos.y += p.vel.y * dt;
+
+                if (p.pos.x < min.x - 10.0f || p.pos.x > max.x + 10.0f || p.pos.y < min.y - 10.0f || p.pos.y > max.y + 10.0f) {
+                    p.pos.x = min.x + std::fmod(std::abs(p.pos.x + 149.0f), width);
+                    p.pos.y = min.y + std::fmod(std::abs(p.pos.y + 263.0f), height);
+                }
             }
 
             if (mouseInBounds) {
                 f32 dist = Math::Distance(p.pos, mouse);
-                if (dist < 90.0f && dist > 1.0f) {
+                if (dist < 95.0f && dist > 1.0f) {
                     ImVec2 push((p.pos.x - mouse.x) / dist, (p.pos.y - mouse.y) / dist);
-                    p.pos.x += push.x * 75.0f * dt;
-                    p.pos.y += push.y * 75.0f * dt;
+                    p.pos.x += push.x * 80.0f * dt;
+                    p.pos.y += push.y * 80.0f * dt;
                 }
             }
 
@@ -86,11 +107,11 @@ namespace Solar::FX {
             f32 currentAlpha = std::sin(lifeRatio * Math::PI);
 
             if (m_mode == ParticleEffectMode::Snow) {
-                u32 snowCol = Color(0.88f, 0.95f, 1.0f, currentAlpha * 0.40f).ToU32();
+                u32 glowCol = Color(0.75f, 0.88f, 1.0f, currentAlpha * 0.18f).ToU32();
+                u32 snowCol = Color(0.90f, 0.96f, 1.0f, currentAlpha * 0.75f).ToU32();
+                draw->AddCircleFilled(p.pos, p.radius * 2.2f, glowCol, 14);
                 draw->AddCircleFilled(p.pos, p.radius, snowCol, 12);
-                if (p.radius > 2.0f) {
-                    draw->AddCircle(p.pos, p.radius + 1.2f, Color(1, 1, 1, currentAlpha * 0.15f).ToU32(), 12, 1.0f);
-                }
+                draw->AddCircleFilled(p.pos, p.radius * 0.45f, IM_COL32(255, 255, 255, static_cast<int>(currentAlpha * 255)), 8);
             } else if (m_mode == ParticleEffectMode::Embers) {
                 u32 emberCol = accentColor.WithAlpha(currentAlpha * 0.45f).ToU32();
                 draw->AddCircleFilled(p.pos, p.radius, emberCol, 12);

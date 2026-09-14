@@ -265,6 +265,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         );
         ImGui::SetNextWindowPos(centerPos, ImGuiCond_FirstUseEver);
 
+        if (autoScreenshot && (io.MousePos.x < 0.0f || io.MousePos.x > io.DisplaySize.x)) {
+            io.MousePos = ImVec2(centerPos.x + 380.0f, centerPos.y + 190.0f);
+        }
+
         Solar::DemoApp::Get().Render();
 
         ImGui::Render();

@@ -69,13 +69,11 @@ namespace Solar::UI {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f, 14.0f));
 
-        bool visible = ImGui::BeginChild(str_id, ImVec2(w, h), false, ImGuiWindowFlags_NoBackground);
-        if (visible) {
-            ImGui::SetCursorPosY(headerH + 12.0f);
-            ImGui::SetCursorPosX(14.0f);
-        }
+        ImGui::BeginChild(str_id, ImVec2(w, h), false, ImGuiWindowFlags_NoBackground);
+        ImGui::SetCursorPosY(headerH + 12.0f);
+        ImGui::SetCursorPosX(14.0f);
 
-        return visible;
+        return true;
     }
 
     void Card::End() {

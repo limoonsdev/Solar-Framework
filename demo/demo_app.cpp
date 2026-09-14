@@ -98,12 +98,23 @@ namespace Solar {
     void DemoApp::Render() {
         // Luxury Animated Splash / Loading Screen
         if (UI::SplashScreen::Get().Render()) {
+            UI::CustomCursor::Get().Render();
             return;
         }
 
         // Luxury Animated Welcome Screen Overlay
         if (UI::WelcomeScreen::Get().Render()) {
+            UI::CustomCursor::Get().Render();
             return;
+        }
+
+        const ImGuiIO& io = ImGui::GetIO();
+
+        // Fullscreen Ambient Cyber Snow / Particle FX
+        if (ThemeManager::Get().GetStyle().EnableParticles) {
+            FX::ParticleSystem::Get().UpdateAndRender(ImGui::GetBackgroundDrawList(),
+                                                      ImVec2(0, 0), io.DisplaySize,
+                                                      ThemeManager::Get().GetPalette().Accent);
         }
 
         // Floating Watermark HUD
@@ -117,7 +128,6 @@ namespace Solar {
         }
 
         // Floating HUD Windows: Tactical Radar, Spectators & Keybinds
-        const ImGuiIO& io = ImGui::GetIO();
         if (m_showRadarWindow) {
             static Widgets::RadarSettings winRadarSettings;
             static std::vector<Widgets::RadarEntity> winRadarEntities = {
@@ -151,7 +161,10 @@ namespace Solar {
             Tools::Profiler::Render(&m_showProfiler);
         }
 
-        if (!m_windowOpen) return;
+        if (!m_windowOpen) {
+            UI::CustomCursor::Get().Render();
+            return;
+        }
 
         ImGui::SetNextWindowSize(ImVec2(940, 620), ImGuiCond_FirstUseEver);
 
@@ -1119,6 +1132,10 @@ namespace Solar {
                                 Widgets::SliderInt("Particle Count", &style.ParticleCount, 10, 100, "%d");
 
                                 Widgets::Separator();
+                                bool cursorEnabled = UI::CustomCursor::Get().IsEnabled();
+                                if (Widgets::Toggle("Cyber Glowing Cursor", &cursorEnabled, "Theme-reactive neon core with trailing ghost and click ripple")) {
+                                    UI::CustomCursor::Get().SetEnabled(cursorEnabled);
+                                }
                                 Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
                                 if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {
                                     UI::WelcomeScreen::Get().Show();
@@ -1257,6 +1274,7 @@ namespace Solar {
             }
         }
         Widgets::EndWindow();
+        UI::CustomCursor::Get().Render();
     }
 
 } // namespace Solar

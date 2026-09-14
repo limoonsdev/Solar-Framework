@@ -77,6 +77,7 @@ set(SOLAR_SOURCES
     "src/tools/inspector.cpp"
     "src/tools/profiler.cpp"
     "src/ui/card.cpp"
+    "src/ui/cursor.cpp"
     "src/ui/groupbox.cpp"
     "src/ui/modal.cpp"
     "src/ui/sidebar.cpp"

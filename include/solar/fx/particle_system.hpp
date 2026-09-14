@@ -36,7 +36,7 @@ namespace Solar::FX {
     private:
         ParticleSystem() = default;
         std::vector<Particle> m_particles;
-        ParticleEffectMode m_mode = ParticleEffectMode::Embers;
+        ParticleEffectMode m_mode = ParticleEffectMode::Snow;
         bool m_initialized = false;
         f32 m_globalTime = 0.0f;
     };

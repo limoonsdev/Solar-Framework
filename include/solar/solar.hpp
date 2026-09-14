@@ -73,6 +73,7 @@
 #include "ui/tooltip.hpp"
 #include "ui/splash_screen.hpp"
 #include "ui/welcome_screen.hpp"
+#include "ui/cursor.hpp"
 
 // ==============================================================================
 // 7. Interactive Widgets Suite
@@ -185,6 +186,7 @@ namespace Solar {
     using HookBridge = Hook::HookBridge;
     using RotatingBorder = FX::RotatingBorder;
     using WelcomeScreen = UI::WelcomeScreen;
+    using CustomCursor = UI::CustomCursor;
     using ImGuiExt = Render::ImGuiExt;
     using PatternScanner = Security::PatternScanner;
     using RecoilVisualizer = Game::RecoilVisualizer;
