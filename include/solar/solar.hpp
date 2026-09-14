@@ -32,6 +32,7 @@
 #include "render/shadow_caster.hpp"
 #include "render/glow_engine.hpp"
 #include "render/font_manager.hpp"
+#include "render/imgui_ext.hpp"
 
 // ==============================================================================
 // 3. Audio Engine & Procedural Sound FX
@@ -97,6 +98,8 @@
 #include "game/watermark.hpp"
 #include "game/chams_preview.hpp"
 #include "game/visuals_renderer.hpp"
+#include "game/recoil_visualizer.hpp"
+#include "game/trajectory_renderer.hpp"
 
 // ==============================================================================
 // 9. Security & Anti-Cheat Utilities
@@ -104,6 +107,7 @@
 #include "security/hwid_spoofer.hpp"
 #include "security/trace_cleaner.hpp"
 #include "security/memory_tools.hpp"
+#include "security/pattern_scanner.hpp"
 
 // ==============================================================================
 // 10. Authentication & Loader Entitlements
@@ -166,6 +170,12 @@ namespace Solar {
     using HookBridge = Hook::HookBridge;
     using RotatingBorder = FX::RotatingBorder;
     using WelcomeScreen = UI::WelcomeScreen;
+    using ImGuiExt = Render::ImGuiExt;
+    using PatternScanner = Security::PatternScanner;
+    using RecoilVisualizer = Game::RecoilVisualizer;
+    using TrajectoryRenderer = Game::TrajectoryRenderer;
+    using RecoilWeapon = Game::RecoilWeapon;
+    using ProjectileType = Game::ProjectileType;
 
     namespace Widgets {
         inline bool BeginWindow(const char* name, bool* p_open, const ImVec2& size = ImVec2(940, 620)) {

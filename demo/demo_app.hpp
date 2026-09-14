@@ -22,6 +22,7 @@ namespace Solar {
         int m_visualsSubTab = 0;
         int m_miscSubTab = 0;
         int m_themeSubTab = 0;
+        int m_securitySubTab = 0;
 
         bool m_windowOpen = true;
         bool m_minimized = false;
@@ -46,6 +47,8 @@ namespace Solar {
 
         // Visuals / ESP state
         ESPPreviewSettings m_espSettings;
+        int    m_espPage = 0;
+        int    m_worldPage = 0;
         bool   m_drawFOVCircle = true;
         float  m_fovRadius = 125.0f;
         ImVec4 m_fovColor = ImVec4(1.0f, 0.75f, 0.15f, 0.85f);
@@ -58,6 +61,25 @@ namespace Solar {
         float  m_targetOscillate = 0.0f;
         int    m_chamsMaterial = 0;
         float  m_chamsColor[4] = { 0.22f, 0.68f, 1.0f, 0.85f };
+
+        // Combat & Visuals Extended State
+        int    m_combatPage = 0;
+        int    m_recoilWeapon = 0;
+        int    m_recoilBullet = -1;
+        bool   m_showRecoilComp = true;
+        int    m_trajectoryType = 0;
+        float  m_throwAngle = 48.0f;
+        float  m_throwPower = 1.0f;
+
+        // Security / Pattern Scanner State
+        int       m_securityPage = 0;
+        char      m_patternInput[128] = "48 8B 05 ? ? ? ? 48 85 C0";
+        char      m_patternModule[64] = "ntdll.dll";
+        uintptr_t m_patternResult = 0;
+        uintptr_t m_scannedBase = 0;
+        size_t    m_scannedSize = 0;
+        uintptr_t m_resolvedRelative = 0;
+        bool      m_hasScanned = false;
 
         // Misc state
         bool m_bhop = true;
