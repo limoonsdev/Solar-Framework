@@ -1,4 +1,5 @@
 #include "solar/render/font_manager.hpp"
+#include "solar/render/fa_solid_data.hpp"
 #include <windows.h>
 
 namespace Solar::Render {
@@ -17,7 +18,7 @@ namespace Solar::Render {
         ImFontConfig fontConfig;
         fontConfig.OversampleH = 3;
         fontConfig.OversampleV = 3;
-        fontConfig.PixelSnapH = false;
+        fontConfig.PixelSnapH = true;
         fontConfig.RasterizerMultiply = 1.15f; // Crisp contrast, zero fuzziness
 
         float baseSize = 16.0f * m_dpiScale;
@@ -68,18 +69,20 @@ namespace Solar::Render {
             }
         }
 
+        ImFontConfig iconConfig;
+        iconConfig.MergeMode = true;
+        iconConfig.PixelSnapH = true;
+        iconConfig.OversampleH = 3;
+        iconConfig.OversampleV = 3;
+        iconConfig.RasterizerMultiply = 1.15f;
+        static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
+
         if (!foundFontPath.empty()) {
-            ImFontConfig iconConfig;
-            iconConfig.MergeMode = true;
-            iconConfig.PixelSnapH = true;
-            iconConfig.OversampleH = 3;
-            iconConfig.OversampleV = 3;
-            iconConfig.RasterizerMultiply = 1.15f;
-            static const ImWchar icon_ranges[] = { 0xf000, 0xf8ff, 0 };
             m_icons = io.Fonts->AddFontFromFileTTF(foundFontPath.c_str(), iconSize, &iconConfig, icon_ranges);
+        } else {
+            m_icons = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconSize, &iconConfig, icon_ranges);
         }
 
-        io.Fonts->Build();
         return true;
     }
 

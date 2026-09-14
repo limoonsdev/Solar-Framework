@@ -3,6 +3,7 @@
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
 #include "solar/render/imgui_ext.hpp"
+#include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -19,6 +20,7 @@ namespace Solar::UI {
         // Dark obsidian background with subtle vertical separator
         draw->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + h), pal.Sidebar.ToU32(), 0.0f);
         draw->AddLine(ImVec2(pos.x + width, pos.y), ImVec2(pos.x + width, pos.y + h), pal.Border.ToU32(), 1.0f);
+        Render::ImGuiExt::DrawSpecularEdge(draw, pos, ImVec2(pos.x + width, pos.y + h), IM_COL32(255, 255, 255, 25), 10.0f, 1.0f);
 
         ImGui::BeginChild("##SidebarChild", ImVec2(width, h), false, ImGuiWindowFlags_NoScrollbar);
         ImGui::SetCursorPosY(12.0f);
@@ -81,9 +83,9 @@ namespace Solar::UI {
             u32 bgCol = pal.Accent.WithAlpha(0.14f * anim).ToU32();
             draw->AddRectFilled(min, max, bgCol, 6.0f);
 
-            // Subtle luminous border
+            // Subtle luminous border (smooth inset)
             u32 borderCol = pal.Accent.WithAlpha(0.28f * anim).ToU32();
-            draw->AddRect(min, max, borderCol, 6.0f, 0, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, min, max, borderCol, 6.0f, 1.0f);
 
             // Left active pill indicator with rounded ends and soft glow
             f32 indH = itemHeight * 0.55f * anim;
@@ -106,7 +108,13 @@ namespace Solar::UI {
 
         if (icon) {
             u32 iconCol = selected ? pal.Accent.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
-            draw->AddText(ImVec2(textOffsetX, textOffsetY), iconCol, icon);
+            ImVec2 sz = ImGui::CalcTextSize(icon);
+            if (sz.x > 2.0f) {
+                draw->AddText(ImVec2(textOffsetX, textOffsetY), iconCol, icon);
+            } else {
+                Color c = selected ? pal.Accent : (hovered ? pal.TextPrimary : pal.TextSecondary);
+                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(textOffsetX + 7.0f, textOffsetY + 7.0f), 13.0f, c);
+            }
             textOffsetX += 24.0f;
         }
 

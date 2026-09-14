@@ -12,7 +12,10 @@ namespace Solar {
 
         void Initialize();
         void Render();
-        void SetCurrentTab(int tab) { m_currentTab = tab; }
+        void SetCurrentTab(int tab) {
+            m_currentTab = tab;
+            PushNavHistory(tab);
+        }
 
     private:
         DemoApp() = default;
@@ -24,6 +27,15 @@ namespace Solar {
         int m_miscSubTab = 0;
         int m_themeSubTab = 0;
         int m_securitySubTab = 0;
+
+        // Peach-Framework inspired Breadcrumb Navigation History
+        std::vector<int> m_navHistory;
+        int m_navHistoryIndex = -1;
+        void PushNavHistory(int tab);
+        void NavBack();
+        void NavForward();
+        bool CanNavBack() const { return m_navHistoryIndex > 0; }
+        bool CanNavForward() const { return m_navHistoryIndex >= 0 && m_navHistoryIndex < static_cast<int>(m_navHistory.size()) - 1; }
 
         bool m_windowOpen = true;
         bool m_minimized = false;
@@ -134,7 +146,7 @@ namespace Solar {
 
         // Custom accent color
         float m_customColor[4] = { 1.0f, 0.48f, 0.0f, 1.0f };
-        bool  m_enableRotatingBorders = true;
+        bool  m_enableRotatingBorders = false;
         bool  m_showWelcomeModal = false;
     };
 

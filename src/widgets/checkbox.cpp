@@ -84,7 +84,7 @@ namespace Solar::Widgets {
         } else {
             borderCol = IM_COL32(255, 255, 255, 22);
         }
-        draw->AddRect(boxMin, boxMax, borderCol, rounding, 0, 1.2f);
+        Render::ImGuiExt::AddSmoothBorder(draw, boxMin, boxMax, borderCol, rounding, 1.0f);
 
         // 4. Smooth Animated Vector Checkmark
         if (anim > 0.01f) {

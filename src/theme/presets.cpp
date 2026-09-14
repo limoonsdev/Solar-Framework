@@ -60,6 +60,23 @@ namespace Solar {
             p.AccentActive = Color::FromHex("#64748B");
             p.AccentMuted  = Color::FromHex("#222733");
             break;
+
+        case ThemePreset::ObsidianViolet:
+            p.Background   = Color::FromHex("#101010");
+            p.Header       = Color::FromHex("#161616");
+            p.Sidebar      = Color::FromHex("#121212");
+            p.Card         = Color::FromHex("#181818");
+            p.CardHover    = Color::FromHex("#202020");
+            p.Border       = Color::FromHex("#262626");
+            p.BorderHover  = Color::FromHex("#5E69EE");
+            p.Accent       = Color::FromHex("#5E69EE");
+            p.AccentHover  = Color::FromHex("#707CEE");
+            p.AccentActive = Color::FromHex("#4B57DB");
+            p.AccentMuted  = Color::FromHex("#B388EB");
+            p.TextPrimary  = Color::FromHex("#FFFFFF");
+            p.TextSecondary= Color::FromHex("#8C8C8C");
+            p.TextDisabled = Color::FromHex("#525252");
+            break;
         }
         return p;
     }
@@ -67,6 +84,7 @@ namespace Solar {
     std::vector<PresetInfo> Presets::GetAll() {
         return {
             { ThemePreset::SolarFlare, "Solar Flare", "Signature amber gold with obsidian background", Get(ThemePreset::SolarFlare) },
+            { ThemePreset::ObsidianViolet, "Obsidian Violet", "Peach-Framework inspired obsidian glass with electric periwinkle and lavender", Get(ThemePreset::ObsidianViolet) },
             { ThemePreset::CyberNeon, "Cyber Neon", "Electric cyan hyper-contrast aesthetic", Get(ThemePreset::CyberNeon) },
             { ThemePreset::VoidAmethyst, "Void Amethyst", "Deep royal purple with glowing magenta hues", Get(ThemePreset::VoidAmethyst) },
             { ThemePreset::EmeraldMatrix, "Emerald Matrix", "Toxic green cybernetic styling", Get(ThemePreset::EmeraldMatrix) },

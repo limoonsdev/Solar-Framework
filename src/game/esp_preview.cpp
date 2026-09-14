@@ -39,8 +39,8 @@ namespace Solar::Game {
 
         // 2. Dark Obsidian Viewport Canvas with Inner Shadow
         draw->AddRectFilled(pos, ImVec2(pos.x + sz.x, pos.y + sz.y), IM_COL32(9, 10, 14, 255), 8.0f);
-        draw->AddRect(pos, ImVec2(pos.x + sz.x, pos.y + sz.y),
-                      isActive ? pal.Accent.ToU32() : (isHovered ? IM_COL32(255, 255, 255, 32) : IM_COL32(255, 255, 255, 14)), 8.0f, 0, 1.0f);
+        u32 vpBorder = isActive ? pal.Accent.ToU32() : (isHovered ? IM_COL32(255, 255, 255, 32) : IM_COL32(255, 255, 255, 14));
+        Render::ImGuiExt::AddSmoothBorder(draw, pos, ImVec2(pos.x + sz.x, pos.y + sz.y), vpBorder, 8.0f, 1.0f);
 
         ImVec2 center(pos.x + sz.x * 0.5f, pos.y + sz.y * 0.48f);
 

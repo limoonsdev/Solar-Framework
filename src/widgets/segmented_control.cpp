@@ -1,6 +1,8 @@
 #include "solar/widgets/segmented_control.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
+#include "solar/render/shadow_caster.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <unordered_map>
@@ -37,9 +39,10 @@ namespace Solar::Widgets {
         ImGui::ItemSize(bb, style.FramePadding.y);
         if (!ImGui::ItemAdd(bb, id)) return false;
 
-        // Background track pill
-        draw->AddRectFilled(bb.Min, bb.Max, ThemeManager::ToU32(pal.Card), height * 0.5f);
-        draw->AddRect(bb.Min, bb.Max, ThemeManager::ToU32(pal.Border), height * 0.5f, 0, 1.0f);
+        // Background track capsule
+        float trackRounding = height * 0.5f;
+        draw->AddRectFilled(bb.Min, bb.Max, ThemeManager::ToU32(pal.Card), trackRounding);
+        Render::ImGuiExt::AddSmoothBorder(draw, bb.Min, bb.Max, ThemeManager::ToU32(pal.Border), trackRounding, 1.0f);
 
         int count = static_cast<int>(items.size());
         float segmentW = (width - 4.0f) / static_cast<float>(count);
@@ -59,9 +62,17 @@ namespace Solar::Widgets {
         }
 
         // Active animated indicator pill
+        float pillRounding = (height - 4.0f) * 0.5f;
         ImVec2 pillMin(state.currentX, bb.Min.y + 2.0f);
         ImVec2 pillMax(state.currentX + state.currentW, bb.Max.y - 2.0f);
-        draw->AddRectFilled(pillMin, pillMax, ThemeManager::ToU32(pal.Accent), (height - 4.0f) * 0.5f);
+
+        // Ambient shadow beneath active pill
+        Render::ShadowCaster::DrawShadow(draw, pillMin, pillMax, 6.0f, pillRounding, Color(0, 0, 0, 0.40f), ImVec2(0, 1.5f));
+
+        // Active pill fill & specular rim
+        draw->AddRectFilled(pillMin, pillMax, ThemeManager::ToU32(pal.Accent), pillRounding);
+        Render::ImGuiExt::DrawSpecularEdge(draw, pillMin, pillMax, IM_COL32(255, 255, 255, 38), 6.0f, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, pillMin, pillMax, ThemeManager::ToU32(pal.AccentActive), pillRounding, 1.0f);
 
         bool changed = false;
 
@@ -79,11 +90,15 @@ namespace Solar::Widgets {
                 }
             }
 
+            bool isCurrent = (*selectedIndex == i);
+            if (hovered && !isCurrent) {
+                draw->AddRectFilled(segMin, segMax, pal.CardHover.WithAlpha(0.35f).ToU32(), pillRounding);
+            }
+
             // Segment text
             ImVec2 ts = ImGui::CalcTextSize(items[i].c_str());
             ImVec2 textPos(segMin.x + (segmentW - ts.x) * 0.5f, segMin.y + (height - 4.0f - ts.y) * 0.5f);
 
-            bool isCurrent = (*selectedIndex == i);
             ImU32 textCol = isCurrent ? IM_COL32(255, 255, 255, 255)
                                       : (hovered ? ThemeManager::ToU32(pal.TextPrimary)
                                                  : ThemeManager::ToU32(pal.TextSecondary));

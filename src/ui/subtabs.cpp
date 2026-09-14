@@ -38,7 +38,8 @@ namespace Solar::UI {
         if (anim > 0.01f) {
             // Subtle glowing background
             draw->AddRectFilled(min, max, pal.Accent.WithAlpha(0.14f * anim).ToU32(), rounding);
-            draw->AddRect(min, max, pal.Accent.WithAlpha(0.32f * anim).ToU32(), rounding, 0, 1.0f);
+            Render::ImGuiExt::DrawSpecularEdge(draw, min, max, IM_COL32(255, 255, 255, static_cast<int>(25 * anim)), 4.0f, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, min, max, pal.Accent.WithAlpha(0.32f * anim).ToU32(), rounding, 1.0f);
 
             // Glowing Bottom Accent Indicator Bar
             float barW = (size.x - 14.0f) * anim;
@@ -51,7 +52,7 @@ namespace Solar::UI {
             draw->AddRectFilled(barMin, barMax, pal.Accent.ToU32(), 2.0f);
         } else if (hovered) {
             draw->AddRectFilled(min, max, pal.CardHover.WithAlpha(0.40f * hoverAnim).ToU32(), rounding);
-            draw->AddRect(min, max, IM_COL32(255, 255, 255, static_cast<int>(16 * hoverAnim)), rounding, 0, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, min, max, IM_COL32(255, 255, 255, static_cast<int>(16 * hoverAnim)), rounding, 1.0f);
         }
 
         u32 col = selected ? pal.TextPrimary.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());

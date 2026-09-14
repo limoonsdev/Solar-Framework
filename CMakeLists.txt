@@ -97,7 +97,9 @@ set(SOLAR_SOURCES
     "src/widgets/knob_slider.cpp"
     "src/widgets/multi_combo.cpp"
     "src/widgets/number_stepper.cpp"
+    "src/widgets/performance_graph.cpp"
     "src/widgets/progress_bar.cpp"
+    "src/widgets/radar.cpp"
     "src/widgets/range_slider.cpp"
     "src/widgets/search_input.cpp"
     "src/widgets/segmented_control.cpp"
@@ -134,6 +136,10 @@ set(DEMO_SOURCES
 
 add_executable(solar_demo WIN32
     ${DEMO_SOURCES}
+)
+
+add_executable(bin2c
+    "${IMGUI_DIR}/misc/fonts/binary_to_compressed_c.cpp"
 )
 
 target_link_libraries(solar_demo PRIVATE

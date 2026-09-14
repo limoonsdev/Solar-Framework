@@ -1,5 +1,7 @@
 #include "solar/widgets/stat_card.hpp"
 #include "solar/theme/theme_manager.hpp"
+#include "solar/render/imgui_ext.hpp"
+#include "solar/render/shadow_caster.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <algorithm>
@@ -31,11 +33,13 @@ namespace Solar::Widgets {
 
         bool hovered = ImGui::ItemHoverable(bb, id, 0);
 
-        // Background
+        // Background & Ambient Shadow
         ImU32 bgCol = hovered ? ThemeManager::ToU32(pal.CardHover) : ThemeManager::ToU32(pal.Card);
         ImU32 borderCol = hovered ? ThemeManager::ToU32(pal.Accent) : ThemeManager::ToU32(pal.Border);
+        Render::ShadowCaster::DrawShadow(draw, bb.Min, bb.Max, 8.0f, 8.0f, Color(0, 0, 0, 0.30f), ImVec2(0, 2.0f));
         draw->AddRectFilled(bb.Min, bb.Max, bgCol, 8.0f);
-        draw->AddRect(bb.Min, bb.Max, borderCol, 8.0f, 0, 1.0f);
+        Render::ImGuiExt::DrawSpecularEdge(draw, bb.Min, bb.Max, IM_COL32(255, 255, 255, 22), 8.0f, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, bb.Min, bb.Max, borderCol, 8.0f, 1.0f);
 
         // Title on top left
         draw->AddText(ImVec2(bb.Min.x + 12.0f, bb.Min.y + 10.0f),

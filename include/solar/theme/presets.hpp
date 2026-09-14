@@ -13,7 +13,8 @@ namespace Solar {
         BloodRuby,      // Crimson Red
         ArcticWhite,    // Frost Ice Blue
         TokyoNight,     // Indigo / Lilac
-        MidnightCarbon  // Monochromatic Slate
+        MidnightCarbon, // Monochromatic Slate
+        ObsidianViolet  // Peach Obsidian & Electric Periwinkle
     };
 
     struct PresetInfo {

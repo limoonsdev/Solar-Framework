@@ -1,6 +1,7 @@
 #include "solar/ui/window.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/render/shadow_caster.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include "solar/fx/particle_system.hpp"
 #include "solar/fx/glow_fx.hpp"
 #include <imgui_internal.h>
@@ -45,9 +46,12 @@ namespace Solar::UI {
                 FX::ParticleSystem::Get().UpdateAndRender(draw, pos, ImVec2(pos.x + size.x, pos.y + size.y), pal.Accent);
             }
 
-            // Window border
-            draw->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y),
-                          pal.Border.ToU32(), sty.WindowRounding, 0, sty.BorderSize);
+            // Window border (pixel-perfect smooth antialiasing)
+            Render::ImGuiExt::AddSmoothBorder(draw, pos, ImVec2(pos.x + size.x, pos.y + size.y),
+                                              pal.Border.ToU32(), sty.WindowRounding, sty.BorderSize);
+            // Specular top edge sheen on the main window frame
+            Render::ImGuiExt::DrawSpecularEdge(draw, pos, ImVec2(pos.x + size.x, pos.y + size.y),
+                                               IM_COL32(255, 255, 255, 24), sty.WindowRounding, 1.0f);
         }
 
         return visible;

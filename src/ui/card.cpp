@@ -2,6 +2,7 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/render/shadow_caster.hpp"
 #include "solar/render/imgui_ext.hpp"
+#include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -32,13 +33,11 @@ namespace Solar::UI {
         draw->AddRectFilled(cardMin, headerMax, pal.Header.WithAlpha(0.60f).ToU32(), rounding, ImDrawFlags_RoundCornersTop);
         draw->AddLine(ImVec2(cardMin.x, cardMin.y + headerH), ImVec2(cardMax.x, cardMin.y + headerH), pal.Border.ToU32(), 1.0f);
 
-        // 4. Top Specular Glass Reflection Line
-        draw->AddLine(ImVec2(cardMin.x + rounding, cardMin.y + 0.5f),
-                      ImVec2(cardMax.x - rounding, cardMin.y + 0.5f),
-                      IM_COL32(255, 255, 255, 30), 1.0f);
+        // 4. Top Specular Glass Horizontal Gradient Sheen (Peach-Framework technique)
+        Render::ImGuiExt::DrawSpecularEdge(draw, cardMin, cardMax, IM_COL32(255, 255, 255, 28), rounding, 1.0f);
 
-        // 5. Outer Beveled Border
-        draw->AddRect(cardMin, cardMax, pal.Border.ToU32(), rounding, 0, 1.0f);
+        // 5. Outer Beveled Border (smooth pixel-aligned inset)
+        Render::ImGuiExt::AddSmoothBorder(draw, cardMin, cardMax, pal.Border.ToU32(), rounding, 1.0f);
 
         // 6. Header Icon Box & Clean Title
         float curX = cardMin.x + 14.0f;
@@ -47,11 +46,15 @@ namespace Solar::UI {
             ImVec2 iconBoxMax(curX + 26.0f, cardMin.y + 34.0f);
 
             draw->AddRectFilled(iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.14f).ToU32(), 5.0f);
-            draw->AddRect(iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.35f).ToU32(), 5.0f, 0, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.35f).ToU32(), 5.0f, 1.0f);
 
             ImVec2 iconSize = ImGui::CalcTextSize(icon);
-            draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
-                          pal.Accent.ToU32(), icon);
+            if (iconSize.x > 2.0f) {
+                draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
+                              pal.Accent.ToU32(), icon);
+            } else {
+                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(iconBoxMin.x + 13.0f, iconBoxMin.y + 13.0f), 14.0f, pal.Accent);
+            }
             curX += 34.0f;
         }
 

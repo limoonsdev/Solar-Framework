@@ -50,9 +50,9 @@ namespace Solar::Widgets {
         }
 
         float rounding = 6.0f;
-        u32 bgCol = hovered ? pal.CardHover.ToU32() : IM_COL32(12, 14, 19, 255);
+        u32 bgCol = hovered ? pal.CardHover.ToU32() : pal.Card.ToU32();
         draw->AddRectFilled(boxMin, boxMax, bgCol, rounding);
-        draw->AddRect(boxMin, boxMax, (hovered ? pal.Accent : pal.Border).ToU32(), rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, boxMin, boxMax, (hovered ? pal.Accent : pal.Border).ToU32(), rounding, 1.0f);
 
         // Current item text
         const char* previewText = (*current_item >= 0 && *current_item < items_count) ? items[*current_item] : "";

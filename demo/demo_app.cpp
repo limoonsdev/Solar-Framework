@@ -38,7 +38,7 @@ namespace Solar {
         ImDrawList* draw = ImGui::GetWindowDrawList();
         const auto& pal = ThemeManager::Get().GetPalette();
         draw->AddRectFilled(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.CardHover.WithAlpha(0.60f).ToU32(), 4.0f);
-        draw->AddRect(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.Border.WithAlpha(0.50f).ToU32(), 4.0f, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.Border.WithAlpha(0.50f).ToU32(), 4.0f, 1.0f);
         draw->AddText(ImVec2(p.x + (badgeW - ts.x) * 0.5f, p.y + (26.0f - ts.y) * 0.5f), pal.TextSecondary.ToU32(), pageBuf);
         ImGui::Dummy(ImVec2(badgeW, 26.0f));
 
@@ -56,12 +56,39 @@ namespace Solar {
         return instance;
     }
 
+    void DemoApp::PushNavHistory(int tab) {
+        if (m_navHistoryIndex >= 0 && m_navHistoryIndex < static_cast<int>(m_navHistory.size())) {
+            if (m_navHistory[m_navHistoryIndex] == tab) return;
+            m_navHistory.resize(m_navHistoryIndex + 1);
+        }
+        m_navHistory.push_back(tab);
+        m_navHistoryIndex = static_cast<int>(m_navHistory.size()) - 1;
+    }
+
+    void DemoApp::NavBack() {
+        if (CanNavBack()) {
+            m_navHistoryIndex--;
+            m_currentTab = m_navHistory[m_navHistoryIndex];
+            Audio::PlayTabSwitch();
+        }
+    }
+
+    void DemoApp::NavForward() {
+        if (CanNavForward()) {
+            m_navHistoryIndex++;
+            m_currentTab = m_navHistory[m_navHistoryIndex];
+            Audio::PlayTabSwitch();
+        }
+    }
+
     void DemoApp::Initialize() {
         m_espSettings.playerName = "Enemy_01";
         m_espSettings.weaponName = "Vandal [25/75]";
         m_espSettings.distance = 28.5f;
         m_espSettings.health = 85.0f;
         m_espSettings.armor = 60.0f;
+        PushNavHistory(0);
+        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
     }
 
     void DemoApp::Render() {
@@ -123,32 +150,80 @@ namespace Solar {
                 // Sidebar Navigation
                 Widgets::BeginSidebar(205.0f);
                 {
+                    // Universal Feature Search Filter (Peach-Framework inspired)
+                    ImGui::SetCursorPosX(10.0f);
+                    ImGui::PushItemWidth(185.0f);
+                    if (Widgets::SearchInput("##SidebarSearch", m_searchQuery, sizeof(m_searchQuery), "Search features...")) {
+                        if (m_searchQuery[0] != '\0') {
+                            std::string q = m_searchQuery;
+                            for (auto& c : q) c = (char)tolower((unsigned char)c);
+                            if (q.find("aim") != std::string::npos || q.find("fov") != std::string::npos || q.find("smooth") != std::string::npos || q.find("recoil") != std::string::npos || q.find("combat") != std::string::npos) {
+                                m_currentTab = 0;
+                            } else if (q.find("esp") != std::string::npos || q.find("box") != std::string::npos || q.find("skeleton") != std::string::npos || q.find("cham") != std::string::npos || q.find("visual") != std::string::npos) {
+                                m_currentTab = 1;
+                            } else if (q.find("radar") != std::string::npos || q.find("hud") != std::string::npos) {
+                                m_currentTab = 2;
+                            } else if (q.find("widget") != std::string::npos || q.find("slider") != std::string::npos || q.find("toggle") != std::string::npos || q.find("button") != std::string::npos) {
+                                m_currentTab = 3;
+                            } else if (q.find("spoofer") != std::string::npos || q.find("scan") != std::string::npos || q.find("security") != std::string::npos) {
+                                m_currentTab = 4;
+                            } else if (q.find("license") != std::string::npos || q.find("key") != std::string::npos) {
+                                m_currentTab = 5;
+                            } else if (q.find("theme") != std::string::npos || q.find("color") != std::string::npos || q.find("audio") != std::string::npos) {
+                                m_currentTab = 6;
+                            } else if (q.find("config") != std::string::npos || q.find("profile") != std::string::npos) {
+                                m_currentTab = 7;
+                            }
+                        }
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::Spacing();
+
                     Widgets::SidebarCategory("CHEAT ENGINE");
-                    Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS);
-                    Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE);
-                    Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND);
+                    if (Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS)) PushNavHistory(0);
+                    if (Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE)) PushNavHistory(1);
+                    if (Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND)) PushNavHistory(2);
 
                     Widgets::SidebarCategory("UI & WIDGETS");
-                    Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS);
+                    if (Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS)) PushNavHistory(3);
 
                     Widgets::SidebarCategory("SECURITY & TOOLS");
-                    Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD);
-                    Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK);
+                    if (Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD)) PushNavHistory(4);
+                    if (Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK)) PushNavHistory(5);
 
                     Widgets::SidebarCategory("PREFERENCES");
-                    Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE);
-                    Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK);
+                    if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
+                    if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
 
-                    // User Profile at bottom of sidebar
-                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 58.0f);
-                    ImGui::SetCursorPosX(14.0f);
+                    // User Profile at bottom of sidebar (luxury glass chip)
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
+                    ImGui::SetCursorPosX(10.0f);
                     ImDrawList* drawList = ImGui::GetWindowDrawList();
                     ImVec2 userPos = ImGui::GetCursorScreenPos();
-                    IconRenderer::DrawIcon(drawList, IconType::User, ImVec2(userPos.x + 12, userPos.y + 14), 14.0f,
-                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.6f);
-                    drawList->AddText(ImVec2(userPos.x + 32, userPos.y + 4),
+                    float userCardW = 185.0f;
+                    float userCardH = 46.0f;
+
+                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                           ThemeManager::Get().GetPalette().Card.WithAlpha(0.70f).ToU32(), 6.0f);
+                    Render::ImGuiExt::DrawSpecularEdge(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                       IM_COL32(255, 255, 255, 20), 4.0f, 1.0f);
+                    Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                      ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 1.0f);
+
+                    // User avatar circle
+                    ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
+                    drawList->AddCircleFilled(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.18f).ToU32(), 20);
+                    drawList->AddCircle(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.50f).ToU32(), 20, 1.0f);
+                    IconRenderer::DrawIcon(drawList, IconType::User, avatarC, 11.0f,
+                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.4f);
+
+                    // Status online dot
+                    drawList->AddCircleFilled(ImVec2(avatarC.x + 8.0f, avatarC.y + 8.0f), 3.0f, IM_COL32(35, 215, 95, 255), 10);
+
+                    // Text labels
+                    drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 7.0f),
                                       ThemeManager::ToU32(ThemeManager::Get().GetPalette().TextPrimary), "SolarDev");
-                    drawList->AddText(ImVec2(userPos.x + 32, userPos.y + 20),
+                    drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 23.0f),
                                       ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), "LIFETIME VIP");
                 }
                 Widgets::EndSidebar();
@@ -160,6 +235,37 @@ namespace Solar {
                 {
                     float contentWidth = ImGui::GetContentRegionAvail().x - 14.0f;
                     float cardWidth = (contentWidth - 10.0f) * 0.5f;
+
+                    // Navigation Breadcrumbs & History (Peach-Framework inspired)
+                    ImGui::BeginGroup();
+                    {
+                        bool canBack = CanNavBack();
+                        bool canFwd = CanNavForward();
+
+                        if (!canBack) ImGui::BeginDisabled();
+                        if (ImGui::Button(" < ##NavBack", ImVec2(28, 22))) {
+                            NavBack();
+                        }
+                        if (!canBack) ImGui::EndDisabled();
+
+                        ImGui::SameLine(0, 4.0f);
+
+                        if (!canFwd) ImGui::BeginDisabled();
+                        if (ImGui::Button(" > ##NavFwd", ImVec2(28, 22))) {
+                            NavForward();
+                        }
+                        if (!canFwd) ImGui::EndDisabled();
+
+                        ImGui::SameLine(0, 10.0f);
+                        const char* tabNames[] = { "Combat & Aimbot", "Studio Visuals 2.0", "Radar & HUD", "Widget Suite", "Security Suite", "License Screen", "Themes & Engine", "Profiles & Config" };
+                        const char* activeTabName = (m_currentTab >= 0 && m_currentTab < 8) ? tabNames[m_currentTab] : "Overview";
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Workspace >");
+                        ImGui::SameLine(0, 4.0f);
+                        ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "%s", activeTabName);
+                    }
+                    ImGui::EndGroup();
+                    Widgets::Spacing(6.0f);
 
                     // ==========================================
                     // TAB 0: COMBAT & AIMBOT
@@ -622,15 +728,20 @@ namespace Solar {
                         Widgets::Spacing(6.0f);
 
                         if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Live 2D top-down positional radar with blips:");
-                            Widgets::Spacing(6.0f);
-
-                            Widgets::RadarPreview("##MiniRadar", ImVec2(cardWidth - 24.0f, 260.0f));
+                            static Widgets::RadarSettings radarSettings;
+                            static std::vector<Widgets::RadarEntity> radarEntities;
+                            if (radarEntities.empty()) {
+                                radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
+                                radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
+                                radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
+                                radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
+                            }
+                            Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
                             Widgets::Separator();
 
-                            if (Widgets::Button("Center Radar on Crosshair", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                Audio::PlayClick();
-                            }
+                            Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
+                            Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
+                            Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
 
                             Widgets::EndCard();
                         }
@@ -697,10 +808,15 @@ namespace Solar {
                         ImGui::SameLine(0, 10.0f);
 
                         if (Widgets::BeginCard("##WidgetsCard2", "Telemetry Cards & Accordions", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
-                            // KPI Stat Cards with sparklines
-                            Widgets::StatCard("RENDER PIPELINE FRAMERATE", "185.4 FPS", "+18.2%", true, m_fpsSparkline, 16, cardWidth - 24.0f, 78.0f);
+                            // Live Telemetry Spline Graph with Gradient Fill
+                            Widgets::PerformanceGraph("Pipeline Telemetry Spline", m_fpsSparkline, 16, 130.0f, 195.0f,
+                                                     ImVec2(cardWidth - 24.0f, 85.0f), ThemeManager::Get().GetPalette().Accent, "fps");
                             Widgets::Spacing(6.0f);
-                            Widgets::StatCard("COMPUTE SHADER LATENCY", "0.38 ms", "-24.5%", true, m_latencySparkline, 16, cardWidth - 24.0f, 78.0f);
+
+                            // KPI Stat Cards with sparklines
+                            Widgets::StatCard("RENDER PIPELINE FRAMERATE", "185.4 FPS", "+18.2%", true, m_fpsSparkline, 16, cardWidth - 24.0f, 68.0f);
+                            Widgets::Spacing(4.0f);
+                            Widgets::StatCard("COMPUTE SHADER LATENCY", "0.38 ms", "-24.5%", true, m_latencySparkline, 16, cardWidth - 24.0f, 68.0f);
 
                             Widgets::Separator();
                             ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "COLLAPSIBLE ACCORDION SECTIONS");
@@ -866,8 +982,14 @@ namespace Solar {
 
                         // SUBTAB 0: COLOR PRESETS
                         if (m_themeSubTab == 0) {
-                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
-                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl & Peach Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                if (Widgets::Button("Obsidian Violet (Peach Periwinkle)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                                    ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
+                                    Notify::Success("Theme Applied", "Switched to Obsidian Violet theme.");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Secondary)) {
                                     ThemeManager::Get().ApplyPreset(ThemePreset::SolarFlare);
                                     Notify::Success("Theme Applied", "Switched to Solar Flare theme.");
                                 }
