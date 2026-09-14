@@ -2,6 +2,7 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 #include <cmath>
 
@@ -15,12 +16,13 @@ namespace Solar::Widgets {
         const ImGuiStyle& style = g.Style;
         const ImGuiID id = window->GetID(label);
 
+        auto lv = Render::CleanLabel(label);
+
         float boxSize = 19.0f;
-        ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
         ImVec2 p = window->DC.CursorPos;
 
-        float totalWidth = boxSize + (labelSize.x > 0.0f ? (style.ItemInnerSpacing.x + 8.0f + labelSize.x) : 0.0f);
-        float totalHeight = (std::max)(boxSize, labelSize.y);
+        float totalWidth = boxSize + (lv.size.x > 0.0f ? (style.ItemInnerSpacing.x + 8.0f + lv.size.x) : 0.0f);
+        float totalHeight = (std::max)(boxSize, lv.size.y);
 
         ImRect totalBB(p, ImVec2(p.x + totalWidth, p.y + totalHeight));
         ImGui::ItemSize(totalBB, style.FramePadding.y);
@@ -86,7 +88,6 @@ namespace Solar::Widgets {
 
         // 4. Smooth Animated Vector Checkmark
         if (anim > 0.01f) {
-            // Scaled checkmark with smooth spring progress
             float cx = boxMin.x + boxSize * 0.5f;
             float cy = boxMin.y + boxSize * 0.5f;
 
@@ -108,10 +109,10 @@ namespace Solar::Widgets {
             }
         }
 
-        // 5. Label Typography
-        if (labelSize.x > 0.0f) {
+        // 5. Label Typography without ## hash
+        if (lv.size.x > 0.0f) {
             u32 textCol = (*v) ? pal.TextPrimary.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
-            draw->AddText(ImVec2(boxMax.x + 8.0f, p.y + (totalHeight - labelSize.y) * 0.5f), textCol, label);
+            draw->AddText(ImVec2(boxMax.x + 8.0f, p.y + (totalHeight - lv.size.y) * 0.5f), textCol, lv.textBegin, lv.textEnd);
         }
 
         return pressed;

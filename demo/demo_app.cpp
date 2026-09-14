@@ -16,21 +16,35 @@ namespace Solar {
         bool canPrev = (*currentPage > 0);
         bool canNext = (*currentPage < totalPages - 1);
 
+        float availW = ImGui::GetContentRegionAvail().x;
+        float btnW = 75.0f;
+        float badgeW = 92.0f;
+        float totalW = btnW * 2.0f + badgeW + 16.0f;
+        float startX = ImGui::GetCursorPosX() + (std::max)(0.0f, (availW - totalW) * 0.5f);
+        ImGui::SetCursorPosX(startX);
+
         if (!canPrev) ImGui::BeginDisabled();
-        if (Widgets::Button(prevLabel, ImVec2(75.0f, 26.0f), ButtonStyle::Secondary)) {
+        if (Widgets::Button(prevLabel, ImVec2(btnW, 26.0f), ButtonStyle::Secondary)) {
             (*currentPage)--;
             Audio::PlayClick();
         }
         if (!canPrev) ImGui::EndDisabled();
 
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
-        ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Page %d / %d", *currentPage + 1, totalPages);
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.0f);
+        ImGui::SameLine(0, 8.0f);
+        char pageBuf[32];
+        snprintf(pageBuf, sizeof(pageBuf), "Page %d / %d", *currentPage + 1, totalPages);
+        ImVec2 ts = ImGui::CalcTextSize(pageBuf);
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImDrawList* draw = ImGui::GetWindowDrawList();
+        const auto& pal = ThemeManager::Get().GetPalette();
+        draw->AddRectFilled(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.CardHover.WithAlpha(0.60f).ToU32(), 4.0f);
+        draw->AddRect(p, ImVec2(p.x + badgeW, p.y + 26.0f), pal.Border.WithAlpha(0.50f).ToU32(), 4.0f, 0, 1.0f);
+        draw->AddText(ImVec2(p.x + (badgeW - ts.x) * 0.5f, p.y + (26.0f - ts.y) * 0.5f), pal.TextSecondary.ToU32(), pageBuf);
+        ImGui::Dummy(ImVec2(badgeW, 26.0f));
 
+        ImGui::SameLine(0, 8.0f);
         if (!canNext) ImGui::BeginDisabled();
-        if (Widgets::Button(nextLabel, ImVec2(75.0f, 26.0f), ButtonStyle::Secondary)) {
+        if (Widgets::Button(nextLabel, ImVec2(btnW, 26.0f), ButtonStyle::Secondary)) {
             (*currentPage)++;
             Audio::PlayClick();
         }

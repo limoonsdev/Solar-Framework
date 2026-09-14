@@ -1,6 +1,7 @@
 #include "solar/widgets/keybind.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <windows.h>
 #include <imgui_internal.h>
 
@@ -52,9 +53,10 @@ namespace Solar::Widgets {
         const auto& pal = ThemeManager::Get().GetPalette();
         ImDrawList* draw = window->DrawList;
 
-        draw->AddText(ImVec2(p.x, p.y + 4.0f), pal.TextPrimary.ToU32(), label);
+        auto lv = Render::CleanLabel(label);
+        draw->AddText(ImVec2(p.x, p.y + 4.0f), pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
 
-        // Key bind button
+        // Key bind button (Mechanical Keycap)
         float btnW = 84.0f;
         ImVec2 btnPos(p.x + availX - btnW - 4.0f, p.y);
         ImVec2 btnEnd(btnPos.x + btnW, btnPos.y + height);
@@ -83,10 +85,18 @@ namespace Solar::Widgets {
             }
         }
 
-        draw->AddRectFilled(btnPos, btnEnd, pal.CardHover.ToU32(), 4.0f);
-        draw->AddRect(btnPos, btnEnd, isListening ? pal.Accent.ToU32() : pal.Border.ToU32(), 4.0f);
+        float rounding = 4.0f;
+        u32 keycapBg = isListening ? pal.Accent.WithAlpha(0.18f).ToU32() : (hovered ? pal.CardHover.ToU32() : IM_COL32(14, 16, 22, 255));
+        draw->AddRectFilled(btnPos, btnEnd, keycapBg, rounding);
 
-        const char* keyText = isListening ? "..." : KeyToString(*key);
+        // Top specular highlight
+        draw->AddLine(ImVec2(btnPos.x + 2.0f, btnPos.y + 0.5f), ImVec2(btnEnd.x - 2.0f, btnPos.y + 0.5f),
+                      IM_COL32(255, 255, 255, 30), 1.0f);
+
+        u32 borderCol = isListening ? pal.Accent.ToU32() : (hovered ? pal.Accent.WithAlpha(0.6f).ToU32() : pal.Border.ToU32());
+        draw->AddRect(btnPos, btnEnd, borderCol, rounding, 0, 1.0f);
+
+        const char* keyText = isListening ? "PRESS KEY" : KeyToString(*key);
         ImVec2 ts = ImGui::CalcTextSize(keyText);
         draw->AddText(ImVec2(btnPos.x + (btnW - ts.x) * 0.5f, btnPos.y + (height - ts.y) * 0.5f),
                       isListening ? pal.Accent.ToU32() : pal.TextPrimary.ToU32(), keyText);

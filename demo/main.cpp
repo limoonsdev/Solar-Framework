@@ -10,6 +10,8 @@
 
 #include "solar/solar.hpp"
 #include "demo_app.hpp"
+#include <vector>
+#include <cstdio>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -23,6 +25,66 @@ static IDXGISwapChain*          g_pSwapChain = nullptr;
 static UINT                     g_ResizeWidth = 0, g_ResizeHeight = 0;
 static ID3D11RenderTargetView*  g_mainRenderTargetView = nullptr;
 
+static void SaveBackBufferToBmp(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain, const char* filepath) {
+    if (!device || !context || !swapChain) return;
+    ID3D11Texture2D* pBackBuffer = nullptr;
+    if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) return;
+
+    D3D11_TEXTURE2D_DESC desc;
+    pBackBuffer->GetDesc(&desc);
+
+    desc.BindFlags = 0;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    desc.Usage = D3D11_USAGE_STAGING;
+    desc.MiscFlags = 0;
+
+    ID3D11Texture2D* pStaging = nullptr;
+    if (FAILED(device->CreateTexture2D(&desc, nullptr, &pStaging))) {
+        pBackBuffer->Release();
+        return;
+    }
+
+    context->CopyResource(pStaging, pBackBuffer);
+
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    if (SUCCEEDED(context->Map(pStaging, 0, D3D11_MAP_READ, 0, &mapped))) {
+        BITMAPFILEHEADER bfh = { 0 };
+        BITMAPINFOHEADER bih = { 0 };
+        bfh.bfType = 0x4D42;
+        bfh.bfOffBits = sizeof(bfh) + sizeof(bih);
+        bfh.bfSize = bfh.bfOffBits + desc.Width * desc.Height * 4;
+
+        bih.biSize = sizeof(bih);
+        bih.biWidth = desc.Width;
+        bih.biHeight = -(LONG)desc.Height;
+        bih.biPlanes = 1;
+        bih.biBitCount = 32;
+        bih.biCompression = BI_RGB;
+
+        FILE* f = fopen(filepath, "wb");
+        if (f) {
+            fwrite(&bfh, sizeof(bfh), 1, f);
+            fwrite(&bih, sizeof(bih), 1, f);
+            const unsigned char* src = (const unsigned char*)mapped.pData;
+            std::vector<unsigned char> row(desc.Width * 4);
+            for (UINT y = 0; y < desc.Height; ++y) {
+                const unsigned char* rowSrc = src + y * mapped.RowPitch;
+                for (UINT x = 0; x < desc.Width; ++x) {
+                    row[x * 4 + 0] = rowSrc[x * 4 + 2];
+                    row[x * 4 + 1] = rowSrc[x * 4 + 1];
+                    row[x * 4 + 2] = rowSrc[x * 4 + 0];
+                    row[x * 4 + 3] = 255;
+                }
+                fwrite(row.data(), desc.Width * 4, 1, f);
+            }
+            fclose(f);
+        }
+        context->Unmap(pStaging, 0);
+    }
+    pStaging->Release();
+    pBackBuffer->Release();
+}
+
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
@@ -32,6 +94,12 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
+    AttachConsole(ATTACH_PARENT_PROCESS);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    const char* cmdLine = GetCommandLineA();
+    printf("[DEMO] CmdLine: %s\n", cmdLine);
+
     // 1. High-DPI Per-Monitor v2 Awareness to eliminate all DWM bilinear scaling blur
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
@@ -124,6 +192,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     ImVec4 clear_color = ImVec4(0.043f, 0.051f, 0.075f, 1.00f);
 
+    const char* fullCmd = GetCommandLineA();
+    bool autoScreenshot = (strstr(fullCmd, "--screenshot") != nullptr);
+    int screenshotFrame = 0;
+    if (autoScreenshot) {
+        printf("[DEMO] autoScreenshot enabled! skip_intro=%d\n", strstr(fullCmd, "--skip-intro") != nullptr);
+        if (strstr(fullCmd, "--skip-intro") != nullptr) {
+            Solar::UI::SplashScreen::Get().Start(0.001f);
+            Solar::UI::WelcomeScreen::Get().Hide();
+        }
+        if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(1);
+        }
+    }
+
     bool done = false;
     while (!done) {
         MSG msg;
@@ -163,6 +245,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
         g_pSwapChain->Present(1, 0);
+
+        if (autoScreenshot) {
+            screenshotFrame++;
+            if (screenshotFrame >= 15) {
+                const char* targetFile = "C:\\Users\\bruck\\.gemini\\antigravity\\brain\\a7201a66-e3e6-4242-afc3-cc0da2cb3f9d\\demo_capture.bmp";
+                printf("[DEMO] Capturing screenshot to %s on frame %d\n", targetFile, screenshotFrame);
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, targetFile);
+                printf("[DEMO] Capture complete!\n");
+                done = true;
+            }
+        }
     }
 
     Solar::Shutdown();

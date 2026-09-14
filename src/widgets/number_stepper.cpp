@@ -1,6 +1,7 @@
 #include "solar/widgets/number_stepper.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 #include <cstdio>
 #include <algorithm>
@@ -26,10 +27,9 @@ namespace Solar::Widgets {
         ImGui::ItemSize(bb, g.Style.FramePadding.y);
         if (!ImGui::ItemAdd(bb, id)) return false;
 
-        // Label
-        ImVec2 labelTs = ImGui::CalcTextSize(label);
-        draw->AddText(ImVec2(pos.x, pos.y + (height - labelTs.y) * 0.5f),
-                      ThemeManager::ToU32(pal.TextPrimary), label);
+        auto lv = Render::CleanLabel(label);
+        draw->AddText(ImVec2(pos.x, pos.y + (height - lv.size.y) * 0.5f),
+                      ThemeManager::ToU32(pal.TextPrimary), lv.textBegin, lv.textEnd);
 
         // Control box on the right
         float controlW = 110.0f;

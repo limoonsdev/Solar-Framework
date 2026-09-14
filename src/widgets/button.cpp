@@ -3,6 +3,7 @@
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
 #include "solar/render/glow_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::Widgets {
@@ -14,9 +15,11 @@ namespace Solar::Widgets {
         ImGuiContext& g = *GImGui;
         const ImGuiID id = window->GetID(label);
 
+        auto lv = Render::CleanLabel(label);
+
         ImVec2 size = sizeArg;
         if (size.x <= 0.0f) size.x = ImGui::GetContentRegionAvail().x;
-        if (size.y <= 0.0f) size.y = 36.0f;
+        if (size.y <= 0.0f) size.y = 34.0f;
 
         ImVec2 p = window->DC.CursorPos;
         ImRect bb(p, ImVec2(p.x + size.x, p.y + size.y));
@@ -31,7 +34,7 @@ namespace Solar::Widgets {
             Audio::PlayClick();
         }
 
-        f32 anim = Anim::AnimationManager::Get().Transition(id, hovered, 14.0f);
+        f32 anim = Anim::AnimationManager::Get().Transition(id, hovered, 16.0f);
         ImDrawList* draw = window->DrawList;
         const auto& pal = ThemeManager::Get().GetPalette();
 
@@ -59,16 +62,32 @@ namespace Solar::Widgets {
             break;
         }
 
-        draw->AddRectFilled(p, ImVec2(p.x + size.x, p.y + size.y), baseBg.ToU32(), 5.0f);
-        draw->AddRect(p, ImVec2(p.x + size.x, p.y + size.y), borderCol.ToU32(), 5.0f);
+        float rounding = 6.0f;
 
-        if (style == ButtonStyle::Primary && hovered && ThemeManager::Get().GetStyle().EnableGlow) {
-            Render::GlowEngine::DrawGlowRect(draw, p, ImVec2(p.x + size.x, p.y + size.y), pal.Accent, 10.0f, 5.0f, anim);
+        // Subtle drop shadow under secondary & primary buttons
+        if (hovered && style != ButtonStyle::Ghost) {
+            draw->AddRectFilled(ImVec2(p.x, p.y + 1.5f), ImVec2(p.x + size.x, p.y + size.y + 1.5f),
+                                IM_COL32(0, 0, 0, 90), rounding);
         }
 
-        ImVec2 ts = ImGui::CalcTextSize(label);
-        ImVec2 tp(p.x + (size.x - ts.x) * 0.5f, p.y + (size.y - ts.y) * 0.5f);
-        draw->AddText(tp, textCol.ToU32(), label);
+        draw->AddRectFilled(p, ImVec2(p.x + size.x, p.y + size.y), baseBg.ToU32(), rounding);
+
+        // Top specular highlight line for glass feel
+        if (style != ButtonStyle::Ghost) {
+            draw->AddLine(ImVec2(p.x + rounding, p.y + 0.5f), ImVec2(p.x + size.x - rounding, p.y + 0.5f),
+                          IM_COL32(255, 255, 255, style == ButtonStyle::Primary ? 65 : 25), 1.0f);
+        }
+
+        draw->AddRect(p, ImVec2(p.x + size.x, p.y + size.y), borderCol.ToU32(), rounding, 0, 1.0f);
+
+        if (style == ButtonStyle::Primary && hovered && ThemeManager::Get().GetStyle().EnableGlow) {
+            Render::GlowEngine::DrawGlowRect(draw, p, ImVec2(p.x + size.x, p.y + size.y), pal.Accent, 10.0f, rounding, anim * 0.50f);
+        }
+
+        // Render clean label (without ## ID)
+        float textYOffset = held ? 1.0f : 0.0f;
+        ImVec2 tp(p.x + (size.x - lv.size.x) * 0.5f, p.y + (size.y - lv.size.y) * 0.5f + textYOffset);
+        draw->AddText(tp, textCol.ToU32(), lv.textBegin, lv.textEnd);
 
         return pressed;
     }

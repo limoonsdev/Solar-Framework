@@ -1,6 +1,7 @@
 #include "solar/widgets/range_slider.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 #include <algorithm>
 #include <cstdio>
@@ -34,7 +35,8 @@ namespace Solar::Widgets {
         snprintf(fmtBuf, sizeof(fmtBuf), "%s - %s %s", format, format, unit);
         snprintf(valBuf, sizeof(valBuf), fmtBuf, *vMin, *vMax);
 
-        draw->AddText(pos, ThemeManager::ToU32(pal.TextPrimary), label);
+        auto lv = Render::CleanLabel(label);
+        draw->AddText(pos, ThemeManager::ToU32(pal.TextPrimary), lv.textBegin, lv.textEnd);
         ImVec2 valTs = ImGui::CalcTextSize(valBuf);
         draw->AddText(ImVec2(pos.x + width - valTs.x, pos.y), ThemeManager::ToU32(pal.Accent), valBuf);
 

@@ -1,6 +1,7 @@
 #include "solar/widgets/accordion.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -64,14 +65,15 @@ namespace Solar::Widgets {
             );
         }
 
-        // Title and Subtitle text
+        // Title and Subtitle text without ## hash
+        auto lv = Render::CleanLabel(label);
         float textX = bb.Min.x + 12.0f;
         if (subtitle) {
-            draw->AddText(ImVec2(textX, bb.Min.y + 6.0f), ThemeManager::ToU32(pal.TextPrimary), label);
+            draw->AddText(ImVec2(textX, bb.Min.y + 6.0f), ThemeManager::ToU32(pal.TextPrimary), lv.textBegin, lv.textEnd);
             draw->AddText(ImVec2(textX, bb.Min.y + 24.0f), ThemeManager::ToU32(pal.TextSecondary), subtitle);
         } else {
-            float textY = bb.Min.y + (headerHeight - ImGui::GetTextLineHeight()) * 0.5f;
-            draw->AddText(ImVec2(textX, textY), ThemeManager::ToU32(pal.TextPrimary), label);
+            float textY = bb.Min.y + (headerHeight - lv.size.y) * 0.5f;
+            draw->AddText(ImVec2(textX, textY), ThemeManager::ToU32(pal.TextPrimary), lv.textBegin, lv.textEnd);
         }
 
         s_accordionOpen = *isOpen;
