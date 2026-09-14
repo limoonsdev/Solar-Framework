@@ -86,15 +86,14 @@ namespace Solar::Widgets {
         }
 
         float rounding = 4.0f;
-        u32 keycapBg = isListening ? pal.Accent.WithAlpha(0.18f).ToU32() : (hovered ? pal.CardHover.ToU32() : IM_COL32(14, 16, 22, 255));
+        u32 keycapBg = isListening ? pal.Accent.WithAlpha(0.18f).ToU32() : (hovered ? pal.CardHover.ToU32() : pal.Card.ToU32());
         draw->AddRectFilled(btnPos, btnEnd, keycapBg, rounding);
 
         // Top specular highlight
-        draw->AddLine(ImVec2(btnPos.x + 2.0f, btnPos.y + 0.5f), ImVec2(btnEnd.x - 2.0f, btnPos.y + 0.5f),
-                      IM_COL32(255, 255, 255, 30), 1.0f);
+        Render::ImGuiExt::DrawSpecularEdge(draw, btnPos, btnEnd, IM_COL32(255, 255, 255, 30), 2.0f, 1.0f);
 
         u32 borderCol = isListening ? pal.Accent.ToU32() : (hovered ? pal.Accent.WithAlpha(0.6f).ToU32() : pal.Border.ToU32());
-        draw->AddRect(btnPos, btnEnd, borderCol, rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, btnPos, btnEnd, borderCol, rounding, 1.0f);
 
         const char* keyText = isListening ? "PRESS KEY" : KeyToString(*key);
         ImVec2 ts = ImGui::CalcTextSize(keyText);

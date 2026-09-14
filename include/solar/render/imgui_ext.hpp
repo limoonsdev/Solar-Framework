@@ -57,6 +57,9 @@ namespace Solar::Render {
 
         // Hierarchical vertical connecting tree rail for nested sub-navigation
         static void DrawHierarchicalRail(ImDrawList* draw, float railX, float topY, float bottomY, u32 railColor);
+
+        // Pixel-perfect, anti-aliased inset border (half-pixel offset eliminates blur and jagged stair-stepping)
+        static void AddSmoothBorder(ImDrawList* draw, const ImVec2& min, const ImVec2& max, u32 borderColor, float rounding = 0.0f, float thickness = 1.0f);
     };
 
 } // namespace Solar::Render

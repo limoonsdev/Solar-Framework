@@ -63,9 +63,9 @@ namespace Solar::Widgets {
         // Track fill
         draw->AddRectFilled(switchPos, switchEnd, trackCol.ToU32(), rounding);
 
-        // Recessed inner border
+        // Recessed inner border (smooth inset)
         u32 trackBorder = anim > 0.05f ? pal.AccentActive.ToU32() : IM_COL32(255, 255, 255, static_cast<int>(18 + 20 * hoverAnim));
-        draw->AddRect(switchPos, switchEnd, trackBorder, rounding, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, switchPos, switchEnd, trackBorder, rounding, 1.0f);
 
         // Glow bloom when ON
         if (anim > 0.05f && ThemeManager::Get().GetStyle().EnableGlow) {

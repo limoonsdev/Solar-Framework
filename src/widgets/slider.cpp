@@ -48,7 +48,7 @@ namespace Solar::Widgets {
 
         // Value pill background
         draw->AddRectFilled(valPillMin, valPillMax, pal.CardHover.WithAlpha(0.70f).ToU32(), 4.0f);
-        draw->AddRect(valPillMin, valPillMax, pal.Border.WithAlpha(0.60f).ToU32(), 4.0f, 0, 1.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, valPillMin, valPillMax, pal.Border.WithAlpha(0.60f).ToU32(), 4.0f, 1.0f);
         draw->AddText(ImVec2(valPillMin.x + 6.0f, valPillMin.y + 2.0f), pal.Accent.ToU32(), valBuf);
 
         // Recessed track

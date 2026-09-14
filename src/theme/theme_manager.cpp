@@ -47,7 +47,7 @@ namespace Solar {
         s.ItemInnerSpacing  = ImVec2(6.0f, 6.0f);
 
         s.AntiAliasedLines        = true;
-        s.AntiAliasedLinesUseTex  = true;
+        s.AntiAliasedLinesUseTex  = false; // Pure geometric vertex anti-aliasing for smooth, sharp lines & borders
         s.AntiAliasedFill         = true;
 
         ImVec4* colors = s.Colors;

@@ -36,8 +36,8 @@ namespace Solar::UI {
         // 4. Top Specular Glass Horizontal Gradient Sheen (Peach-Framework technique)
         Render::ImGuiExt::DrawSpecularEdge(draw, cardMin, cardMax, IM_COL32(255, 255, 255, 28), rounding, 1.0f);
 
-        // 5. Outer Beveled Border
-        draw->AddRect(cardMin, cardMax, pal.Border.ToU32(), rounding, 0, 1.0f);
+        // 5. Outer Beveled Border (smooth pixel-aligned inset)
+        Render::ImGuiExt::AddSmoothBorder(draw, cardMin, cardMax, pal.Border.ToU32(), rounding, 1.0f);
 
         // 6. Header Icon Box & Clean Title
         float curX = cardMin.x + 14.0f;
@@ -46,7 +46,7 @@ namespace Solar::UI {
             ImVec2 iconBoxMax(curX + 26.0f, cardMin.y + 34.0f);
 
             draw->AddRectFilled(iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.14f).ToU32(), 5.0f);
-            draw->AddRect(iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.35f).ToU32(), 5.0f, 0, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.35f).ToU32(), 5.0f, 1.0f);
 
             ImVec2 iconSize = ImGui::CalcTextSize(icon);
             if (iconSize.x > 2.0f) {

@@ -23,12 +23,13 @@ namespace Solar::Widgets {
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(pal.Card.r, pal.Card.g, pal.Card.b, pal.Card.a));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(pal.Border.r, pal.Border.g, pal.Border.b, pal.Border.a));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(32.0f, 7.0f));
 
         ImGui::SetNextItemWidth(width);
         bool changed = ImGui::InputTextWithHint(label, hint, buffer, bufferSize);
 
-        ImGui::PopStyleVar(2);
+        ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(2);
 
         // Draw Search Icon on left

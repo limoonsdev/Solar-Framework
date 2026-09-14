@@ -83,9 +83,9 @@ namespace Solar::UI {
             u32 bgCol = pal.Accent.WithAlpha(0.14f * anim).ToU32();
             draw->AddRectFilled(min, max, bgCol, 6.0f);
 
-            // Subtle luminous border
+            // Subtle luminous border (smooth inset)
             u32 borderCol = pal.Accent.WithAlpha(0.28f * anim).ToU32();
-            draw->AddRect(min, max, borderCol, 6.0f, 0, 1.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, min, max, borderCol, 6.0f, 1.0f);
 
             // Left active pill indicator with rounded ends and soft glow
             f32 indH = itemHeight * 0.55f * anim;
