@@ -147,49 +147,213 @@ namespace Solar {
                     // ==========================================
                     else if (m_currentTab == 1) {
                         Widgets::SubTab("Player ESP", 0, &m_visualsSubTab);
-                        Widgets::SubTab("World & Chams", 1, &m_visualsSubTab);
+                        Widgets::SubTab("In-Game Engine & FOV", 1, &m_visualsSubTab);
+                        Widgets::SubTab("World & Chams", 2, &m_visualsSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
-                        if (Widgets::BeginCard("##ESPSettings", "Visual Components", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_EYE)) {
-                            Widgets::Toggle("2D Bounding Box", &m_espSettings.enableBox);
-                            const char* boxTypes[] = { "Full Box", "Corner Box", "Filled Box" };
-                            Widgets::Combo("Box Style", &m_espSettings.boxType, boxTypes, 3);
-                            float boxCol[4] = { m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w };
-                            if (Widgets::ColorPicker("Box Accent", boxCol)) {
-                                m_espSettings.boxColor = ImVec4(boxCol[0], boxCol[1], boxCol[2], boxCol[3]);
+                        // SUBTAB 0: PLAYER ESP
+                        if (m_visualsSubTab == 0) {
+                            if (Widgets::BeginCard("##ESPSettings", "Visual Components", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_EYE)) {
+                                Widgets::Toggle("2D Bounding Box", &m_espSettings.enableBox);
+                                const char* boxTypes[] = { "Full Box", "Corner Box", "Filled Box" };
+                                Widgets::Combo("Box Style", &m_espSettings.boxType, boxTypes, 3);
+                                float boxCol[4] = { m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w };
+                                if (Widgets::ColorPicker("Box Accent", boxCol)) {
+                                    m_espSettings.boxColor = ImVec4(boxCol[0], boxCol[1], boxCol[2], boxCol[3]);
+                                }
+
+                                Widgets::Separator();
+                                Widgets::Toggle("Skeleton Bones", &m_espSettings.enableSkeleton);
+                                float skelCol[4] = { m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, m_espSettings.skeletonColor.w };
+                                if (Widgets::ColorPicker("Skeleton Color", skelCol)) {
+                                    m_espSettings.skeletonColor = ImVec4(skelCol[0], skelCol[1], skelCol[2], skelCol[3]);
+                                }
+
+                                Widgets::Separator();
+                                Widgets::Toggle("Health Bar", &m_espSettings.enableHealthBar);
+                                Widgets::Toggle("Armor Bar", &m_espSettings.enableArmorBar);
+                                Widgets::Toggle("Player Name", &m_espSettings.enableName);
+                                Widgets::Toggle("Active Weapon", &m_espSettings.enableWeapon);
+                                Widgets::Toggle("Distance Meter", &m_espSettings.enableDistance);
+                                Widgets::Toggle("Snaplines", &m_espSettings.enableSnapline);
+                                Widgets::Toggle("Glow Halo", &m_espSettings.enableGlow);
+
+                                Widgets::EndCard();
                             }
 
-                            Widgets::Separator();
-                            Widgets::Toggle("Skeleton Bones", &m_espSettings.enableSkeleton);
-                            float skelCol[4] = { m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, m_espSettings.skeletonColor.w };
-                            if (Widgets::ColorPicker("Skeleton Color", skelCol)) {
-                                m_espSettings.skeletonColor = ImVec4(skelCol[0], skelCol[1], skelCol[2], skelCol[3]);
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##ESPPreviewCard", "Interactive 2D ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 320.0f), m_espSettings);
+
+                                Widgets::Separator();
+                                Widgets::SliderFloat("Simulated HP", &m_espSettings.health, 1.0f, 100.0f, "%.0f", "HP");
+                                Widgets::SliderFloat("Simulated Armor", &m_espSettings.armor, 0.0f, 100.0f, "%.0f", "AP");
+                                Widgets::SliderFloat("Target Distance", &m_espSettings.distance, 2.0f, 120.0f, "%.1f", "m");
+
+                                Widgets::EndCard();
                             }
-
-                            Widgets::Separator();
-                            Widgets::Toggle("Health Bar", &m_espSettings.enableHealthBar);
-                            Widgets::Toggle("Armor Bar", &m_espSettings.enableArmorBar);
-                            Widgets::Toggle("Player Name", &m_espSettings.enableName);
-                            Widgets::Toggle("Active Weapon", &m_espSettings.enableWeapon);
-                            Widgets::Toggle("Distance Meter", &m_espSettings.enableDistance);
-                            Widgets::Toggle("Snaplines", &m_espSettings.enableSnapline);
-                            Widgets::Toggle("Glow Halo", &m_espSettings.enableGlow);
-
-                            Widgets::EndCard();
                         }
+                        // SUBTAB 1: IN-GAME COMBAT OVERLAYS & FOV
+                        else if (m_visualsSubTab == 1) {
+                            if (Widgets::BeginCard("##CombatEngineCard", "Visuals Engine Settings", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                Widgets::Toggle("Draw Aim FOV Circle", &m_drawFOVCircle);
+                                Widgets::SliderFloat("FOV Radius", &m_fovRadius, 30.0f, 220.0f, "%.0f", "px");
+                                Widgets::Toggle("FOV Corona Glow", &m_fovGlow);
+                                float fovCol[4] = { m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w };
+                                if (Widgets::ColorPicker("FOV Ring Tint", fovCol)) {
+                                    m_fovColor = ImVec4(fovCol[0], fovCol[1], fovCol[2], fovCol[3]);
+                                }
 
-                        ImGui::SameLine(0, 10.0f);
+                                Widgets::Separator();
+                                const char* snapOrigins[] = { "Screen Bottom", "Screen Center", "Screen Top" };
+                                Widgets::Combo("Snapline Origin", &m_snaplineOrigin, snapOrigins, 3);
+                                Widgets::Toggle("Dashed Snapline Mode", &m_snaplineDashed);
+                                Widgets::Toggle("Offscreen Enemy Arrows", &m_offscreenArrows);
 
-                        if (Widgets::BeginCard("##ESPPreviewCard", "Interactive 2D ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
-                            ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 320.0f), m_espSettings);
+                                Widgets::Separator();
+                                Widgets::SliderFloat("Test Hit DMG", &m_hitmarkerDamage, 10.0f, 150.0f, "%.0f", "HP");
+                                if (Widgets::Button("Trigger Hitmarker (-84 HP)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                                    m_hitmarkerProgress = 1.0f;
+                                    Audio::PlayClick();
+                                }
 
-                            Widgets::Separator();
-                            Widgets::SliderFloat("Simulated HP", &m_espSettings.health, 1.0f, 100.0f, "%.0f", "HP");
-                            Widgets::SliderFloat("Simulated Armor", &m_espSettings.armor, 0.0f, 100.0f, "%.0f", "AP");
-                            Widgets::SliderFloat("Target Distance", &m_espSettings.distance, 2.0f, 120.0f, "%.1f", "m");
+                                Widgets::EndCard();
+                            }
 
-                            Widgets::EndCard();
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##LiveGameSimCard", "In-Game Combat Simulation", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                ImGuiIO& io = ImGui::GetIO();
+                                ImVec2 canvasPos = ImGui::GetCursorScreenPos();
+                                ImVec2 canvasSize(cardWidth - 24.0f, 430.0f);
+                                ImGui::InvisibleButton("##CombatViewport", canvasSize);
+
+                                ImDrawList* draw = ImGui::GetWindowDrawList();
+
+                                // Viewport dark obsidian field
+                                draw->AddRectFilled(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(11, 12, 16, 255), 6.0f);
+                                draw->AddRect(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(255, 255, 255, 18), 6.0f);
+
+                                ImVec2 viewCenter(canvasPos.x + canvasSize.x * 0.5f, canvasPos.y + canvasSize.y * 0.5f);
+
+                                // Center Crosshair
+                                draw->AddCircleFilled(viewCenter, 2.0f, IM_COL32(255, 255, 255, 220), 8);
+                                draw->AddLine(ImVec2(viewCenter.x - 7, viewCenter.y), ImVec2(viewCenter.x - 3, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
+                                draw->AddLine(ImVec2(viewCenter.x + 3, viewCenter.y), ImVec2(viewCenter.x + 7, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
+                                draw->AddLine(ImVec2(viewCenter.x, viewCenter.y - 7), ImVec2(viewCenter.x, viewCenter.y - 3), IM_COL32(255, 255, 255, 180), 1.2f);
+                                draw->AddLine(ImVec2(viewCenter.x, viewCenter.y + 3), ImVec2(viewCenter.x, viewCenter.y + 7), IM_COL32(255, 255, 255, 180), 1.2f);
+
+                                // FOV Circle
+                                if (m_drawFOVCircle) {
+                                    Visuals::DrawFOVCircle(draw, viewCenter, m_fovRadius,
+                                                           Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w),
+                                                           1.5f, m_fovGlow);
+                                }
+
+                                // Animated Enemy Target 1 (Close Target)
+                                m_targetOscillate += static_cast<float>(io.DeltaTime) * 1.8f;
+                                float shiftX = std::sin(m_targetOscillate) * 32.0f;
+                                ImVec2 e1Pos(viewCenter.x - 55.0f + shiftX, viewCenter.y - 40.0f);
+                                ImVec2 e1BoxMin(e1Pos.x - 22.0f, e1Pos.y - 35.0f);
+                                ImVec2 e1BoxMax(e1Pos.x + 22.0f, e1Pos.y + 80.0f);
+
+                                // 2D Corner Bounding Box
+                                Visuals::DrawBoundingBox2D(draw, e1BoxMin, e1BoxMax, BoxStyle::Corner,
+                                                           Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w));
+
+                                // Head Circle
+                                Visuals::DrawHeadCircle(draw, ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), 7.5f, Color(1.0f, 1.0f, 1.0f, 0.9f));
+
+                                // Skeleton
+                                std::vector<std::pair<ImVec2, ImVec2>> bones = {
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), ImVec2(e1Pos.x, e1BoxMin.y + 35.0f) }, // Neck to Pelvis
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x - 14.0f, e1BoxMin.y + 40.0f) }, // Left Arm
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x + 14.0f, e1BoxMin.y + 40.0f) }, // Right Arm
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x - 10.0f, e1BoxMax.y) }, // Left Leg
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x + 10.0f, e1BoxMax.y) }  // Right Leg
+                                };
+                                Visuals::DrawSkeleton(draw, bones, Color(m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, 0.85f));
+
+                                // Health, Armor, Ammo Status Bars
+                                Visuals::DrawHealthBar(draw, e1BoxMin, e1BoxMax, 74.0f, 100.0f, BarPosition::Left, true, true);
+                                Visuals::DrawArmorBar(draw, e1BoxMin, e1BoxMax, 60.0f, 100.0f, BarPosition::Left);
+                                Visuals::DrawAmmoBar(draw, e1BoxMin, e1BoxMax, 22, 30, BarPosition::Bottom);
+
+                                // Name, Weapon, and Stacked Badge Flags
+                                Visuals::DrawNameTag(draw, ImVec2(e1Pos.x, e1BoxMin.y - 4.0f), "Phantom_01");
+                                Visuals::DrawWeaponTag(draw, ImVec2(e1Pos.x, e1BoxMax.y + 8.0f), "Vandal", 22, 30);
+
+                                std::vector<std::pair<std::string, Color>> flags = {
+                                    { "SCOPED", Color(0.24f, 0.70f, 1.0f, 1.0f) },
+                                    { "FLASHED", Color(1.0f, 0.75f, 0.15f, 1.0f) },
+                                    { "ARMOR", Color(0.35f, 0.85f, 0.40f, 1.0f) }
+                                };
+                                Visuals::DrawFlagTags(draw, e1BoxMax, flags);
+
+                                // Targeting Snapline
+                                SnaplineOrigin snapOrig = static_cast<SnaplineOrigin>(m_snaplineOrigin);
+                                Visuals::DrawSnapline(draw, ImVec2(e1Pos.x, e1BoxMax.y), snapOrig,
+                                                      Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, 0.75f),
+                                                      1.4f, m_snaplineDashed);
+
+                                // Target 2 (Far Enemy)
+                                ImVec2 e2Pos(viewCenter.x + 95.0f, viewCenter.y - 85.0f);
+                                ImVec2 e2Min(e2Pos.x - 14.0f, e2Pos.y - 20.0f);
+                                ImVec2 e2Max(e2Pos.x + 14.0f, e2Pos.y + 45.0f);
+                                Visuals::DrawBoundingBox2D(draw, e2Min, e2Max, BoxStyle::Corner, Color(1.0f, 0.35f, 0.35f, 0.9f));
+                                Visuals::DrawHealthBar(draw, e2Min, e2Max, 28.0f, 100.0f, BarPosition::Left, true, true);
+                                Visuals::DrawDistanceTag(draw, ImVec2(e2Pos.x, e2Max.y + 4.0f), 58.0f);
+
+                                // Offscreen Indicator (Pointing to 3rd enemy offscreen)
+                                if (m_offscreenArrows) {
+                                    float arrowAngle = -0.75f + std::sin(m_targetOscillate * 0.8f) * 0.20f;
+                                    Visuals::DrawOffscreenIndicator(draw, viewCenter, arrowAngle, 120.0f,
+                                                                    Color(1.0f, 0.30f, 0.30f, 0.95f), 74.0f);
+                                }
+
+                                // Interactive Hitmarker Rendering
+                                if (m_hitmarkerProgress > 0.001f) {
+                                    Visuals::DrawHitmarker(draw, viewCenter, 14.0f,
+                                                           Color(1.0f, 0.22f, 0.22f, 1.0f),
+                                                           m_hitmarkerProgress, m_hitmarkerDamage);
+                                    m_hitmarkerProgress = (std::max)(0.0f, m_hitmarkerProgress - static_cast<float>(io.DeltaTime) * 1.5f);
+                                }
+
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 2: WORLD & CHAMS
+                        else if (m_visualsSubTab == 2) {
+                            if (Widgets::BeginCard("##ChamsSettingsCard", "Chams Material Suite", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                const char* matNames[] = { "Flat Shaded", "Metallic Gloss", "Glow Outline", "Glass Translucent", "Wireframe Cyber" };
+                                Widgets::Combo("Chams Material", &m_chamsMaterial, matNames, 5);
+                                Widgets::ColorPicker("Chams Tint Color", m_chamsColor);
+
+                                Widgets::Separator();
+                                static bool droppedWeapons = true;
+                                static bool c4Timer = true;
+                                static bool grenadeTraj = true;
+                                Widgets::Toggle("Dropped Weapons ESP", &droppedWeapons);
+                                Widgets::Toggle("C4 Planted Timer & Radius", &c4Timer);
+                                Widgets::Toggle("Grenade Prediction Trajectory", &grenadeTraj);
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##ChamsPreviewCard", "Interactive Chams Preview", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_SHIELD)) {
+                                Game::ChamsPreview::Render("##ChamsLiveMannequin", ImVec2(cardWidth - 24.0f, 320.0f),
+                                                           static_cast<Game::ChamsMaterial>(m_chamsMaterial),
+                                                           Color(m_chamsColor[0], m_chamsColor[1], m_chamsColor[2], m_chamsColor[3]));
+
+                                Widgets::Separator();
+                                Widgets::Badge("DirectX 11 / 12 Custom Material Buffer", ThemeManager::Get().GetPalette().Accent);
+
+                                Widgets::EndCard();
+                            }
                         }
                     }
 

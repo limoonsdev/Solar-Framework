@@ -46,6 +46,18 @@ namespace Solar {
 
         // Visuals / ESP state
         ESPPreviewSettings m_espSettings;
+        bool   m_drawFOVCircle = true;
+        float  m_fovRadius = 125.0f;
+        ImVec4 m_fovColor = ImVec4(1.0f, 0.75f, 0.15f, 0.85f);
+        bool   m_fovGlow = true;
+        int    m_snaplineOrigin = 0;
+        bool   m_snaplineDashed = false;
+        bool   m_offscreenArrows = true;
+        float  m_hitmarkerProgress = 0.0f;
+        float  m_hitmarkerDamage = 84.0f;
+        float  m_targetOscillate = 0.0f;
+        int    m_chamsMaterial = 0;
+        float  m_chamsColor[4] = { 0.22f, 0.68f, 1.0f, 0.85f };
 
         // Misc state
         bool m_bhop = true;

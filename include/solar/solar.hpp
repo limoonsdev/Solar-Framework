@@ -95,6 +95,7 @@
 #include "game/keybind_list.hpp"
 #include "game/watermark.hpp"
 #include "game/chams_preview.hpp"
+#include "game/visuals_renderer.hpp"
 
 // ==============================================================================
 // 9. Security & Anti-Cheat Utilities
@@ -146,6 +147,11 @@ namespace Solar {
     using ESPPreview = Game::ESPPreview;
     using WatermarkInfo = Game::WatermarkInfo;
     using Watermark = Game::Watermark;
+    using Visuals = Game::VisualsRenderer;
+    using VisualsRenderer = Game::VisualsRenderer;
+    using BoxStyle = Game::BoxStyle;
+    using BarPosition = Game::BarPosition;
+    using SnaplineOrigin = Game::SnaplineOrigin;
     using SpooferState = Security::SpooferState;
 
     namespace Widgets {

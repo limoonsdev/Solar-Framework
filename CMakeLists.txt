@@ -44,6 +44,7 @@ set(SOLAR_SOURCES
     "src/game/keybind_list.cpp"
     "src/game/radar.cpp"
     "src/game/spectator_list.cpp"
+    "src/game/visuals_renderer.cpp"
     "src/game/watermark.cpp"
     "src/icons.cpp"
     "src/notifications/notification_system.cpp"
