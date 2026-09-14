@@ -68,6 +68,7 @@
 #include "ui/modal.hpp"
 #include "ui/tooltip.hpp"
 #include "ui/splash_screen.hpp"
+#include "ui/welcome_screen.hpp"
 
 // ==============================================================================
 // 7. Interactive Widgets Suite
@@ -129,6 +130,7 @@
 // ==============================================================================
 #include "fx/particle_system.hpp"
 #include "fx/glow_fx.hpp"
+#include "fx/rotating_border.hpp"
 
 // ==============================================================================
 // 14. Developer Telemetry & Profiler
@@ -136,9 +138,16 @@
 #include "tools/profiler.hpp"
 #include "tools/inspector.hpp"
 
+// ==============================================================================
+// 15. Game Engine Internal Hook & State Protection
+// ==============================================================================
+#include "hook/state_guard.hpp"
+#include "hook/hook_bridge.hpp"
+
 // Fonts & Icons
 #include "font_awesome.hpp"
 #include "icons.hpp"
+#include "icons/vector_icons.hpp"
 
 // Backward-Compatibility Aliases
 namespace Solar {
@@ -153,6 +162,10 @@ namespace Solar {
     using BarPosition = Game::BarPosition;
     using SnaplineOrigin = Game::SnaplineOrigin;
     using SpooferState = Security::SpooferState;
+    using StateGuard = Hook::DX11StateGuard;
+    using HookBridge = Hook::HookBridge;
+    using RotatingBorder = FX::RotatingBorder;
+    using WelcomeScreen = UI::WelcomeScreen;
 
     namespace Widgets {
         inline bool BeginWindow(const char* name, bool* p_open, const ImVec2& size = ImVec2(940, 620)) {

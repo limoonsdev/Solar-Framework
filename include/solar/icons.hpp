@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <imgui.h>
 
@@ -22,7 +22,16 @@ namespace Solar {
         Search,
         Keyboard,
         Sparkle,
-        Sun
+        Sun,
+        Lock,
+        Floppy,
+        Terminal,
+        Gear,
+        Key,
+        Fingerprint,
+        Expand,
+        Skull,
+        Cube
     };
 
     class IconRenderer {

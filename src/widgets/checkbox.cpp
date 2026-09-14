@@ -2,8 +2,8 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
-#include "solar/render/glow_engine.hpp"
 #include <imgui_internal.h>
+#include <cmath>
 
 namespace Solar::Widgets {
 
@@ -15,12 +15,12 @@ namespace Solar::Widgets {
         const ImGuiStyle& style = g.Style;
         const ImGuiID id = window->GetID(label);
 
-        float boxSize = 18.0f;
+        float boxSize = 19.0f;
         ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
         ImVec2 p = window->DC.CursorPos;
 
-        float totalWidth = boxSize + (labelSize.x > 0.0f ? (style.ItemInnerSpacing.x + labelSize.x) : 0.0f);
-        float totalHeight = std::max(boxSize, labelSize.y);
+        float totalWidth = boxSize + (labelSize.x > 0.0f ? (style.ItemInnerSpacing.x + 8.0f + labelSize.x) : 0.0f);
+        float totalHeight = (std::max)(boxSize, labelSize.y);
 
         ImRect totalBB(p, ImVec2(p.x + totalWidth, p.y + totalHeight));
         ImGui::ItemSize(totalBB, style.FramePadding.y);
@@ -34,53 +34,84 @@ namespace Solar::Widgets {
             ImGui::MarkItemEdited(id);
         }
 
-        f32 anim = Anim::AnimationManager::Get().Transition(id, *v, 16.0f);
-        f32 hoverAnim = Anim::AnimationManager::Get().Transition(id + 1, hovered, 12.0f);
+        f32 anim = Anim::AnimationManager::Get().Transition(id, *v, 18.0f);
+        f32 hoverAnim = Anim::AnimationManager::Get().Transition(id + 1, hovered, 14.0f);
 
         ImDrawList* draw = window->DrawList;
         const auto& pal = ThemeManager::Get().GetPalette();
 
         ImVec2 boxMin(p.x, p.y + (totalHeight - boxSize) * 0.5f);
         ImVec2 boxMax(boxMin.x + boxSize, boxMin.y + boxSize);
+        float rounding = 5.5f;
 
-        Color bgCol = Color::Lerp(pal.Background, pal.Accent, anim);
-        if (anim < 0.05f && hoverAnim > 0.01f) {
-            bgCol = Color::Lerp(pal.Background, pal.CardHover, hoverAnim);
-        }
-        draw->AddRectFilled(boxMin, boxMax, bgCol.ToU32(), 4.0f);
+        // 1. Subtle soft shadow under checkbox
+        draw->AddRectFilled(
+            ImVec2(boxMin.x, boxMin.y + 1.0f),
+            ImVec2(boxMax.x, boxMax.y + 1.5f),
+            IM_COL32(0, 0, 0, 80),
+            rounding
+        );
 
-        Color borderCol = Color::Lerp(pal.Border, pal.AccentHover, anim);
-        if (anim < 0.05f && hoverAnim > 0.01f) {
-            borderCol = Color::Lerp(pal.Border, pal.BorderHover, hoverAnim);
-        }
-        draw->AddRect(boxMin, boxMax, borderCol.ToU32(), 4.0f, 0, 1.2f);
-
-        if (anim > 0.05f && ThemeManager::Get().GetStyle().EnableGlow) {
-            Render::GlowEngine::DrawGlowRect(draw, boxMin, boxMax, pal.Accent, 7.0f, 4.0f, anim);
-        }
-
+        // 2. Background Fill
         if (anim > 0.01f) {
-            ImVec2 p1(boxMin.x + 4.5f, boxMin.y + 9.5f);
-            ImVec2 p2(boxMin.x + 7.5f, boxMin.y + 13.0f);
-            ImVec2 p3(boxMin.x + 13.5f, boxMin.y + 5.5f);
+            // Luminous Accent fill with subtle vertical gradient
+            u32 topCol = pal.AccentHover.WithAlpha(anim).ToU32();
+            u32 botCol = pal.Accent.WithAlpha(anim).ToU32();
+            draw->AddRectFilledMultiColor(boxMin, boxMax, topCol, topCol, botCol, botCol);
 
-            u32 checkCol = Color(1.0f, 1.0f, 1.0f, anim).ToU32();
-            if (anim < 0.5f) {
-                float t = anim / 0.5f;
-                ImVec2 currentP2(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
-                draw->AddLine(p1, currentP2, checkCol, 2.0f);
+            // Subtle outer micro-glow
+            float glowAlpha = 0.28f * anim;
+            draw->AddRect(
+                ImVec2(boxMin.x - 1.5f, boxMin.y - 1.5f),
+                ImVec2(boxMax.x + 1.5f, boxMax.y + 1.5f),
+                pal.Accent.WithAlpha(glowAlpha).ToU32(),
+                rounding + 1.5f, 0, 1.2f
+            );
+        } else {
+            // Dark Obsidian background
+            u32 bgCol = hovered ? IM_COL32(24, 26, 34, 255) : IM_COL32(16, 17, 22, 255);
+            draw->AddRectFilled(boxMin, boxMax, bgCol, rounding);
+        }
+
+        // 3. Smooth Border
+        u32 borderCol;
+        if (anim > 0.05f) {
+            borderCol = pal.AccentActive.ToU32();
+        } else if (hovered) {
+            borderCol = pal.Accent.WithAlpha(0.50f * hoverAnim).ToU32();
+        } else {
+            borderCol = IM_COL32(255, 255, 255, 22);
+        }
+        draw->AddRect(boxMin, boxMax, borderCol, rounding, 0, 1.2f);
+
+        // 4. Smooth Animated Vector Checkmark
+        if (anim > 0.01f) {
+            // Scaled checkmark with smooth spring progress
+            float cx = boxMin.x + boxSize * 0.5f;
+            float cy = boxMin.y + boxSize * 0.5f;
+
+            ImVec2 p1(cx - 4.5f, cy - 0.5f);
+            ImVec2 p2(cx - 1.5f, cy + 3.2f);
+            ImVec2 p3(cx + 4.8f, cy - 3.8f);
+
+            u32 checkCol = IM_COL32(255, 255, 255, static_cast<int>(255 * anim));
+
+            if (anim < 0.45f) {
+                float t = anim / 0.45f;
+                ImVec2 curP2(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+                draw->AddLine(p1, curP2, checkCol, 2.2f);
             } else {
-                draw->AddLine(p1, p2, checkCol, 2.0f);
-                float t = (anim - 0.5f) / 0.5f;
-                ImVec2 currentP3(p2.x + (p3.x - p2.x) * t, p2.y + (p3.y - p2.y) * t);
-                draw->AddLine(p2, currentP3, checkCol, 2.0f);
+                draw->AddLine(p1, p2, checkCol, 2.2f);
+                float t = (anim - 0.45f) / 0.55f;
+                ImVec2 curP3(p2.x + (p3.x - p2.x) * t, p2.y + (p3.y - p2.y) * t);
+                draw->AddLine(p2, curP3, checkCol, 2.2f);
             }
         }
 
+        // 5. Label Typography
         if (labelSize.x > 0.0f) {
-            ImVec2 textPos(boxMax.x + style.ItemInnerSpacing.x, p.y + (totalHeight - labelSize.y) * 0.5f);
-            Color textCol = hovered ? pal.TextPrimary : pal.TextSecondary;
-            draw->AddText(textPos, textCol.ToU32(), label);
+            u32 textCol = (*v) ? pal.TextPrimary.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
+            draw->AddText(ImVec2(boxMax.x + 8.0f, p.y + (totalHeight - labelSize.y) * 0.5f), textCol, label);
         }
 
         return pressed;

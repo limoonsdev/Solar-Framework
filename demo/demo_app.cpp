@@ -22,6 +22,11 @@ namespace Solar {
             return;
         }
 
+        // Luxury Animated Welcome Screen Overlay
+        if (UI::WelcomeScreen::Get().Render()) {
+            return;
+        }
+
         // Floating Watermark HUD
         if (m_showWatermark) {
             WatermarkInfo wm;
@@ -57,6 +62,13 @@ namespace Solar {
         ImGui::SetNextWindowSize(ImVec2(940, 620), ImGuiCond_FirstUseEver);
 
         if (Widgets::BeginWindow("Solar Framework Demo", &m_windowOpen, ImVec2(940, 620))) {
+            if (m_enableRotatingBorders) {
+                ImVec2 wPos = ImGui::GetWindowPos();
+                ImVec2 wSize = ImGui::GetWindowSize();
+                const auto& pal = ThemeManager::Get().GetPalette();
+                FX::DrawRotatingBorder(ImGui::GetWindowDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
+                                       pal.Accent, Color(1.0f, 0.38f, 0.08f, 0.95f), 1.6f, 1.8f, 1.0f);
+            }
             Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.0.1", &m_windowOpen, &m_minimized);
 
             if (!m_minimized) {
@@ -524,7 +536,12 @@ namespace Solar {
                             Widgets::SliderInt("Particle Count", &style.ParticleCount, 10, 100, "%d");
 
                             Widgets::Separator();
-                            if (Widgets::Button("Replay Luxury Splash Screen", ImVec2(0, 36), ButtonStyle::Primary)) {
+                            Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
+                            if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {
+                                UI::WelcomeScreen::Get().Show();
+                            }
+                            Widgets::Spacing(4.0f);
+                            if (Widgets::Button("Replay Splash Loading Screen", ImVec2(0, 34), ButtonStyle::Secondary)) {
                                 UI::SplashScreen::Get().Start(2.8f);
                             }
 

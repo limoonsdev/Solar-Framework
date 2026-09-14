@@ -83,6 +83,8 @@ namespace Solar {
 
         // Custom accent color
         float m_customColor[4] = { 1.0f, 0.48f, 0.0f, 1.0f };
+        bool  m_enableRotatingBorders = true;
+        bool  m_showWelcomeModal = false;
     };
 
 } // namespace Solar

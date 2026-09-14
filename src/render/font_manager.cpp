@@ -45,7 +45,30 @@ namespace Solar::Render {
         }
 
         // Merge FontAwesome 6 icons into primary font
-        if (GetFileAttributesA("vendor/fa-solid-900.ttf") != INVALID_FILE_ATTRIBUTES) {
+        // Search multiple paths (cwd, exe directory, parent directory)
+        char exePath[MAX_PATH] = {};
+        GetModuleFileNameA(nullptr, exePath, MAX_PATH);
+        char* lastSlash = strrchr(exePath, '\\');
+        if (lastSlash) *lastSlash = '\0';
+
+        std::string candidatePaths[] = {
+            "vendor/fa-solid-900.ttf",
+            "vendor\\fa-solid-900.ttf",
+            std::string(exePath) + "\\vendor\\fa-solid-900.ttf",
+            std::string(exePath) + "\\..\\vendor\\fa-solid-900.ttf",
+            std::string(exePath) + "\\..\\..\\vendor\\fa-solid-900.ttf",
+            "C:\\Solar\\vendor\\fa-solid-900.ttf"
+        };
+
+        std::string foundFontPath;
+        for (const auto& path : candidatePaths) {
+            if (GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES) {
+                foundFontPath = path;
+                break;
+            }
+        }
+
+        if (!foundFontPath.empty()) {
             ImFontConfig iconConfig;
             iconConfig.MergeMode = true;
             iconConfig.PixelSnapH = true;
@@ -53,7 +76,7 @@ namespace Solar::Render {
             iconConfig.OversampleV = 3;
             iconConfig.RasterizerMultiply = 1.15f;
             static const ImWchar icon_ranges[] = { 0xf000, 0xf8ff, 0 };
-            m_icons = io.Fonts->AddFontFromFileTTF("vendor/fa-solid-900.ttf", iconSize, &iconConfig, icon_ranges);
+            m_icons = io.Fonts->AddFontFromFileTTF(foundFontPath.c_str(), iconSize, &iconConfig, icon_ranges);
         }
 
         io.Fonts->Build();
