@@ -3,6 +3,7 @@
 #include "solar/audio/audio_engine.hpp"
 #include "solar/anim/animation_manager.hpp"
 #include "solar/render/imgui_ext.hpp"
+#include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -106,7 +107,13 @@ namespace Solar::UI {
 
         if (icon) {
             u32 iconCol = selected ? pal.Accent.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
-            draw->AddText(ImVec2(textOffsetX, textOffsetY), iconCol, icon);
+            ImVec2 sz = ImGui::CalcTextSize(icon);
+            if (sz.x > 2.0f) {
+                draw->AddText(ImVec2(textOffsetX, textOffsetY), iconCol, icon);
+            } else {
+                Color c = selected ? pal.Accent : (hovered ? pal.TextPrimary : pal.TextSecondary);
+                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(textOffsetX + 7.0f, textOffsetY + 7.0f), 13.0f, c);
+            }
             textOffsetX += 24.0f;
         }
 

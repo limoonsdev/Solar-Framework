@@ -9,6 +9,7 @@
 #include <backends/imgui_impl_dx11.h>
 
 #include "solar/solar.hpp"
+#include "solar/render/fa_solid_data.hpp"
 #include "demo_app.hpp"
 #include <vector>
 #include <cstdio>
@@ -145,6 +146,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+    // Initialize backend renderer early so ImGuiBackendFlags_RendererHasTextures is set
+    ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
+
     // Retrieve exact window DPI scale factor
     UINT winDpi = GetDpiForWindow(hwnd);
     float dpiScale = (winDpi > 0) ? (static_cast<float>(winDpi) / 96.0f) : initialDpiScale;
@@ -169,22 +174,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         mainFont = io.Fonts->AddFontDefault(&fontConfig);
     }
 
-    // Merge FontAwesome 6 Solid Icons at native resolution
-    if (GetFileAttributesA("vendor/fa-solid-900.ttf") != INVALID_FILE_ATTRIBUTES) {
-        ImFontConfig iconConfig;
-        iconConfig.MergeMode = true;
-        iconConfig.PixelSnapH = true;
-        iconConfig.OversampleH = 3;
-        iconConfig.OversampleV = 3;
-        iconConfig.RasterizerMultiply = 1.15f;
-        static const ImWchar icon_ranges[] = { 0xf000, 0xf8ff, 0 };
-        io.Fonts->AddFontFromFileTTF("vendor/fa-solid-900.ttf", iconFontSize, &iconConfig, icon_ranges);
-    }
+    // Merge FontAwesome 6 Solid Icons at native resolution directly from embedded memory
+    ImFontConfig iconConfig;
+    iconConfig.MergeMode = true;
+    iconConfig.PixelSnapH = true;
+    iconConfig.OversampleH = 3;
+    iconConfig.OversampleV = 3;
+    iconConfig.RasterizerMultiply = 1.15f;
+    static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
+    io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconFontSize, &iconConfig, icon_ranges);
 
-    io.Fonts->Build();
-
-    ImGui_ImplWin32_Init(hwnd);
-    ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
+    // Note: With modern Dear ImGui backends, io.Fonts->Build() is called automatically by ImGui_ImplDX11_NewFrame().
 
     // Initialize Solar Framework & Sound System
     Solar::Initialize();
@@ -204,6 +204,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(1);
         }
+    } else {
+        // Normal interactive launch: quick 0.5s splash transition straight into workspace
+        Solar::UI::SplashScreen::Get().Start(0.5f);
+        Solar::UI::WelcomeScreen::Get().Hide();
     }
 
     bool done = false;
@@ -249,7 +253,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (autoScreenshot) {
             screenshotFrame++;
             if (screenshotFrame >= 15) {
-                const char* targetFile = "C:\\Users\\bruck\\.gemini\\antigravity\\brain\\a7201a66-e3e6-4242-afc3-cc0da2cb3f9d\\demo_capture.bmp";
+                const char* targetFile = (strstr(fullCmd, "--screenshot-visuals") != nullptr) ? "visuals_capture.bmp" : "demo_capture.bmp";
+                char envPath[MAX_PATH];
+                if (GetEnvironmentVariableA("SOLAR_SCREENSHOT_PATH", envPath, sizeof(envPath)) > 0) {
+                    targetFile = envPath;
+                }
                 printf("[DEMO] Capturing screenshot to %s on frame %d\n", targetFile, screenshotFrame);
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, targetFile);
                 printf("[DEMO] Capture complete!\n");

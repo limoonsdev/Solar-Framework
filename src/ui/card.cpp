@@ -2,6 +2,7 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/render/shadow_caster.hpp"
 #include "solar/render/imgui_ext.hpp"
+#include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -50,8 +51,12 @@ namespace Solar::UI {
             draw->AddRect(iconBoxMin, iconBoxMax, pal.Accent.WithAlpha(0.35f).ToU32(), 5.0f, 0, 1.0f);
 
             ImVec2 iconSize = ImGui::CalcTextSize(icon);
-            draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
-                          pal.Accent.ToU32(), icon);
+            if (iconSize.x > 2.0f) {
+                draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
+                              pal.Accent.ToU32(), icon);
+            } else {
+                Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(iconBoxMin.x + 13.0f, iconBoxMin.y + 13.0f), 14.0f, pal.Accent);
+            }
             curX += 34.0f;
         }
 

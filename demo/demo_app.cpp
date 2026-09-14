@@ -123,6 +123,35 @@ namespace Solar {
                 // Sidebar Navigation
                 Widgets::BeginSidebar(205.0f);
                 {
+                    // Universal Feature Search Filter (Peach-Framework inspired)
+                    ImGui::SetCursorPosX(10.0f);
+                    ImGui::PushItemWidth(185.0f);
+                    if (Widgets::SearchInput("##SidebarSearch", m_searchQuery, sizeof(m_searchQuery), "Search features...")) {
+                        if (m_searchQuery[0] != '\0') {
+                            std::string q = m_searchQuery;
+                            for (auto& c : q) c = (char)tolower((unsigned char)c);
+                            if (q.find("aim") != std::string::npos || q.find("fov") != std::string::npos || q.find("smooth") != std::string::npos || q.find("recoil") != std::string::npos || q.find("combat") != std::string::npos) {
+                                m_currentTab = 0;
+                            } else if (q.find("esp") != std::string::npos || q.find("box") != std::string::npos || q.find("skeleton") != std::string::npos || q.find("cham") != std::string::npos || q.find("visual") != std::string::npos) {
+                                m_currentTab = 1;
+                            } else if (q.find("radar") != std::string::npos || q.find("hud") != std::string::npos) {
+                                m_currentTab = 2;
+                            } else if (q.find("widget") != std::string::npos || q.find("slider") != std::string::npos || q.find("toggle") != std::string::npos || q.find("button") != std::string::npos) {
+                                m_currentTab = 3;
+                            } else if (q.find("spoofer") != std::string::npos || q.find("scan") != std::string::npos || q.find("security") != std::string::npos) {
+                                m_currentTab = 4;
+                            } else if (q.find("license") != std::string::npos || q.find("key") != std::string::npos) {
+                                m_currentTab = 5;
+                            } else if (q.find("theme") != std::string::npos || q.find("color") != std::string::npos || q.find("audio") != std::string::npos) {
+                                m_currentTab = 6;
+                            } else if (q.find("config") != std::string::npos || q.find("profile") != std::string::npos) {
+                                m_currentTab = 7;
+                            }
+                        }
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::Spacing();
+
                     Widgets::SidebarCategory("CHEAT ENGINE");
                     Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS);
                     Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE);
@@ -139,16 +168,33 @@ namespace Solar {
                     Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE);
                     Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK);
 
-                    // User Profile at bottom of sidebar
-                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 58.0f);
-                    ImGui::SetCursorPosX(14.0f);
+                    // User Profile at bottom of sidebar (luxury glass chip)
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
+                    ImGui::SetCursorPosX(10.0f);
                     ImDrawList* drawList = ImGui::GetWindowDrawList();
                     ImVec2 userPos = ImGui::GetCursorScreenPos();
-                    IconRenderer::DrawIcon(drawList, IconType::User, ImVec2(userPos.x + 12, userPos.y + 14), 14.0f,
-                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.6f);
-                    drawList->AddText(ImVec2(userPos.x + 32, userPos.y + 4),
+                    float userCardW = 185.0f;
+                    float userCardH = 46.0f;
+
+                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                           ThemeManager::Get().GetPalette().Card.WithAlpha(0.70f).ToU32(), 6.0f);
+                    drawList->AddRect(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                     ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 0, 1.0f);
+
+                    // User avatar circle
+                    ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
+                    drawList->AddCircleFilled(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.18f).ToU32(), 20);
+                    drawList->AddCircle(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.50f).ToU32(), 20, 1.0f);
+                    IconRenderer::DrawIcon(drawList, IconType::User, avatarC, 11.0f,
+                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.4f);
+
+                    // Status online dot
+                    drawList->AddCircleFilled(ImVec2(avatarC.x + 8.0f, avatarC.y + 8.0f), 3.0f, IM_COL32(35, 215, 95, 255), 10);
+
+                    // Text labels
+                    drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 7.0f),
                                       ThemeManager::ToU32(ThemeManager::Get().GetPalette().TextPrimary), "SolarDev");
-                    drawList->AddText(ImVec2(userPos.x + 32, userPos.y + 20),
+                    drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 23.0f),
                                       ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), "LIFETIME VIP");
                 }
                 Widgets::EndSidebar();

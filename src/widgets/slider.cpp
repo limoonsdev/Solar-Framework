@@ -68,9 +68,13 @@ namespace Solar::Widgets {
             float norm = Math::Clamp((mouseX - trackMin.x) / trackW, 0.0f, 1.0f);
             float newVal = v_min + norm * (v_max - v_min);
             if (std::abs(*v - newVal) > 0.0001f) {
+                float oldV = *v;
                 *v = newVal;
                 changed = true;
                 ImGui::MarkItemEdited(id);
+                if (std::floor(oldV * 3.0f) != std::floor(newVal * 3.0f)) {
+                    Audio::PlaySliderTick();
+                }
             }
         }
 

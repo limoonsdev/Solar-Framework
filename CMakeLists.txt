@@ -136,6 +136,10 @@ add_executable(solar_demo WIN32
     ${DEMO_SOURCES}
 )
 
+add_executable(bin2c
+    "${IMGUI_DIR}/misc/fonts/binary_to_compressed_c.cpp"
+)
+
 target_link_libraries(solar_demo PRIVATE
     solar_lib
     d3d11
