@@ -1,0 +1,44 @@
+#pragma once
+
+// FontAwesome 6 Free Solid Unicode Glyphs (UTF-8 encoded)
+#define ICON_FA_CROSSHAIRS           "\xef\x81\x9b" // 0xf05b
+#define ICON_FA_EYE                  "\xef\x81\xae" // 0xf06e
+#define ICON_FA_SLIDERS              "\xef\x87\x9e" // 0xf1de
+#define ICON_FA_PALETTE              "\xef\x94\xbf" // 0xf53f
+#define ICON_FA_FOLDER               "\xef\x81\xbb" // 0xf07b
+#define ICON_FA_USER                 "\xef\x80\x87" // 0xf007
+#define ICON_FA_BELL                 "\xef\x83\xb3" // 0xf0f3
+#define ICON_FA_SHIELD               "\xef\x8f\xad" // 0xf3ed
+#define ICON_FA_GEAR                 "\xef\x80\x93" // 0xf013
+#define ICON_FA_KEY                  "\xef\x82\x84" // 0xf084
+#define ICON_FA_CHECK                "\xef\x80\x8c" // 0xf00c
+#define ICON_FA_XMARK                "\xef\x80\x8d" // 0xf00d
+#define ICON_FA_MINUS                "\xef\x81\xa8" // 0xf068
+#define ICON_FA_TERMINAL             "\xef\x84\xa0" // 0xf120
+#define ICON_FA_MICROCHIP            "\xef\x8b\x9b" // 0xf2db
+#define ICON_FA_LOCK                 "\xef\x80\xa3" // 0xf023
+#define ICON_FA_FLOPPY_DISK          "\xef\x83\x87" // 0xf0c7
+#define ICON_FA_FIRE                 "\xef\x81\xad" // 0xf06d
+#define ICON_FA_SUN                  "\xef\x86\x85" // 0xf185
+#define ICON_FA_WAND_MAGIC           "\xef\x83\x90" // 0xf0d0
+#define ICON_FA_DATABASE             "\xef\x87\x80" // 0xf1c0
+#define ICON_FA_SERVER               "\xef\x88\xb3" // 0xf233
+#define ICON_FA_COPY                 "\xef\x83\x85" // 0xf0c5
+#define ICON_FA_ROTATE               "\xef\x80\xa1" // 0xf021
+#define ICON_FA_TRASH                "\xef\x87\xb8" // 0xf1f8
+#define ICON_FA_DOWNLOAD             "\xef\x80\x99" // 0xf019
+#define ICON_FA_UPLOAD               "\xef\x80\x9b" // 0xf01b
+#define ICON_FA_VOLUME_HIGH          "\xef\x80\xa8" // 0xf028
+#define ICON_FA_VOLUME_XMARK         "\xef\x9a\xa9" // 0xf6a9
+#define ICON_FA_EXPAND               "\xef\x81\xa5" // 0xf065
+#define ICON_FA_CHEVRON_DOWN         "\xef\x81\xb8" // 0xf078
+#define ICON_FA_CHEVRON_RIGHT        "\xef\x81\x94" // 0xf054
+#define ICON_FA_SEARCH               "\xef\x80\x82" // 0xf002
+#define ICON_FA_CUBE                 "\xef\x86\xb2" // 0xf1b2
+#define ICON_FA_SKULL                "\xef\x95\x8c" // 0xf54c
+#define ICON_FA_FINGERPRINT          "\xef\x95\x77" // 0xf577
+#define ICON_FA_HARD_DRIVE           "\xef\x82\xa0" // 0xf0a0
+#define ICON_FA_NETWORK_WIRED        "\xef\x9b\xbf" // 0xf6ff
+#define ICON_FA_BROOM                "\xef\x94\x9a" // 0xf51a
+#define ICON_FA_CIRCLE_INFO          "\xef\x81\x9a" // 0xf05a
+#define ICON_FA_TRIANGLE_EXCLAMATION "\xef\x81\xb1" // 0xf071

@@ -1,0 +1,60 @@
+# Build directories
+build/
+bin/
+out/
+x64/
+x86/
+Debug/
+Release/
+
+# Visual Studio / MSVC files
+.vs/
+*.sln.docstates
+*.suo
+*.user
+*.userosscache
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.vcxproj.schemes
+*.props
+*.filters
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Intermediate build artifacts
+*.obj
+*.o
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.log
+*.tlog
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary scripts & scratch
+scripts/
+scratch/
+*.tmp
+*.bak
+*.swp
+
+# OS generated
+.DS_Store
+Thumbs.db
+Desktop.ini
