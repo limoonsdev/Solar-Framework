@@ -111,16 +111,19 @@ namespace Solar {
                 {
                     Widgets::SidebarCategory("CHEAT ENGINE");
                     Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS);
-                    Widgets::SidebarTab("Visuals", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE);
+                    Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE);
                     Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND);
 
+                    Widgets::SidebarCategory("UI & WIDGETS");
+                    Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS);
+
                     Widgets::SidebarCategory("SECURITY & TOOLS");
-                    Widgets::SidebarTab("Security Suite", IconType::Shield, 3, &m_currentTab, 0, ICON_FA_SHIELD);
-                    Widgets::SidebarTab("License Screen", IconType::User, 4, &m_currentTab, 0, ICON_FA_LOCK);
+                    Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD);
+                    Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK);
 
                     Widgets::SidebarCategory("PREFERENCES");
-                    Widgets::SidebarTab("Themes & Engine", IconType::Palette, 5, &m_currentTab, 0, ICON_FA_PALETTE);
-                    Widgets::SidebarTab("Profiles", IconType::Folder, 6, &m_currentTab, 0, ICON_FA_FLOPPY_DISK);
+                    Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE);
+                    Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK);
 
                     // User Profile at bottom of sidebar
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 58.0f);
@@ -312,15 +315,20 @@ namespace Solar {
 
                         // SUBTAB 0: PLAYER ESP
                         if (m_visualsSubTab == 0) {
-                            if (Widgets::BeginCard("##ESPSettings", "Visual Components", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_EYE)) {
+                            if (Widgets::BeginCard("##ESPSettings", "Visual Components 2.0", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_EYE)) {
                                 if (m_espPage == 0) {
                                     Widgets::Toggle("2D Bounding Box", &m_espSettings.enableBox);
-                                    const char* boxTypes[] = { "Full Box", "Corner Box", "Filled Box" };
-                                    Widgets::Combo("Box Style", &m_espSettings.boxType, boxTypes, 3);
+                                    const char* boxTypes[] = { "Full Box", "Corner Box", "Filled Box", "Gradient Box" };
+                                    Widgets::Combo("Box Style", &m_espSettings.boxType, boxTypes, 4);
                                     float boxCol[4] = { m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w };
                                     if (Widgets::ColorPicker("Box Accent", boxCol)) {
                                         m_espSettings.boxColor = ImVec4(boxCol[0], boxCol[1], boxCol[2], boxCol[3]);
                                     }
+
+                                    Widgets::Toggle("3D Oriented Box (OBB)", &m_espSettings.enable3DBox, "8-vertex rotating 3D wireframe box");
+                                    Widgets::Toggle("Glow Contour Outline", &m_espSettings.enableGlowOutline, "Multi-pass outer ambient bloom");
+                                    Widgets::Toggle("Barrel Line of Sight Ray", &m_espSettings.enableBarrelRay, "Target facing direction vector");
+                                    Widgets::Toggle("Acoustic Sound Waves", &m_espSettings.enableAcousticWaves, "Ground radar footsteps expansion");
 
                                     Widgets::Separator();
                                     Widgets::Toggle("Skeleton Bones", &m_espSettings.enableSkeleton);
@@ -335,15 +343,12 @@ namespace Solar {
                                     Widgets::Toggle("Player Name", &m_espSettings.enableName);
                                     Widgets::Toggle("Active Weapon", &m_espSettings.enableWeapon);
                                     Widgets::Toggle("Distance Meter", &m_espSettings.enableDistance);
-                                    Widgets::Toggle("Snaplines", &m_espSettings.enableSnapline);
-                                    Widgets::Toggle("Glow Halo", &m_espSettings.enableGlow);
                                 } else {
                                     static bool ammoBar = true;
                                     static bool headCircle = true;
                                     static bool badgeScoped = true;
                                     static bool badgeFlashed = true;
                                     static bool badgeReloading = true;
-                                    static bool soundRings = true;
                                     static float occludedAlpha = 0.45f;
 
                                     Widgets::Toggle("Ammo Bar Indicator", &ammoBar);
@@ -352,7 +357,6 @@ namespace Solar {
                                     Widgets::Toggle("Scoped Status Badge", &badgeScoped);
                                     Widgets::Toggle("Flashed Status Badge", &badgeFlashed);
                                     Widgets::Toggle("Reloading Status Badge", &badgeReloading);
-                                    Widgets::Toggle("Acoustic Sound Radar Rings", &soundRings);
                                     Widgets::Separator();
                                     Widgets::SliderFloat("Occluded Wall Alpha", &occludedAlpha, 0.1f, 1.0f, "%.2f", "x");
                                     Widgets::Toggle("Offscreen Direction Arrows", &m_offscreenArrows);
@@ -364,10 +368,15 @@ namespace Solar {
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##ESPPreviewCard", "Interactive 2D ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
-                                ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 320.0f), m_espSettings);
+                            if (Widgets::BeginCard("##ESPPreviewCard", "Studio 3D Mannequin ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 305.0f), m_espSettings);
 
                                 Widgets::Separator();
+                                std::vector<std::string> stanceItems = { "Stand", "Crouch", "Scope", "Jump", "Defuse" };
+                                if (Widgets::SegmentedControl("Stance Pose", &m_espSettings.stance, stanceItems)) {
+                                    Audio::PlayClick();
+                                }
+                                Widgets::Spacing(2.0f);
                                 Widgets::SliderFloat("Simulated HP", &m_espSettings.health, 1.0f, 100.0f, "%.0f", "HP");
                                 Widgets::SliderFloat("Simulated Armor", &m_espSettings.armor, 0.0f, 100.0f, "%.0f", "AP");
                                 Widgets::SliderFloat("Target Distance", &m_espSettings.distance, 2.0f, 120.0f, "%.1f", "m");
@@ -387,6 +396,10 @@ namespace Solar {
                                 }
 
                                 Widgets::Separator();
+                                Widgets::Toggle("Dynamic Spread Crosshair", &m_drawSpreadCrosshair);
+                                Widgets::SliderFloat("Weapon Spread Gap", &m_currentSpread, 10.0f, 60.0f, "%.0f", "px");
+
+                                Widgets::Separator();
                                 const char* snapOrigins[] = { "Screen Bottom", "Screen Center", "Screen Top" };
                                 Widgets::Combo("Snapline Origin", &m_snaplineOrigin, snapOrigins, 3);
                                 Widgets::Toggle("Dashed Snapline Mode", &m_snaplineDashed);
@@ -394,9 +407,18 @@ namespace Solar {
 
                                 Widgets::Separator();
                                 Widgets::SliderFloat("Test Hit DMG", &m_hitmarkerDamage, 10.0f, 150.0f, "%.0f", "HP");
-                                if (Widgets::Button("Trigger Hitmarker (-84 HP)", ImVec2(0, 36), ButtonStyle::Primary)) {
+                                if (Widgets::Button("Trigger Damage Impact", ImVec2(0, 36), ButtonStyle::Primary)) {
                                     m_hitmarkerProgress = 1.0f;
                                     Audio::PlayClick();
+                                    FloatingDmg dmg;
+                                    ImVec2 winPos = ImGui::GetWindowPos();
+                                    dmg.screenPos = ImVec2(winPos.x + cardWidth + 150.0f, winPos.y + 200.0f);
+                                    dmg.damage = m_hitmarkerDamage;
+                                    dmg.isCrit = (m_hitmarkerDamage > 90.0f);
+                                    dmg.lifetime = 1.2f;
+                                    dmg.initialLifetime = 1.2f;
+                                    dmg.velocity = ImVec2(static_cast<float>((rand() % 40) - 20) * 1.5f, -65.0f);
+                                    m_floatingDamages.push_back(dmg);
                                 }
 
                                 Widgets::EndCard();
@@ -418,12 +440,17 @@ namespace Solar {
 
                                 ImVec2 viewCenter(canvasPos.x + canvasSize.x * 0.5f, canvasPos.y + canvasSize.y * 0.5f);
 
-                                // Center Crosshair
-                                draw->AddCircleFilled(viewCenter, 2.0f, IM_COL32(255, 255, 255, 220), 8);
-                                draw->AddLine(ImVec2(viewCenter.x - 7, viewCenter.y), ImVec2(viewCenter.x - 3, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                draw->AddLine(ImVec2(viewCenter.x + 3, viewCenter.y), ImVec2(viewCenter.x + 7, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                draw->AddLine(ImVec2(viewCenter.x, viewCenter.y - 7), ImVec2(viewCenter.x, viewCenter.y - 3), IM_COL32(255, 255, 255, 180), 1.2f);
-                                draw->AddLine(ImVec2(viewCenter.x, viewCenter.y + 3), ImVec2(viewCenter.x, viewCenter.y + 7), IM_COL32(255, 255, 255, 180), 1.2f);
+                                // Dynamic Spread Crosshair
+                                if (m_drawSpreadCrosshair) {
+                                    Visuals::DrawSpreadCrosshair(draw, viewCenter, 4.0f, m_currentSpread, 8.0f,
+                                                                 Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w), true);
+                                } else {
+                                    draw->AddCircleFilled(viewCenter, 2.0f, IM_COL32(255, 255, 255, 220), 8);
+                                    draw->AddLine(ImVec2(viewCenter.x - 7, viewCenter.y), ImVec2(viewCenter.x - 3, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
+                                    draw->AddLine(ImVec2(viewCenter.x + 3, viewCenter.y), ImVec2(viewCenter.x + 7, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
+                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y - 7), ImVec2(viewCenter.x, viewCenter.y - 3), IM_COL32(255, 255, 255, 180), 1.2f);
+                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y + 3), ImVec2(viewCenter.x, viewCenter.y + 7), IM_COL32(255, 255, 255, 180), 1.2f);
+                                }
 
                                 // FOV Circle
                                 if (m_drawFOVCircle) {
@@ -439,6 +466,13 @@ namespace Solar {
                                 ImVec2 e1BoxMin(e1Pos.x - 22.0f, e1Pos.y - 35.0f);
                                 ImVec2 e1BoxMax(e1Pos.x + 22.0f, e1BoxMin.y + 115.0f);
 
+                                // Acoustic sound wave rings
+                                m_acousticWaveTimer += io.DeltaTime * 0.7f;
+                                if (m_acousticWaveTimer >= 1.0f) m_acousticWaveTimer = 0.0f;
+                                Visuals::DrawAcousticWave(draw, e1Pos, 15.0f + m_acousticWaveTimer * 50.0f,
+                                                          (15.0f + m_acousticWaveTimer * 50.0f) * 0.45f, 0.0f,
+                                                          Color(1.0f, 0.45f, 0.1f, 1.0f - m_acousticWaveTimer), 1.5f);
+
                                 // 2D Corner Bounding Box
                                 Visuals::DrawBoundingBox2D(draw, e1BoxMin, e1BoxMax, BoxStyle::Corner,
                                                            Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w));
@@ -448,11 +482,11 @@ namespace Solar {
 
                                 // Skeleton
                                 std::vector<std::pair<ImVec2, ImVec2>> bones = {
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), ImVec2(e1Pos.x, e1BoxMin.y + 35.0f) }, // Neck to Pelvis
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x - 14.0f, e1BoxMin.y + 40.0f) }, // Left Arm
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x + 14.0f, e1BoxMin.y + 40.0f) }, // Right Arm
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x - 10.0f, e1BoxMax.y) }, // Left Leg
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x + 10.0f, e1BoxMax.y) }  // Right Leg
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), ImVec2(e1Pos.x, e1BoxMin.y + 35.0f) },
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x - 14.0f, e1BoxMin.y + 40.0f) },
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x + 14.0f, e1BoxMin.y + 40.0f) },
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x - 10.0f, e1BoxMax.y) },
+                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x + 10.0f, e1BoxMax.y) }
                                 };
                                 Visuals::DrawSkeleton(draw, bones, Color(m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, 0.85f));
 
@@ -486,7 +520,7 @@ namespace Solar {
                                 Visuals::DrawHealthBar(draw, e2Min, e2Max, 28.0f, 100.0f, BarPosition::Left, true, true);
                                 Visuals::DrawDistanceTag(draw, ImVec2(e2Pos.x, e2Max.y + 4.0f), 58.0f);
 
-                                // Offscreen Indicator (Pointing to 3rd enemy offscreen)
+                                // Offscreen Indicator
                                 if (m_offscreenArrows) {
                                     float arrowAngle = -0.75f + std::sin(m_targetOscillate * 0.8f) * 0.20f;
                                     Visuals::DrawOffscreenIndicator(draw, viewCenter, arrowAngle, 120.0f,
@@ -499,6 +533,21 @@ namespace Solar {
                                                            Color(1.0f, 0.22f, 0.22f, 1.0f),
                                                            m_hitmarkerProgress, m_hitmarkerDamage);
                                     m_hitmarkerProgress = (std::max)(0.0f, m_hitmarkerProgress - static_cast<float>(io.DeltaTime) * 1.5f);
+                                }
+
+                                // Update & Render Floating Damage Numbers
+                                for (auto it = m_floatingDamages.begin(); it != m_floatingDamages.end(); ) {
+                                    it->lifetime -= io.DeltaTime;
+                                    if (it->lifetime <= 0.0f) {
+                                        it = m_floatingDamages.erase(it);
+                                    } else {
+                                        it->screenPos.x += it->velocity.x * io.DeltaTime;
+                                        it->screenPos.y += it->velocity.y * io.DeltaTime;
+                                        it->velocity.y += 98.0f * io.DeltaTime;
+                                        Color dmgCol = it->isCrit ? Color(1.0f, 0.25f, 0.25f, 1.0f) : Color(1.0f, 0.85f, 0.2f, 1.0f);
+                                        Visuals::DrawFloatingDamage(draw, it->screenPos, it->damage, dmgCol, it->lifetime / 1.2f, it->isCrit);
+                                        ++it;
+                                    }
                                 }
 
                                 Widgets::EndCard();
@@ -603,9 +652,74 @@ namespace Solar {
                     }
 
                     // ==========================================
-                    // TAB 3: SECURITY & MEMORY SCANNER
+                    // TAB 3: UI CONTROLS & WIDGET SUITE
                     // ==========================================
                     else if (m_currentTab == 3) {
+                        if (Widgets::BeginCard("##WidgetsCard1", "Advanced PastOwl Controls", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_SLIDERS)) {
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "SEGMENTED PILL CONTROL");
+                            std::vector<std::string> segModes = { "Stealth", "Adaptive", "Rage", "Legit" };
+                            Widgets::SegmentedControl("Aimbot Mode", &m_segmentedIdx, segModes);
+
+                            Widgets::Separator();
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DUAL-THUMB RANGE SLIDER");
+                            Widgets::RangeSlider("Field of View Range", &m_rangeMin, &m_rangeMax, 0.0f, 120.0f, "%.0f", "deg");
+
+                            Widgets::Separator();
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "NUMERIC STEPPER & SEARCH FILTER");
+                            Widgets::NumberStepper("Simulation Tickrate", &m_stepperVal, 16, 256, 16);
+                            Widgets::SearchInput("##WidgetSearch", m_searchQuery, sizeof(m_searchQuery), "Search component signatures...");
+
+                            Widgets::Separator();
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DROPDOWN MULTI-TAG SELECTOR");
+                            Widgets::DropdownMultiSelect("Active Visual Shaders", m_multiDropdownSelections, m_multiDropdownItems);
+
+                            Widgets::Separator();
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "270-DEGREE ROTARY KNOB");
+                            Widgets::KnobSlider("Gain Master", &m_knobVal, 0.0f, 100.0f, 26.0f, "%.0f", "%");
+
+                            Widgets::EndCard();
+                        }
+
+                        ImGui::SameLine(0, 10.0f);
+
+                        if (Widgets::BeginCard("##WidgetsCard2", "Telemetry Cards & Accordions", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                            // KPI Stat Cards with sparklines
+                            Widgets::StatCard("RENDER PIPELINE FRAMERATE", "185.4 FPS", "+18.2%", true, m_fpsSparkline, 16, cardWidth - 24.0f, 78.0f);
+                            Widgets::Spacing(6.0f);
+                            Widgets::StatCard("COMPUTE SHADER LATENCY", "0.38 ms", "-24.5%", true, m_latencySparkline, 16, cardWidth - 24.0f, 78.0f);
+
+                            Widgets::Separator();
+                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "COLLAPSIBLE ACCORDION SECTIONS");
+
+                            if (Widgets::BeginAccordion("DirectX 11 Low-Level Tuning", &m_accordion1Open, "Deferred contexts & dynamic VBO buffering")) {
+                                static bool vsync = false;
+                                static bool msaa = true;
+                                Widgets::Toggle("Force Triple Buffering", &vsync);
+                                Widgets::Toggle("4x MSAA Antialiasing", &msaa);
+                                Widgets::EndAccordion();
+                            }
+
+                            if (Widgets::BeginAccordion("RK4 Motion Dynamics Solver", &m_accordion2Open, "Runge-Kutta 4th order spring integration")) {
+                                static float mass = 1.0f;
+                                static float stiffness = 180.0f;
+                                static float damping = 22.0f;
+                                Widgets::SliderFloat("Mass (kg)", &mass, 0.1f, 5.0f, "%.1f");
+                                Widgets::SliderFloat("Stiffness (k)", &stiffness, 10.0f, 500.0f, "%.0f");
+                                Widgets::SliderFloat("Damping (c)", &damping, 1.0f, 100.0f, "%.0f");
+                                Widgets::EndAccordion();
+                            }
+
+                            Widgets::Separator();
+                            Widgets::Badge("Solar Component Library v1.0.1", ThemeManager::Get().GetPalette().Success);
+
+                            Widgets::EndCard();
+                        }
+                    }
+
+                    // ==========================================
+                    // TAB 4: SECURITY & MEMORY SCANNER
+                    // ==========================================
+                    else if (m_currentTab == 4) {
                         Widgets::SubTab("HWID Spoofer", 0, &m_securitySubTab);
                         Widgets::SubTab("AOB Memory Scanner", 1, &m_securitySubTab);
                         ImGui::NewLine();
@@ -710,9 +824,9 @@ namespace Solar {
                     }
 
                     // ==========================================
-                    // TAB 4: LOADER & LICENSE SCREEN
+                    // TAB 5: LOADER & LICENSE SCREEN
                     // ==========================================
-                    else if (m_currentTab == 4) {
+                    else if (m_currentTab == 5) {
                         if (Widgets::BeginCard("##LicenseCard", "Loader Authentication & Entitlement", IconType::User, ImVec2(contentWidth, 490.0f), ICON_FA_LOCK)) {
                             const char* hwid = "8F91-AA02-CC49-0012-98EF";
                             Widgets::LicenseScreen(m_licenseKey, sizeof(m_licenseKey), hwid, &m_rememberMe, &m_loggedIn);
@@ -727,9 +841,9 @@ namespace Solar {
                     }
 
                     // ==========================================
-                    // TAB 5: THEMES & AUDIO
+                    // TAB 6: THEMES & AUDIO
                     // ==========================================
-                    else if (m_currentTab == 5) {
+                    else if (m_currentTab == 6) {
                         Widgets::SubTab("Color Presets", 0, &m_themeSubTab);
                         Widgets::SubTab("Audio & FX", 1, &m_themeSubTab);
                         Widgets::SubTab("Modded ImGui Engine", 2, &m_themeSubTab);
@@ -927,9 +1041,9 @@ namespace Solar {
                     }
 
                     // ==========================================
-                    // TAB 6: CONFIG PROFILES
+                    // TAB 7: CONFIG PROFILES
                     // ==========================================
-                    else if (m_currentTab == 6) {
+                    else if (m_currentTab == 7) {
                         if (Widgets::BeginCard("##ConfigListCard", "Configurations & Presets", IconType::Folder, ImVec2(cardWidth, 490.0f), ICON_FA_FLOPPY_DISK)) {
                             const auto& presets = ConfigManager::Get().GetSavedPresetNames();
                             for (size_t i = 0; i < presets.size(); i++) {

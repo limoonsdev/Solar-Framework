@@ -107,6 +107,33 @@ namespace Solar::Game {
 
         static void DrawHitmarker(ImDrawList* draw, const ImVec2& screenCenter, float size,
                                   Color color, float progress = 1.0f, float damage = -1.0f);
+
+        // ==============================================================================
+        // 8. Visuals 2.0 Modern Enhancements (Gradients, Volumetric Capsules, Waves)
+        // ==============================================================================
+        static void DrawGradientBox2D(ImDrawList* draw, const ImVec2& min, const ImVec2& max,
+                                      Color colTop, Color colBottom, float thickness = 1.5f);
+
+        static void DrawGlowOutlineBox2D(ImDrawList* draw, const ImVec2& min, const ImVec2& max,
+                                         Color boxColor, Color glowColor,
+                                         float glowRadius = 8.0f, float thickness = 1.5f);
+
+        static void DrawCapsuleHitbox3D(ImDrawList* draw, const ImVec2& screenStart, const ImVec2& screenEnd,
+                                        float screenRadius, Color coreColor, Color glowColor);
+
+        static void DrawAcousticWave(ImDrawList* draw, const ImVec2& screenCenter,
+                                     float radiusX, float radiusY, float angleDeg,
+                                     Color waveColor, float thickness = 1.5f);
+
+        static void DrawSpreadCrosshair(ImDrawList* draw, const ImVec2& screenCenter,
+                                        float baseGap, float spreadRadius, float length,
+                                        Color crossColor, bool dot = true, bool tStyle = false);
+
+        static void DrawFloatingDamage(ImDrawList* draw, const ImVec2& pos, float damage,
+                                       Color color, float alpha = 1.0f, bool isCritical = false);
+
+        static void DrawLineOfSightTracer(ImDrawList* draw, const ImVec2& eyePos, const ImVec2& hitPos,
+                                          Color beamColor, Color impactColor, float thickness = 1.5f);
     };
 
     // Fast class alias

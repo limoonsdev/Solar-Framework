@@ -46,6 +46,9 @@
 // ==============================================================================
 #include "anim/easing.hpp"
 #include "anim/spring.hpp"
+#include "anim/spring2d.hpp"
+#include "anim/smooth_damp.hpp"
+#include "anim/timeline.hpp"
 #include "anim/transitions.hpp"
 #include "anim/animation_manager.hpp"
 
@@ -86,6 +89,14 @@
 #include "widgets/progress_bar.hpp"
 #include "widgets/badge.hpp"
 #include "widgets/separator.hpp"
+#include "widgets/segmented_control.hpp"
+#include "widgets/range_slider.hpp"
+#include "widgets/number_stepper.hpp"
+#include "widgets/search_input.hpp"
+#include "widgets/dropdown_multi.hpp"
+#include "widgets/knob_slider.hpp"
+#include "widgets/accordion.hpp"
+#include "widgets/stat_card.hpp"
 
 // ==============================================================================
 // 8. Game, Visuals & ESP Components
@@ -100,6 +111,7 @@
 #include "game/visuals_renderer.hpp"
 #include "game/recoil_visualizer.hpp"
 #include "game/trajectory_renderer.hpp"
+#include "game/obb_renderer.hpp"
 
 // ==============================================================================
 // 9. Security & Anti-Cheat Utilities

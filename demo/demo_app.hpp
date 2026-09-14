@@ -49,6 +49,7 @@ namespace Solar {
         ESPPreviewSettings m_espSettings;
         int    m_espPage = 0;
         int    m_worldPage = 0;
+        int    m_espStance = 0;
         bool   m_drawFOVCircle = true;
         float  m_fovRadius = 125.0f;
         ImVec4 m_fovColor = ImVec4(1.0f, 0.75f, 0.15f, 0.85f);
@@ -61,6 +62,33 @@ namespace Solar {
         float  m_targetOscillate = 0.0f;
         int    m_chamsMaterial = 0;
         float  m_chamsColor[4] = { 0.22f, 0.68f, 1.0f, 0.85f };
+        bool   m_drawSpreadCrosshair = true;
+        float  m_currentSpread = 24.0f;
+        struct FloatingDmg {
+            ImVec2 screenPos;
+            float damage;
+            bool isCrit;
+            float lifetime;
+            float initialLifetime;
+            ImVec2 velocity;
+        };
+        std::vector<FloatingDmg> m_floatingDamages;
+        float  m_acousticWaveTimer = 0.0f;
+
+        // Widget Suite State
+        int   m_widgetSubTab = 0;
+        int   m_segmentedIdx = 0;
+        float m_rangeMin = 20.0f;
+        float m_rangeMax = 75.0f;
+        int   m_stepperVal = 64;
+        char  m_searchQuery[64] = "";
+        std::vector<bool> m_multiDropdownSelections = { true, false, true, false };
+        std::vector<std::string> m_multiDropdownItems = { "Chams Shading", "Glow Contour", "Bullet Tracers", "Sound Wave Rings" };
+        float m_knobVal = 55.0f;
+        bool  m_accordion1Open = true;
+        bool  m_accordion2Open = false;
+        float m_fpsSparkline[16] = { 142.0f, 144.0f, 141.0f, 150.0f, 158.0f, 162.0f, 165.0f, 164.0f, 170.0f, 168.0f, 172.0f, 175.0f, 174.0f, 178.0f, 180.0f, 185.0f };
+        float m_latencySparkline[16] = { 1.2f, 1.1f, 1.3f, 0.9f, 0.8f, 0.75f, 0.7f, 0.65f, 0.6f, 0.55f, 0.5f, 0.48f, 0.45f, 0.42f, 0.40f, 0.38f };
 
         // Combat & Visuals Extended State
         int    m_combatPage = 0;

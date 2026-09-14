@@ -481,4 +481,160 @@ namespace Solar::Game {
         }
     }
 
+    // ==============================================================================
+    // 8. Visuals 2.0 Modern Enhancements
+    // ==============================================================================
+    void VisualsRenderer::DrawGradientBox2D(ImDrawList* draw, const ImVec2& min, const ImVec2& max,
+                                          Color colTop, Color colBottom, float thickness) {
+        if (!draw) return;
+
+        u32 cTop = colTop.ToU32();
+        u32 cBot = colBottom.ToU32();
+        u32 outCol = IM_COL32(0, 0, 0, 200);
+
+        // Black outer contour
+        draw->AddRect(ImVec2(min.x - 1, min.y - 1), ImVec2(max.x + 1, max.y + 1), outCol, 0.0f, 0, thickness + 1.2f);
+
+        // Top line
+        draw->AddLine(min, ImVec2(max.x, min.y), cTop, thickness);
+        // Bottom line
+        draw->AddLine(ImVec2(min.x, max.y), max, cBot, thickness);
+        // Left line (vertical gradient)
+        draw->AddRectFilledMultiColor(ImVec2(min.x, min.y), ImVec2(min.x + thickness, max.y), cTop, cTop, cBot, cBot);
+        // Right line (vertical gradient)
+        draw->AddRectFilledMultiColor(ImVec2(max.x - thickness, min.y), ImVec2(max.x, max.y), cTop, cTop, cBot, cBot);
+    }
+
+    void VisualsRenderer::DrawGlowOutlineBox2D(ImDrawList* draw, const ImVec2& min, const ImVec2& max,
+                                              Color boxColor, Color glowColor,
+                                              float glowRadius, float thickness) {
+        if (!draw) return;
+
+        // Multi-pass translucent halo
+        int layers = 4;
+        for (int i = layers; i >= 1; --i) {
+            float expand = (glowRadius / static_cast<float>(layers)) * static_cast<float>(i);
+            float layerAlpha = (glowColor.a / static_cast<float>(layers * 1.5f)) * (1.0f - static_cast<float>(i - 1) / static_cast<float>(layers));
+            u32 haloCol = glowColor.WithAlpha(layerAlpha).ToU32();
+            draw->AddRect(ImVec2(min.x - expand, min.y - expand),
+                          ImVec2(max.x + expand, max.y + expand),
+                          haloCol, 3.0f, 0, 1.2f);
+        }
+
+        // Inner solid box
+        DrawBoundingBox2D(draw, min, max, BoxStyle::Corner, boxColor, Color(0, 0, 0, 0.85f), 12.0f, thickness);
+    }
+
+    void VisualsRenderer::DrawCapsuleHitbox3D(ImDrawList* draw, const ImVec2& screenStart, const ImVec2& screenEnd,
+                                             float screenRadius, Color coreColor, Color glowColor) {
+        if (!draw) return;
+
+        // Outer glow
+        draw->AddCircleFilled(screenStart, screenRadius + 3.0f, glowColor.WithAlpha(glowColor.a * 0.35f).ToU32(), 12);
+        draw->AddCircleFilled(screenEnd, screenRadius + 3.0f, glowColor.WithAlpha(glowColor.a * 0.35f).ToU32(), 12);
+
+        // Core line
+        draw->AddLine(screenStart, screenEnd, glowColor.WithAlpha(glowColor.a * 0.45f).ToU32(), (screenRadius + 2.0f) * 2.0f);
+        draw->AddLine(screenStart, screenEnd, coreColor.ToU32(), screenRadius * 2.0f);
+
+        // Cap spheres
+        draw->AddCircleFilled(screenStart, screenRadius, coreColor.ToU32(), 16);
+        draw->AddCircleFilled(screenEnd, screenRadius, coreColor.ToU32(), 16);
+    }
+
+    void VisualsRenderer::DrawAcousticWave(ImDrawList* draw, const ImVec2& screenCenter,
+                                          float radiusX, float radiusY, float angleDeg,
+                                          Color waveColor, float thickness) {
+        if (!draw || radiusX <= 1.0f || radiusY <= 1.0f) return;
+
+        constexpr int segments = 32;
+        ImVec2 points[segments];
+        float rad = angleDeg * 0.01745329251f;
+        float cosA = std::cos(rad), sinA = std::sin(rad);
+
+        for (int i = 0; i < segments; ++i) {
+            float theta = (static_cast<float>(i) / static_cast<float>(segments)) * 6.28318530718f;
+            float lx = std::cos(theta) * radiusX;
+            float ly = std::sin(theta) * radiusY;
+
+            points[i] = ImVec2(
+                screenCenter.x + lx * cosA - ly * sinA,
+                screenCenter.y + lx * sinA + ly * cosA
+            );
+        }
+
+        u32 col = waveColor.ToU32();
+        draw->AddPolyline(points, segments, col, ImDrawFlags_Closed, thickness);
+    }
+
+    void VisualsRenderer::DrawSpreadCrosshair(ImDrawList* draw, const ImVec2& screenCenter,
+                                             float baseGap, float spreadRadius, float length,
+                                             Color crossColor, bool dot, bool tStyle) {
+        if (!draw) return;
+
+        u32 col = crossColor.ToU32();
+        u32 outCol = IM_COL32(0, 0, 0, 220);
+        float totalGap = baseGap + spreadRadius;
+
+        // Center dot
+        if (dot) {
+            draw->AddCircleFilled(screenCenter, 1.8f, outCol, 8);
+            draw->AddCircleFilled(screenCenter, 1.2f, col, 8);
+        }
+
+        // Left line
+        draw->AddLine(ImVec2(screenCenter.x - totalGap - length, screenCenter.y), ImVec2(screenCenter.x - totalGap, screenCenter.y), outCol, 2.8f);
+        draw->AddLine(ImVec2(screenCenter.x - totalGap - length, screenCenter.y), ImVec2(screenCenter.x - totalGap, screenCenter.y), col, 1.5f);
+
+        // Right line
+        draw->AddLine(ImVec2(screenCenter.x + totalGap, screenCenter.y), ImVec2(screenCenter.x + totalGap + length, screenCenter.y), outCol, 2.8f);
+        draw->AddLine(ImVec2(screenCenter.x + totalGap, screenCenter.y), ImVec2(screenCenter.x + totalGap + length, screenCenter.y), col, 1.5f);
+
+        // Bottom line
+        draw->AddLine(ImVec2(screenCenter.x, screenCenter.y + totalGap), ImVec2(screenCenter.x, screenCenter.y + totalGap + length), outCol, 2.8f);
+        draw->AddLine(ImVec2(screenCenter.x, screenCenter.y + totalGap), ImVec2(screenCenter.x, screenCenter.y + totalGap + length), col, 1.5f);
+
+        // Top line (omitted if T-Style)
+        if (!tStyle) {
+            draw->AddLine(ImVec2(screenCenter.x, screenCenter.y - totalGap - length), ImVec2(screenCenter.x, screenCenter.y - totalGap), outCol, 2.8f);
+            draw->AddLine(ImVec2(screenCenter.x, screenCenter.y - totalGap - length), ImVec2(screenCenter.x, screenCenter.y - totalGap), col, 1.5f);
+        }
+    }
+
+    void VisualsRenderer::DrawFloatingDamage(ImDrawList* draw, const ImVec2& pos, float damage,
+                                            Color color, float alpha, bool isCritical) {
+        if (!draw || alpha <= 0.01f) return;
+
+        char buf[32];
+        if (isCritical) {
+            snprintf(buf, sizeof(buf), "CRIT -%.0f", damage);
+        } else {
+            snprintf(buf, sizeof(buf), "-%.0f", damage);
+        }
+
+        ImVec2 ts = ImGui::CalcTextSize(buf);
+        ImVec2 textPos(pos.x - ts.x * 0.5f, pos.y);
+
+        u32 shadowCol = IM_COL32(0, 0, 0, static_cast<int>(220 * alpha));
+        u32 textColor = color.WithAlpha(color.a * alpha).ToU32();
+
+        draw->AddText(ImVec2(textPos.x + 1, textPos.y + 1), shadowCol, buf);
+        draw->AddText(textPos, textColor, buf);
+    }
+
+    void VisualsRenderer::DrawLineOfSightTracer(ImDrawList* draw, const ImVec2& eyePos, const ImVec2& hitPos,
+                                               Color beamColor, Color impactColor, float thickness) {
+        if (!draw) return;
+
+        u32 bCol = beamColor.ToU32();
+        u32 outCol = IM_COL32(0, 0, 0, 180);
+
+        draw->AddLine(eyePos, hitPos, outCol, thickness + 1.2f);
+        draw->AddLine(eyePos, hitPos, bCol, thickness);
+
+        // Impact Beacon Sphere
+        draw->AddCircleFilled(hitPos, 4.0f, impactColor.WithAlpha(0.35f).ToU32(), 12);
+        draw->AddCircleFilled(hitPos, 2.0f, impactColor.ToU32(), 8);
+    }
+
 } // namespace Solar::Game
