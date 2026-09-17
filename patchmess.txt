@@ -1,36 +1,19 @@
-[#] - Version & numéro de commit : v1.0.5-dev [commit: 81dcd81]
+[#] - Version & numéro de commit : v1.1.0 [commit: 50e6952]
 
-
-[+] - Ajout : Moteur de redimensionnement universel (RenderResizeGrip) avec poignées d'ajustement interactives au coin inférieur droit sur l'ensemble des fenêtres auxiliaires (KeybindList, SpectatorList, RadarWindow, SatelliteWindow)
-[+] - Ajout : Mode de protection de diffusion Streamproof matériel avec bascule instantanée vers l'affinité d'affichage Windows (WDA_EXCLUDEFROMCAPTURE 0x00000011 et repli 0x00000001) masquant le menu sur OBS, Discord et les captures d'écran
-[+] - Ajout : Carte utilisateur modernisée avec anneau radar pulsant en temps réel, indicateur de présence et menu contextuel stylisé avec badge VIP, bascule streamproof, copie HWID machine sécurisée et raccourcis navigation
-[+] - Ajout : Interaction web native sur le watermark HUD avec lancement automatique du navigateur système par ShellExecuteA et 5 styles visuels (Cyber Telemetry Bar, Minimal Rounded Pill, Neon Terminal Bracket, Holo Esports Badge, Discrete Corner Tag)
-[+] - Ajout : Vérificateur automatisé d'alignement et d'espacement des textes (Solar::Tools::LayoutAuditor) scannant l'ensemble des composants, appliquant des marges de sécurité (>= 8.0px) et générant le journal solar_layout_audit.log
-[+] - Ajout : Mode vitrine automatisé (--showcase-all / --capture-all) exportant 8 captures haute fidélité de chaque onglet et composant vers le dossier screenshots/ pour audit visuel continu
-[+] - Ajout : Enregistrement exhaustif de toutes les commandes, onglets, palettes de thèmes et déclencheurs d'action dans la palette de commandes (Ctrl + P)
-[+] - Ajout : Exécutable autonome SolarWorld.exe (banc d'essai 3D DirectX 11) émulant l'environnement interne d'Unreal Engine 5 (UWorld, ULevel, AActor, APlayerCameraManager, FVector, FRotator) pour tester les injections DLL et overlays en toute sécurité sans crash de jeu
-[+] - Ajout : Exportation native des symboles GWorld, GetUWorld() et g_ExportedSwapChain dans SolarWorld pour le hooking et l'accrochage direct de SwapChain DirectX 11
-[+] - Ajout : Scène 3D interactive avec caméra libre première personne (WASD + visée souris), grille cartésienne, colonnes d'occlusion et mannequins cibles animés avec os tête, torse et bassin
-[+] - Ajout : Détection dynamique et affichage en temps réel des modules DLL injectés dans le banc d'essai avec raccourci F5 pour injecteur externe
-[+] - Ajout : Système de limitation de framerate haute précision (Menu FPS Limiter) proposant VSync, 30, 60, 120, 144, 240, 360 FPS ou Illimité via timeBeginPeriod et QueryPerformanceCounter
-[+] - Ajout : Mode Rainbow Chroma animé avec cycle de spectre RVB fluide sur l'ensemble des accents, bordures actives et reflets de l'interface avec régulateur de vitesse
-[+] - Ajout : 6 nouveaux thèmes professionnels haut de gamme : Onyx Chroma, Synthwave Sunset, Glacier Titanium, Kintsugi Gold, Nebula Void et Blood Moon
-[+] - Ajout : Palette de commandes ultra-réactive (Ctrl + P) avec recherche dynamique, filtrage instantané, raccourcis et catégories d'actions
-[+] - Ajout : Bannière de notification Kill Frag Esports avec animations de glissement, icônes d'armes, multiplicateurs de killstreak et son tactile
-[+] - Ajout : 5 styles de curseurs personnalisés haute précision (Classic Vector, Cyber Triangle, Crosshair Dot, Sci-Fi Chevron, Minimal Needle)
-[+] - Ajout : Fenêtres satellites modulaires et détachées rattachées dynamiquement à la position de la fenêtre principale
-[+] - Ajout : Moteur de bordure rotative colorée (DrawRotatingBorder) avec paramétrage continu par longueur d'arc le long du périmètre arrondi
-[+] - Ajout : Prévisualisation ESP Mannequin 3D temps réel avec squelette anatomique complet, boîte 2D/3D et gestion des postures
-[+] - Ajout : Système audio interne avec retours haptiques sonores synthétisés sans dépendance de fichier externe pour les clics, commutateurs et notifications
-[-] - Retrait : Suppression intégrale et définitive de tous les fichiers, exécutables et dépendances du projet Solar Studio
-[-] - Retrait : Élimination des passes de flou acrylique Windows DWM lourdes au profit d'une composition DWM verre légère garantissant un framerate supérieur à 300 FPS
-[-] - Retrait : Suppression des 10 couches d'ombres redondantes dans ShadowCaster divisant les appels de rendu par plus de 3
-[-] - Retrait : Suppression totale de l'ancien pictogramme soleil jaune à 8 rayons par défaut dans la barre de titre et l'écran d'accueil
-[-] - Retrait : Élimination des décalages d'un demi-pixel sur le traçage des contours qui créaient des défauts de jointure
-[\] - Fix : Déplacement du voile d'assombrissement de la palette de commandes (Ctrl + P) sur le BackgroundDrawList empêchant toute couche sombre par-dessus l'interface active
-[\] - Fix : Optimisation drastique du système de particules avec filtrage distance au carré et limitation stricte à 3 connexions maximales par particule
-[\] - Fix : Alignement parfait au pixel près (std::floor) des bordures de cartes, des boîtes de saisie et des conteneurs pour éliminer tout artefact visuel
-[\] - Fix : Refonte de l'espacement et du positionnement des zones de texte (InputText) avec padding supérieur dédié pour empêcher tout contact du texte avec les marges
-[\] - Fix : Centrage optique rigoureux des textes et des keybinds dans leurs capsules sombres pour une lisibilité irréprochable
-[\] - Fix : Paramétrage continu du tracé de bordure rotative empêchant toute coupure ou discontinuité sur les quatre côtés arrondis
-[\] - Fix : Inclusion et liaison automatique des bibliothèques multimédia Windows (timeapi / winmm / shell32) pour une stabilité temporelle sans micro-stutter
+[+] - Ajout : Console de développement intégrée style Unreal Engine dans SolarWorld (déclenchée par Suppr / Delete ou ~) avec historique, autocomplétion et commandes système (stat fps, stat unit, stat hud, viewmode wireframe/lit, r.SetRes, fov, gamma, slomo, god, teleport, spawn, modules, inject, cls, help)
+[+] - Ajout : Menu de pause en jeu style Unreal Engine Slate dans SolarWorld (déclenché par Échap) avec libération automatique du curseur, réglages d'affichage, gestionnaire de mannequins et inspecteur de DLL injectées
+[+] - Ajout : HUD de combat tactique complet dans SolarWorld comprenant ruban de boussole azimutale synchronisé avec la caméra, réticule 4 axes haute précision, jauges de santé et d'armure, compteur de munitions et plaques nominatives 3D-vers-2D au-dessus des cibles
+[+] - Ajout : Ciel atmosphérique procédural avec dégradé zénith-horizon et disque solaire, éclairage spéculaire Blinn-Phong, ombres de contact au sol et décors tactiques d'entraînement
+[+] - Ajout : Poignée universelle de redimensionnement interactif (RenderResizeGrip) sur l'ensemble des fenêtres auxiliaires (KeybindList, SpectatorList, RadarWindow, SatelliteWindow)
+[+] - Ajout : Mode de protection de diffusion Streamproof matériel avec affinité d'affichage Windows (WDA_EXCLUDEFROMCAPTURE 0x00000011) masquant le menu sur OBS, Discord et les logiciels de capture
+[+] - Ajout : Carte utilisateur modernisée avec anneau radar pulsant en temps réel et menu contextuel VIP avec copie du HWID et raccourcis
+[+] - Ajout : Watermark HUD interactif avec 5 styles visuels et ouverture automatique de lien web par ShellExecuteA
+[+] - Ajout : Système d'audit automatisé des marges et textes (LayoutAuditor) générant le rapport solar_layout_audit.log
+[+] - Ajout : Mode vitrine automatisé (--showcase-all) exportant 8 captures haute résolution dans le dossier screenshots/
+[-] - Retrait : Suppression intégrale et définitive de tous les fichiers et dépendances de Solar Studio
+[-] - Retrait : Élimination des passes de flou acrylique DWM Windows lourdes au profit d'une composition verre fluide garantissant 300+ FPS
+[-] - Retrait : Réduction des couches d'ombres redondantes de 10 à 3 passes divisant les appels de rendu par 3
+[\] - Fix : Déplacement du voile de fond de la palette de commandes (Ctrl + P) sur le BackgroundDrawList supprimant tout assombrissement sur l'interface
+[\] - Fix : Paramétrage continu du tracé de bordure rotative colorée le long de l'intégralité du périmètre arrondi
+[\] - Fix : Optimisation drastique du système de particules constellation avec calcul de distance au carré et plafond de 3 connexions
+[\] - Fix : Centrage optique rigoureux et padding supérieur sur les zones de texte éliminant tout contact avec les bordures
