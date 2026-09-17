@@ -185,7 +185,7 @@ namespace Solar::UI {
 
         // Palette Modal Window Dimensions & Spring Position
         float palWidth = (std::min)(580.0f, dispSize.x - 40.0f);
-        float palHeight = 390.0f;
+        float palHeight = 385.0f;
         float startY = 40.0f;
         float targetY = 90.0f;
         float curY = startY + (targetY - startY) * m_animProgress;
@@ -272,10 +272,12 @@ namespace Solar::UI {
             ImGui::Separator();
             ImGui::Spacing();
 
-            // Commands List
-            float listH = palHeight - 130.0f;
+            // Commands List (dynamically sized for exactly 6 items with clean margins)
+            float listH = 6 * 38.0f + 5 * 2.0f; // 238.0f
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 2.0f));
             ImGui::BeginChild("##CommandListChild", ImVec2(0, listH), false, ImGuiWindowFlags_NoScrollbar);
             {
+                ImDrawList* childDraw = ImGui::GetWindowDrawList();
                 if (filteredCount == 0) {
                     ImGui::SetCursorPosY(listH * 0.35f);
                     ImVec2 noResSz = ImGui::CalcTextSize("No matching commands found");
@@ -285,6 +287,10 @@ namespace Solar::UI {
                     for (int i = 0; i < filteredCount; ++i) {
                         const auto* cmd = filtered[i];
                         bool isSelected = (i == m_selectedIndex);
+
+                        if (isSelected) {
+                            ImGui::SetScrollHereY(0.5f);
+                        }
 
                         ImGui::PushID(i);
                         ImVec2 itemPos = ImGui::GetCursorScreenPos();
@@ -311,26 +317,26 @@ namespace Solar::UI {
                         ImVec2 iMax(itemPos.x + itemW, itemPos.y + itemH);
 
                         if (isSelected) {
-                            draw->AddRectFilled(iMin, iMax, pal.Accent.WithAlpha(0.18f).ToU32(), 6.0f);
-                            Render::ImGuiExt::AddSmoothBorder(draw, iMin, iMax, pal.Accent.WithAlpha(0.70f).ToU32(), 6.0f, 1.0f);
+                            childDraw->AddRectFilled(iMin, iMax, pal.Accent.WithAlpha(0.18f).ToU32(), 6.0f);
+                            Render::ImGuiExt::AddSmoothBorder(childDraw, iMin, iMax, pal.Accent.WithAlpha(0.70f).ToU32(), 6.0f, 1.0f);
                             // Left accent bar
-                            draw->AddRectFilled(ImVec2(iMin.x + 3.0f, iMin.y + 6.0f),
-                                                ImVec2(iMin.x + 6.0f, iMax.y - 6.0f), pal.Accent.ToU32(), 2.0f);
+                            childDraw->AddRectFilled(ImVec2(iMin.x + 3.0f, iMin.y + 6.0f),
+                                                     ImVec2(iMin.x + 6.0f, iMax.y - 6.0f), pal.Accent.ToU32(), 2.0f);
                         } else if (hovered) {
-                            draw->AddRectFilled(iMin, iMax, pal.CardHover.WithAlpha(0.50f).ToU32(), 6.0f);
+                            childDraw->AddRectFilled(iMin, iMax, pal.CardHover.WithAlpha(0.50f).ToU32(), 6.0f);
                         }
 
                         // Icon
                         float textX = itemPos.x + 16.0f;
                         if (cmd->icon) {
                             u32 iconCol = isSelected ? pal.Accent.ToU32() : pal.TextSecondary.ToU32();
-                            draw->AddText(ImVec2(textX, itemPos.y + 10.0f), iconCol, cmd->icon);
+                            childDraw->AddText(ImVec2(textX, itemPos.y + 10.0f), iconCol, cmd->icon);
                             textX += 26.0f;
                         }
 
                         // Title
                         u32 titleCol = isSelected ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32();
-                        draw->AddText(ImVec2(textX, itemPos.y + 10.0f), titleCol, cmd->title.c_str());
+                        childDraw->AddText(ImVec2(textX, itemPos.y + 10.0f), titleCol, cmd->title.c_str());
 
                         // Category Pill
                         if (!cmd->category.empty()) {
@@ -338,16 +344,16 @@ namespace Solar::UI {
                             float catX = itemPos.x + itemW - 12.0f - catSz.x - (cmd->shortcut.empty() ? 0.0f : 70.0f);
                             ImVec2 pMin(catX - 6.0f, itemPos.y + 8.0f);
                             ImVec2 pMax(catX + catSz.x + 6.0f, itemPos.y + 28.0f);
-                            draw->AddRectFilled(pMin, pMax, pal.Header.WithAlpha(0.85f).ToU32(), 4.0f);
-                            draw->AddRect(pMin, pMax, pal.Border.WithAlpha(0.50f).ToU32(), 4.0f);
-                            draw->AddText(ImVec2(catX, itemPos.y + 9.5f), pal.TextDisabled.ToU32(), cmd->category.c_str());
+                            childDraw->AddRectFilled(pMin, pMax, pal.Header.WithAlpha(0.85f).ToU32(), 4.0f);
+                            childDraw->AddRect(pMin, pMax, pal.Border.WithAlpha(0.50f).ToU32(), 4.0f);
+                            childDraw->AddText(ImVec2(catX, itemPos.y + 9.5f), pal.TextDisabled.ToU32(), cmd->category.c_str());
                         }
 
                         // Shortcut Badge
                         if (!cmd->shortcut.empty()) {
                             ImVec2 scSz = ImGui::CalcTextSize(cmd->shortcut.c_str());
                             float scX = itemPos.x + itemW - 10.0f - scSz.x;
-                            draw->AddText(ImVec2(scX, itemPos.y + 10.0f), pal.Accent.WithAlpha(0.85f).ToU32(), cmd->shortcut.c_str());
+                            childDraw->AddText(ImVec2(scX, itemPos.y + 10.0f), pal.Accent.WithAlpha(0.85f).ToU32(), cmd->shortcut.c_str());
                         }
 
                         ImGui::PopID();
@@ -355,13 +361,14 @@ namespace Solar::UI {
                 }
             }
             ImGui::EndChild();
+            ImGui::PopStyleVar();
 
-            // Footer keyboard hints
-            ImGui::SetCursorPosY(palHeight - 34.0f);
+            // Footer keyboard hints (natural flow below list with clean separator)
+            ImGui::Dummy(ImVec2(0.0f, 6.0f));
             ImGui::Separator();
-            ImGui::Spacing();
+            ImGui::Dummy(ImVec2(0.0f, 6.0f));
 
-            ImGui::TextColored(pal.TextDisabled, "Navigation:");
+            ImGui::TextColored(pal.TextDisabled, "Navigate:");
             ImGui::SameLine();
             ImGui::TextColored(pal.Accent, "[↑ / ↓]");
             ImGui::SameLine();

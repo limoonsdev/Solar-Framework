@@ -1,4 +1,4 @@
-# 🧩 Solar Framework v1.0.1 - Complete 14 Subsystems Architecture Reference
+# 🧩 Solar Framework v1.1.0 - Complete 14 Subsystems Architecture Reference
 
 Exhaustive API documentation for every component in Solar Framework.
 

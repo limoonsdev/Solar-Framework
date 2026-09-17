@@ -72,6 +72,7 @@ namespace Solar::Widgets {
         // Header Title & Clean Label
         auto lv = Render::CleanLabel(label);
         float headerY = bb.Min.y + 8.0f;
+        ImVec2 labelSize = ImGui::CalcTextSize(lv.textBegin, lv.textEnd);
         draw->AddText(ImVec2(bb.Min.x + 10.0f, headerY), pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
 
         // Header Metric Badges (Cur, Avg)
@@ -93,9 +94,12 @@ namespace Solar::Widgets {
         Render::ImGuiExt::AddSmoothBorder(draw, curPillMin, curPillMax, accent.WithAlpha(0.35f).ToU32(), 4.0f, 1.0f);
         draw->AddText(ImVec2(badgeX + 5.0f, headerY), accent.ToU32(), curBuf);
 
-        // Avg Badge
-        badgeX -= avgSize.x + 14.0f;
-        draw->AddText(ImVec2(badgeX, headerY), pal.TextSecondary.ToU32(), avgBuf);
+        // Avg Badge (only rendered when there is strictly sufficient clearance from the title)
+        float titleEndX = bb.Min.x + 10.0f + labelSize.x;
+        if (badgeX - (avgSize.x + 16.0f) > titleEndX + 8.0f) {
+            badgeX -= avgSize.x + 14.0f;
+            draw->AddText(ImVec2(badgeX, headerY), pal.TextSecondary.ToU32(), avgBuf);
+        }
 
         // Plot Region
         float plotTop = bb.Min.y + 28.0f;

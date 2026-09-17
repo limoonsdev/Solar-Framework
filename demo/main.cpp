@@ -168,7 +168,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     HWND hwnd = ::CreateWindowW(
         wc.lpszClassName,
-        L"Solar Framework v1.0.1 | Industrial ImGui Suite (Ultra-Crisp 1:1 DPI)",
+        L"Solar Framework v1.1.0 | Industrial ImGui Suite (Ultra-Crisp 1:1 DPI)",
         WS_OVERLAPPEDWINDOW,
         posX, posY, winW, winH,
         nullptr, nullptr, wc.hInstance, nullptr
@@ -337,25 +337,37 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             } else if (screenshotFrame == 15) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_0_combat.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(1);
-            } else if (screenshotFrame == 23) {
+                Solar::DemoApp::Get().SetVisualsSubTab(0);
+            } else if (screenshotFrame == 24) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_1_visuals.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(2);
-            } else if (screenshotFrame == 31) {
+                Solar::DemoApp::Get().SetMiscSubTab(1); // HUD Status Bar
+            } else if (screenshotFrame == 33) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_2_watermarks.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(2);
+                Solar::DemoApp::Get().SetMiscSubTab(2); // Screen Watermark
+            } else if (screenshotFrame == 42) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_2b_screen_watermark.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(3);
-            } else if (screenshotFrame == 39) {
+            } else if (screenshotFrame == 51) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_3_widgets.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(4);
-            } else if (screenshotFrame == 47) {
-                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_4_satellites.bmp");
+                Solar::DemoApp::Get().SetSecuritySubTab(0); // Hardware ID Spoofer
+            } else if (screenshotFrame == 60) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_4_security.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(6);
-            } else if (screenshotFrame == 55) {
+                Solar::DemoApp::Get().SetThemeSubTab(3); // Satellite Windows
+            } else if (screenshotFrame == 69) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_5_satellites.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(6);
+                Solar::DemoApp::Get().SetThemeSubTab(0); // Color Presets
+            } else if (screenshotFrame == 78) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_6_themes.bmp");
                 Solar::DemoApp::Get().SetCurrentTab(7);
-            } else if (screenshotFrame == 63) {
+            } else if (screenshotFrame == 87) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_7_profiles.bmp");
                 Solar::UI::ToggleCommandPalette();
-            } else if (screenshotFrame == 72) {
+            } else if (screenshotFrame == 97) {
                 SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_8_command_palette.bmp");
                 printf("[DEMO] All showcase screenshots successfully exported to screenshots/\n");
                 done = true;

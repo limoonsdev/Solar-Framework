@@ -64,14 +64,14 @@ namespace Solar::Widgets {
         draw->AddText(ImVec2(bb.Min.x + 12.0f, bb.Min.y + 32.0f),
                       ThemeManager::ToU32(pal.TextPrimary), value);
 
-        // Sparkline graph in bottom section
+        // Sparkline graph docked cleanly on the right half to avoid overlapping value text
         if (sparklineData && sparklineCount > 1) {
             float sparkH = 22.0f;
-            float sparkMinY = bb.Max.y - 8.0f - sparkH;
-            float sparkMaxY = bb.Max.y - 8.0f;
-            float sparkMinX = bb.Min.x + 12.0f;
-            float sparkMaxX = bb.Max.x - 12.0f;
-            float sparkW = sparkMaxX - sparkMinX;
+            float sparkMinY = bb.Max.y - 10.0f - sparkH;
+            float sparkMaxY = bb.Max.y - 10.0f;
+            float sparkW = (std::min)(width * 0.42f, 115.0f);
+            float sparkMaxX = bb.Max.x - 14.0f;
+            float sparkMinX = sparkMaxX - sparkW;
 
             float minV = sparklineData[0];
             float maxV = sparklineData[0];

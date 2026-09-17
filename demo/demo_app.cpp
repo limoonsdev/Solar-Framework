@@ -105,10 +105,10 @@ namespace Solar {
         m_espSettings.armor = 60.0f;
         m_showRadarWindow = true;
         m_showSpectators = true;
-        m_showKeybinds = true;
+        m_showKeybinds = false;
         m_showWatermark = true;
         m_watermarkInfo.frameworkName = "SOLAR";
-        m_watermarkInfo.version = "v1.0.2-dev";
+        m_watermarkInfo.version = "v1.1.0";
         m_watermarkInfo.username = "SolarDev";
         m_watermarkInfo.customLink = "discord.gg/solarud";
         m_watermarkInfo.pingMs = 12;
@@ -269,7 +269,7 @@ namespace Solar {
                 FX::DrawRotatingBorder(ImGui::GetForegroundDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
                                        m_rotatingBorderConfig);
             }
-            Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.0.1", &m_windowOpen, &m_minimized);
+            Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.1.0", &m_windowOpen, &m_minimized);
 
             if (!m_minimized) {
                 // Sidebar Navigation
@@ -304,24 +304,31 @@ namespace Solar {
                     ImGui::PopItemWidth();
                     ImGui::Spacing();
 
-                    Widgets::SidebarCategory("CHEAT ENGINE");
-                    if (Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS)) PushNavHistory(0);
-                    if (Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE)) PushNavHistory(1);
-                    if (Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND)) PushNavHistory(2);
+                    // Scrollable tabs container strictly avoiding the bottom user profile card
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 2.0f));
+                    ImGui::BeginChild("##SidebarNavTabs", ImVec2(0, -54.0f), false, ImGuiWindowFlags_NoScrollbar);
+                    {
+                        Widgets::SidebarCategory("CHEAT ENGINE");
+                        if (Widgets::SidebarTab("Combat", IconType::Crosshair, 0, &m_currentTab, 0, ICON_FA_CROSSHAIRS)) PushNavHistory(0);
+                        if (Widgets::SidebarTab("Visuals 2.0", IconType::Eye, 1, &m_currentTab, 2, ICON_FA_EYE)) PushNavHistory(1);
+                        if (Widgets::SidebarTab("Radar & HUD", IconType::Sliders, 2, &m_currentTab, 0, ICON_FA_EXPAND)) PushNavHistory(2);
 
-                    Widgets::SidebarCategory("UI & WIDGETS");
-                    if (Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS)) PushNavHistory(3);
+                        Widgets::SidebarCategory("UI & WIDGETS");
+                        if (Widgets::SidebarTab("Widget Suite", IconType::Sliders, 3, &m_currentTab, 0, ICON_FA_SLIDERS)) PushNavHistory(3);
 
-                    Widgets::SidebarCategory("SECURITY & TOOLS");
-                    if (Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD)) PushNavHistory(4);
-                    if (Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK)) PushNavHistory(5);
+                        Widgets::SidebarCategory("SECURITY & TOOLS");
+                        if (Widgets::SidebarTab("Security Suite", IconType::Shield, 4, &m_currentTab, 0, ICON_FA_SHIELD)) PushNavHistory(4);
+                        if (Widgets::SidebarTab("License Screen", IconType::User, 5, &m_currentTab, 0, ICON_FA_LOCK)) PushNavHistory(5);
 
-                    Widgets::SidebarCategory("PREFERENCES");
-                    if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
-                    if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
+                        Widgets::SidebarCategory("PREFERENCES");
+                        if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
+                        if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
+                    }
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
 
                     // User Profile at bottom of sidebar (luxury glass chip with interactive profile menu)
-                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
+                    ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 50.0f);
                     ImGui::SetCursorPosX(10.0f);
                     ImDrawList* drawList = ImGui::GetWindowDrawList();
                     const auto& pal = ThemeManager::Get().GetPalette();
@@ -466,7 +473,7 @@ namespace Solar {
                         if (!canFwd) ImGui::EndDisabled();
 
                         ImGui::SameLine(0, 10.0f);
-                        const char* tabNames[] = { "Combat & Aimbot", "Studio Visuals 2.0", "Radar & HUD", "Widget Suite", "Security Suite", "License Screen", "Themes & Engine", "Profiles & Config" };
+                        const char* tabNames[] = { "Combat & Aimbot", "Visuals 2.0", "Radar & HUD", "Widget Suite", "Security Suite", "License Screen", "Themes & Engine", "Profiles & Config" };
                         const char* activeTabName = (m_currentTab >= 0 && m_currentTab < 8) ? tabNames[m_currentTab] : "Overview";
                         ImGui::AlignTextToFramePadding();
                         ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Workspace >");
@@ -698,8 +705,8 @@ namespace Solar {
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##ESPPreviewCard", "Studio 3D Mannequin ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
-                                ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 305.0f), m_espSettings);
+                            if (Widgets::BeginCard("##ESPPreviewCard", "3D Mannequin ESP Preview", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 235.0f), m_espSettings);
 
                                 Widgets::Separator();
                                 std::vector<std::string> stanceItems = { "T-Pose", "Stand", "Crouch", "Scope", "Jump" };
@@ -785,7 +792,8 @@ namespace Solar {
                     // ==========================================
                     else if (m_currentTab == 2) {
                         Widgets::SubTab("Tactical Radar", 0, &m_miscSubTab);
-                        Widgets::SubTab("Watermarks & HUD", 1, &m_miscSubTab);
+                        Widgets::SubTab("HUD Status Bar", 1, &m_miscSubTab);
+                        Widgets::SubTab("Screen Watermark", 2, &m_miscSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
@@ -811,7 +819,6 @@ namespace Solar {
                                 Widgets::Toggle("Sweep Beam Animation", &m_radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
                                 Widgets::Toggle("Directional Heading Cones", &m_radarSettings.showHeadingCones, "Entity orientation vectors");
                                 Widgets::Toggle("Tactical Cartesian Grid", &m_radarSettings.showGrid);
-                                Widgets::Toggle("Concentric Distance Rings", &m_radarSettings.showRings);
 
                                 Widgets::EndCard();
                             }
@@ -858,29 +865,28 @@ namespace Solar {
                                 Widgets::EndCard();
                             }
                         } else if (m_miscSubTab == 1) {
-                            if (Widgets::BeginCard("##HUDWatermarkCard", "HUD Status Watermark (Links & Interactivity)", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_LINK)) {
+                            const auto& pal = ThemeManager::Get().GetPalette();
+                            // SUBTAB 1: HUD STATUS BAR
+                            if (Widgets::BeginCard("##HUDWatermarkCard", "HUD Status Bar Configuration", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_LINK)) {
                                 Widgets::Toggle("Enable HUD Watermark", &m_showWatermark, "Show sleek status pill in viewport");
                                 Widgets::Spacing(4.0f);
                                 Widgets::InputText("Custom Link URL", m_customLinkInput, sizeof(m_customLinkInput));
-                                Widgets::Toggle("Display Link Badge", &m_watermarkInfo.showLink, "Include interactive link in HUD bar");
-                                Widgets::Toggle("Display Latency (Ping)", &m_watermarkInfo.showPing);
-                                Widgets::Toggle("Display Framerate (FPS)", &m_watermarkInfo.showFps);
-                                Widgets::Toggle("Display System Clock", &m_watermarkInfo.showTime);
-                                Widgets::Toggle("Display User Profile", &m_watermarkInfo.showUser);
-                                Widgets::Toggle("Pulsing Status LED", &m_watermarkInfo.showStatusDot);
-                                Widgets::Separator();
+                                Widgets::Spacing(4.0f);
 
                                 std::vector<std::string> posOptions = { "Top Right", "Top Left", "Bottom Right", "Bottom Left", "Free Draggable" };
                                 Widgets::Combo("Position Anchor", &m_watermarkPosIndex, posOptions);
                                 Widgets::Spacing(4.0f);
 
                                 std::vector<std::string> styleOptions = { "Cyber Telemetry Bar", "Minimal Rounded Pill", "Neon Terminal Bracket", "Holo Esports Badge", "Discrete Corner Tag" };
-                                if (Widgets::Combo("Watermark Visual Style", &s_wmStyleIdx, styleOptions)) {
+                                if (Widgets::Combo("Visual Style", &s_wmStyleIdx, styleOptions)) {
                                     m_watermarkInfo.style = static_cast<Game::WatermarkStyle>(s_wmStyleIdx);
                                 }
-                                Widgets::Spacing(6.0f);
+                                Widgets::Spacing(10.0f);
+                                Widgets::Separator();
+                                Widgets::Spacing(8.0f);
 
-                                if (Widgets::Button(ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE "  Open Link in Browser", ImVec2(0, 32), ButtonStyle::Primary)) {
+                                float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
+                                if (Widgets::Button(ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE " Open URL", ImVec2(btnW, 34), ButtonStyle::Primary)) {
                                     std::string target = m_customLinkInput;
                                     if (target.rfind("http://", 0) != 0 && target.rfind("https://", 0) != 0) {
                                         target = "https://" + target;
@@ -889,9 +895,8 @@ namespace Solar {
                                     Audio::PlayClick();
                                     Notify::Success("Link Opened", ("Navigating to: " + target).c_str());
                                 }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Copy Link to Clipboard", ImVec2(0, 30), ButtonStyle::Secondary)) {
+                                ImGui::SameLine(0, 8.0f);
+                                if (Widgets::Button(ICON_FA_COPY " Copy URL", ImVec2(btnW, 34), ButtonStyle::Secondary)) {
                                     ImGui::SetClipboardText(m_customLinkInput);
                                     Audio::PlayClick();
                                     Notify::Success("Link Copied", (std::string(m_customLinkInput) + " copied to clipboard!").c_str());
@@ -902,10 +907,28 @@ namespace Solar {
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##AdvancedScreenWatermarkCard", "Advanced Screen Watermark (Gaming Fonts)", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_GAMEPAD)) {
+                            if (Widgets::BeginCard("##HUDTelemetryCard", "HUD Live Telemetry Indicators", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                                Widgets::Toggle("Display Link Badge", &m_watermarkInfo.showLink, "Show interactive Discord / Web link");
+                                Widgets::Spacing(2.0f);
+                                Widgets::Toggle("Display Latency (Ping)", &m_watermarkInfo.showPing, "Real-time network ping roundtrip");
+                                Widgets::Spacing(2.0f);
+                                Widgets::Toggle("Display Framerate (FPS)", &m_watermarkInfo.showFps, "DirectX 11 swapchain framerate counter");
+                                Widgets::Spacing(2.0f);
+                                Widgets::Toggle("Display System Clock", &m_watermarkInfo.showTime, "Current system local time in HUD");
+                                Widgets::Spacing(2.0f);
+                                Widgets::Toggle("Display User Profile", &m_watermarkInfo.showUser, "Active user nickname & VIP status tag");
+                                Widgets::Spacing(2.0f);
+                                Widgets::Toggle("Pulsing Status LED", &m_watermarkInfo.showStatusDot, "Animated heartbeat indicator beacon");
+
+                                Widgets::EndCard();
+                            }
+                        } else if (m_miscSubTab == 2) {
+                            // SUBTAB 2: ADVANCED SCREEN WATERMARK
+                            if (Widgets::BeginCard("##AdvancedScreenWatermarkCard", "Overlay Typography & Layout", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_GAMEPAD)) {
                                 Widgets::Toggle("Enable Screen Watermark", &m_screenWatermark.enabled, "Large subtle overlay across entire screen");
                                 Widgets::Spacing(4.0f);
                                 Widgets::InputText("Screen Overlay Text", m_screenWatermarkTextInput, sizeof(m_screenWatermarkTextInput));
+                                Widgets::Spacing(4.0f);
 
                                 std::vector<std::string> fontOptions = {
                                     "Valorant / CS2 Tactical (DIN)",
@@ -917,6 +940,7 @@ namespace Solar {
                                     "Halo Spartan HUD (Trebuchet Bold)"
                                 };
                                 Widgets::Combo("Gaming Font Family", &m_screenFontIndex, fontOptions);
+                                Widgets::Spacing(4.0f);
 
                                 std::vector<std::string> layoutOptions = {
                                     "Center Diagonal (-25 deg)",
@@ -926,6 +950,7 @@ namespace Solar {
                                     "Tiled Security Matrix (Anti-Leak)"
                                 };
                                 Widgets::Combo("Overlay Layout", &m_screenLayoutIndex, layoutOptions);
+                                Widgets::Spacing(4.0f);
 
                                 std::vector<std::string> effectOptions = {
                                     "Solid Alpha (Crisp Vector)",
@@ -933,10 +958,24 @@ namespace Solar {
                                 };
                                 Widgets::Combo("Render Effect", &m_screenEffectIndex, effectOptions);
 
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##ScreenWatermarkFXCard", "Visual Effects & Transparency", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
                                 Widgets::SliderFloat("Watermark Opacity", &m_screenWatermark.opacity, 0.03f, 0.45f, "%.2f");
+                                Widgets::Spacing(4.0f);
                                 Widgets::SliderFloat("Font Scale Multiplier", &m_screenWatermark.scale, 0.5f, 2.2f, "%.1f", "x");
+                                Widgets::Spacing(6.0f);
                                 Widgets::Toggle("Match Theme Color", &m_screenWatermark.useThemeColor, "Tint watermark with active theme accent");
+                                Widgets::Spacing(2.0f);
                                 Widgets::Toggle("Breathing Opacity Pulse", &m_screenWatermark.animatedPulse, "Subtle organic luminance wave");
+
+                                Widgets::Spacing(12.0f);
+                                Widgets::Separator();
+                                Widgets::Spacing(8.0f);
+                                Widgets::Badge("Crisp Vector Direct3D 11 Overlay Active", ThemeManager::Get().GetPalette().Accent);
 
                                 Widgets::EndCard();
                             }
@@ -1017,7 +1056,7 @@ namespace Solar {
                             }
 
                             Widgets::Separator();
-                            Widgets::Badge("Solar Component Library v1.0.1", ThemeManager::Get().GetPalette().Success);
+                            Widgets::Badge("Solar Component Library v1.1.0", ThemeManager::Get().GetPalette().Success);
 
                             Widgets::EndCard();
                         }
@@ -1162,14 +1201,14 @@ namespace Solar {
                         // SUBTAB 0: COLOR PRESETS
                         if (m_themeSubTab == 0) {
                             if (Widgets::BeginCard("##ThemesList", "Color Presets (Pro Engineering & Esports)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
-                                ImGui::BeginChild("##ThemesScrollArea", ImVec2(0, 420.0f), false, ImGuiWindowFlags_NoBackground);
+                                ImGui::BeginChild("##ThemesScrollArea", ImVec2(0, ImGui::GetContentRegionAvail().y - 6.0f), false, ImGuiWindowFlags_NoBackground);
                                 auto allPresets = Presets::GetAll();
                                 ThemePreset activePreset = ThemeManager::Get().GetCurrentPreset();
                                 for (const auto& pi : allPresets) {
                                     bool isActive = (pi.preset == activePreset);
                                     char label[128];
                                     snprintf(label, sizeof(label), "%s%s", pi.name.c_str(), isActive ? "  [ACTIVE]" : "");
-                                    if (Widgets::Button(label, ImVec2(0, 35), isActive ? ButtonStyle::Primary : ButtonStyle::Secondary)) {
+                                    if (Widgets::Button(label, ImVec2(0, 33), isActive ? ButtonStyle::Primary : ButtonStyle::Secondary)) {
                                         ThemeManager::Get().ApplyPreset(pi.preset);
                                         Notify::Success("Theme Applied", (std::string("Switched to ") + pi.name + " theme.").c_str());
                                     }
@@ -1185,7 +1224,8 @@ namespace Solar {
                             ImGui::SameLine(0, 10.0f);
 
                             if (Widgets::BeginCard("##CustomColorTuning", "Custom Palette & Accent Calibration", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_GEAR)) {
-                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "Live real-time dual-gradient RGB accent tuner:");
+                                const auto& pal = ThemeManager::Get().GetPalette();
+                                ImGui::TextColored(pal.TextSecondary, "Live real-time dual-gradient RGB accent tuner:");
                                 Widgets::Spacing(6.0f);
 
                                 if (Widgets::ColorPicker("Custom Accent RGB", m_customColor)) {
@@ -1212,7 +1252,6 @@ namespace Solar {
                                 ImVec2 swatchPos = ImGui::GetCursorScreenPos();
                                 float swatchW = cardWidth - 24.0f;
                                 float swatchH = 45.0f;
-                                const auto& pal = ThemeManager::Get().GetPalette();
                                 draw->AddRectFilledMultiColor(swatchPos, ImVec2(swatchPos.x + swatchW, swatchPos.y + swatchH),
                                                              ThemeManager::ToU32(pal.Accent), ThemeManager::ToU32(pal.AccentHover),
                                                              ThemeManager::ToU32(pal.AccentHover), ThemeManager::ToU32(pal.Accent));
@@ -1356,21 +1395,25 @@ namespace Solar {
                                 Widgets::SliderFloat("Separation Gap", &m_satelliteKeybindsConfig.offsetGap, 4.0f, 40.0f, "%.0f", "px");
                                 Widgets::Toggle("Magnetic Snap to Parent", &m_satelliteKeybindsConfig.magneticSnap, "Snaps back automatically when dragged near GUI");
                                 Widgets::SliderFloat("Snap Radius", &m_satelliteKeybindsConfig.snapThreshold, 15.0f, 75.0f, "%.0f", "px");
-                                Widgets::Toggle("Smooth Spring Lag Physics", &m_satelliteKeybindsConfig.smoothSpring, "Fluid trailing motion when dragging GUI");
-                                Widgets::Toggle("Neon Connector Beam", &m_satelliteKeybindsConfig.drawConnectorBeam, "Glowing energy bracket connecting parent to satellite");
-                                Widgets::Toggle("Rotating Border on Satellite", &m_satelliteKeybindsConfig.enableRotatingBorder);
 
                                 Widgets::EndCard();
                             }
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##SatelliteArchCard", "Satellite Architecture Overview", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_SHIELD)) {
+                            if (Widgets::BeginCard("##SatelliteArchCard", "Satellite Dynamics & Architecture", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_SHIELD)) {
+                                Widgets::Toggle("Smooth Spring Lag Physics", &m_satelliteKeybindsConfig.smoothSpring, "Fluid trailing motion when dragging GUI");
+                                Widgets::Toggle("Neon Connector Beam", &m_satelliteKeybindsConfig.drawConnectorBeam, "Glowing energy bracket connecting parent to satellite");
+                                Widgets::Toggle("Rotating Border on Satellite", &m_satelliteKeybindsConfig.enableRotatingBorder);
+                                Widgets::Spacing(4.0f);
+                                Widgets::Separator();
+                                Widgets::Spacing(4.0f);
+
                                 ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "ATTACHED-YET-DETACHED PARADIGM");
                                 ImGui::Spacing();
                                 ImGui::TextWrapped("Satellite windows are rendered as isolated DirectX 11 draw calls with independent drop shadows and glass cards. They lock magnetically to the host window edges and can be pinned or unpinned on the fly with the padlock icon.");
 
-                                Widgets::Separator();
+                                Widgets::Spacing(6.0f);
                                 if (Widgets::Button("Reset Satellites to Dock", ImVec2(0, 36), ButtonStyle::Secondary)) {
                                     m_satelliteKeybindsConfig.isPinned = true;
                                     m_satelliteKeybindsConfig.anchor = UI::SatelliteAnchor::DockRight;

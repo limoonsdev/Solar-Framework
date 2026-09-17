@@ -154,7 +154,7 @@ namespace Solar::Game {
         // STYLE 0 (Default) & 3 (HoloBadge): CyberBar
         // -------------------------------------------------------------
         float padX = 14.0f;
-        float sunBoxW = 20.0f;
+        float sunBoxW = 26.0f;
         float sepW = 12.0f;
 
         float contentWidth = padX * 2.0f + sunBoxW + titleSize.x + 6.0f + verSize.x;
@@ -250,9 +250,8 @@ namespace Solar::Game {
         // Cyber terminal icon badge
         float centerY = min.y + totalH * 0.5f;
         float curX = min.x + padX;
-        ImVec2 markC(curX + 6.0f, centerY);
-        draw->AddRectFilled(ImVec2(curX, centerY - 8.0f), ImVec2(curX + 16.0f, centerY + 8.0f), pal.Accent.WithAlpha(0.20f).ToU32(), 3.0f);
-        draw->AddText(ImVec2(curX + 3.0f, centerY - 6.0f), pal.Accent.ToU32(), ICON_FA_TERMINAL);
+        draw->AddRectFilled(ImVec2(curX, centerY - 8.5f), ImVec2(curX + 18.0f, centerY + 8.5f), pal.Accent.WithAlpha(0.20f).ToU32(), 3.0f);
+        draw->AddText(ImVec2(curX + 3.5f, centerY - 6.5f), pal.Accent.ToU32(), ICON_FA_TERMINAL);
         curX += sunBoxW;
 
         // Title

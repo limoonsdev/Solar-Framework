@@ -19,49 +19,75 @@ namespace Solar::Security {
 
         const auto& pal = ThemeManager::Get().GetPalette();
 
-        ImGui::TextColored(pal.Accent, "KERNEL LEVEL HWID SPOOFER");
-        ImGui::SameLine();
-        Widgets::Badge(s.isSpoofed ? "ACTIVE" : "STOCK HWID", s.isSpoofed ? pal.Success : pal.Warning);
+        float availW = ImGui::GetContentRegionAvail().x;
+        float colW = (availW - 16.0f) * 0.5f;
 
-        ImGui::Spacing();
-        ImGui::TextColored(pal.TextDisabled, "Motherboard UUID:  %s", s.moboUUID.c_str());
-        ImGui::TextColored(pal.TextDisabled, "Network MAC:       %s", s.macAddress.c_str());
-        ImGui::TextColored(pal.TextDisabled, "Storage Serial:    %s", s.diskSerial.c_str());
-        ImGui::TextColored(pal.TextDisabled, "Graphics Card ID:  %s", s.gpuGuid.c_str());
-        ImGui::Spacing();
+        // Left Column: Identity Telemetry & Actions
+        ImGui::BeginChild("##SpooferColLeft", ImVec2(colW, 0), false, ImGuiWindowFlags_NoScrollbar);
+        {
+            ImGui::TextColored(pal.Accent, "KERNEL LEVEL HWID SPOOFER");
+            ImGui::SameLine(0, 8.0f);
+            Widgets::Badge(s.isSpoofed ? "ACTIVE" : "STOCK HWID", s.isSpoofed ? pal.Success : pal.Warning);
 
-        ImGui::Separator();
-        ImGui::Text("Hardware Identifiers to Virtualize:");
-        Widgets::Toggle("Virtualize SMBIOS & Motherboard", &s.spoofMobo);
-        Widgets::Toggle("Randomize Physical MAC Addresses", &s.spoofMAC);
-        Widgets::Toggle("Mask Drive Volume & Disk Serials", &s.spoofDisk);
-        Widgets::Toggle("Spoof Display Adapter GUID", &s.spoofGPU);
+            ImGui::Dummy(ImVec2(0, 6.0f));
+            ImGui::TextColored(pal.TextPrimary, "Hardware Serial Telemetry:");
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            ImGui::TextColored(pal.TextDisabled, "Motherboard UUID:\n  %s", s.moboUUID.c_str());
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            ImGui::TextColored(pal.TextDisabled, "Network MAC:\n  %s", s.macAddress.c_str());
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            ImGui::TextColored(pal.TextDisabled, "Storage Serial:\n  %s", s.diskSerial.c_str());
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            ImGui::TextColored(pal.TextDisabled, "Graphics Card ID:\n  %s", s.gpuGuid.c_str());
 
-        ImGui::Separator();
-        ImGui::Text("Anti-Cheat Trace Cleaners:");
-        Widgets::Toggle("Flush Vanguard Registry & Driver Traces", &s.cleanVanguard);
-        Widgets::Toggle("Wipe EasyAntiCheat & BattlEye Machine GUIDs", &s.cleanEAC);
-        Widgets::Toggle("Clean FiveM DigitalEntitlements & ROS Identifiers", &s.cleanFiveM);
-        Widgets::Toggle("Purge Discord & Steam USN Journals", &s.cleanDiscord);
+            ImGui::Dummy(ImVec2(0, 10.0f));
+            ImGui::Separator();
+            ImGui::Dummy(ImVec2(0, 6.0f));
 
-        ImGui::Spacing();
-        if (Widgets::Button("Generate New Random Hardware Profile", ImVec2(0, 36), ButtonStyle::Secondary)) {
-            s.moboUUID = Crypto::GenerateRandomGUID();
-            s.macAddress = Crypto::GenerateMACAddress();
-            s.diskSerial = Crypto::GenerateDiskSerial();
-            s.gpuGuid = Crypto::GenerateRandomGUID();
-            Notify::Info("HWID Generator", "Fresh hardware identities created.");
-        }
+            if (Widgets::Button("Generate New Hardware Profile", ImVec2(0, 36), ButtonStyle::Secondary)) {
+                s.moboUUID = Crypto::GenerateRandomGUID();
+                s.macAddress = Crypto::GenerateMACAddress();
+                s.diskSerial = Crypto::GenerateDiskSerial();
+                s.gpuGuid = Crypto::GenerateRandomGUID();
+                Notify::Info("HWID Generator", "Fresh hardware identities created.");
+            }
 
-        ImGui::Spacing();
-        if (Widgets::Button(s.isSpoofed ? "Restore Original HWID" : "Apply Kernel Spoofer & Clean Traces", ImVec2(0, 42), s.isSpoofed ? ButtonStyle::Danger : ButtonStyle::Primary)) {
-            s.isSpoofed = !s.isSpoofed;
-            if (s.isSpoofed) {
-                Notify::Success("Spoofer Engaged", "All hardware adapters masked and traces flushed!");
-            } else {
-                Notify::Warning("Spoofer Disengaged", "Restored physical device serial numbers.");
+            ImGui::Dummy(ImVec2(0, 4.0f));
+            if (Widgets::Button(s.isSpoofed ? "Restore Original HWID" : "Apply Kernel Spoofer & Clean Traces", ImVec2(0, 40), s.isSpoofed ? ButtonStyle::Danger : ButtonStyle::Primary)) {
+                s.isSpoofed = !s.isSpoofed;
+                if (s.isSpoofed) {
+                    Notify::Success("Spoofer Engaged", "All hardware adapters masked and traces flushed!");
+                } else {
+                    Notify::Warning("Spoofer Disengaged", "Restored physical device serial numbers.");
+                }
             }
         }
+        ImGui::EndChild();
+
+        ImGui::SameLine(0, 16.0f);
+
+        // Right Column: Virtualization & Anti-Cheat Cleaning Toggles
+        ImGui::BeginChild("##SpooferColRight", ImVec2(colW, 0), false, ImGuiWindowFlags_NoScrollbar);
+        {
+            ImGui::TextColored(pal.Accent, "Hardware Identifiers to Virtualize:");
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            Widgets::Toggle("Virtualize SMBIOS & Motherboard", &s.spoofMobo);
+            Widgets::Toggle("Randomize MAC Addresses", &s.spoofMAC);
+            Widgets::Toggle("Mask Volume & Disk Serials", &s.spoofDisk);
+            Widgets::Toggle("Spoof Display Adapter GUID", &s.spoofGPU);
+
+            ImGui::Dummy(ImVec2(0, 8.0f));
+            ImGui::Separator();
+            ImGui::Dummy(ImVec2(0, 4.0f));
+
+            ImGui::TextColored(pal.Accent, "Anti-Cheat Trace Cleaners:");
+            ImGui::Dummy(ImVec2(0, 2.0f));
+            Widgets::Toggle("Flush Vanguard Driver Traces", &s.cleanVanguard);
+            Widgets::Toggle("Wipe EasyAntiCheat & BattlEye", &s.cleanEAC);
+            Widgets::Toggle("Clean FiveM & ROS Identifiers", &s.cleanFiveM);
+            Widgets::Toggle("Purge Discord & Steam Journals", &s.cleanDiscord);
+        }
+        ImGui::EndChild();
     }
 
 } // namespace Solar::Security

@@ -230,7 +230,7 @@ namespace Solar::UI {
             ImGui::Spacing();
             draw->AddLine(curPos + ImVec2(10.0f, 28.0f), curPos + ImVec2(size.x - 10.0f, 28.0f),
                           pal.Border.WithAlpha(0.40f).ToU32(), 1.0f);
-            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
+            ImGui::Dummy(ImVec2(0.0f, 4.0f));
         }
 
         return visible;

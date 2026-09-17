@@ -22,7 +22,7 @@ namespace Solar::Game {
 
     struct WatermarkInfo {
         std::string frameworkName = "SOLAR";
-        std::string version = "v1.0.4-dev";
+        std::string version = "v1.1.0";
         std::string username = "SolarDev";
         std::string customLink = "discord.gg/solarud";
         int pingMs = 12;

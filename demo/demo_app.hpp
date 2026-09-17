@@ -19,6 +19,8 @@ namespace Solar {
         void SetWidgetsPage(int page) { m_widgetsPage = page; }
         void SetMiscSubTab(int sub) { m_miscSubTab = sub; }
         void SetThemeSubTab(int sub) { m_themeSubTab = sub; }
+        void SetSecuritySubTab(int sub) { m_securitySubTab = sub; }
+        void SetVisualsSubTab(int sub) { m_visualsSubTab = sub; }
         int  GetFpsCap() const { return m_fpsCap; }
         void SetFpsCap(int cap) { m_fpsCap = cap; }
         bool IsStreamproof() const { return m_streamproof; }

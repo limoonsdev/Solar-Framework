@@ -23,27 +23,30 @@ namespace Solar::UI {
         Render::ImGuiExt::DrawSpecularEdge(draw, pos, ImVec2(pos.x + width, pos.y + h), IM_COL32(255, 255, 255, 25), 10.0f, 1.0f);
 
         ImGui::BeginChild("##SidebarChild", ImVec2(width, h), false, ImGuiWindowFlags_NoScrollbar);
-        ImGui::SetCursorPosY(12.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 2.0f));
+        ImGui::Dummy(ImVec2(0.0f, 4.0f));
     }
 
     void Sidebar::End() {
+        ImGui::PopStyleVar();
         ImGui::EndChild();
     }
 
     void Sidebar::Category(const char* label) {
-        ImGui::SetCursorPosX(16.0f);
+        ImGui::Dummy(ImVec2(0.0f, 4.0f));
+        ImGui::SetCursorPosX(26.0f);
         const auto& pal = ThemeManager::Get().GetPalette();
         auto lv = Render::CleanLabel(label);
         
-        // Micro indicator dot
+        // Micro indicator dot with clean 10px spacing
         ImVec2 p = ImGui::GetCursorScreenPos();
         ImDrawList* draw = ImGui::GetWindowDrawList();
-        draw->AddCircleFilled(ImVec2(p.x - 4.0f, p.y + 7.0f), 2.0f, pal.Accent.WithAlpha(0.7f).ToU32(), 8);
+        draw->AddCircleFilled(ImVec2(p.x - 8.0f, p.y + 6.5f), 2.0f, pal.Accent.WithAlpha(0.75f).ToU32(), 8);
 
         ImGui::PushStyleColor(ImGuiCol_Text, pal.TextDisabled);
         ImGui::TextUnformatted(lv.textBegin, lv.textEnd);
         ImGui::PopStyleColor();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4.0f);
+        ImGui::Dummy(ImVec2(0.0f, 2.0f));
     }
 
     bool Tab(const char* label, int id, int* currentTab, const char* icon) {
@@ -125,7 +128,6 @@ namespace Solar::UI {
 
         draw->AddText(ImVec2(textOffsetX, textOffsetY), textCol.ToU32(), lv.textBegin, lv.textEnd);
 
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
         return clicked;
     }
 

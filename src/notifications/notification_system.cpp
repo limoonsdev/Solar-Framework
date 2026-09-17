@@ -44,7 +44,7 @@ namespace Solar {
         ImDrawList* draw = ImGui::GetForegroundDrawList();
         const auto& pal = ThemeManager::Get().GetPalette();
 
-        float toastW = 310.0f;
+        float baseToastW = 340.0f;
         float toastH = 64.0f;
         float spacing = 10.0f;
         float rightMargin = 20.0f;
@@ -72,6 +72,9 @@ namespace Solar {
                 it = m_toasts.erase(it);
                 continue;
             }
+
+            float textW = (std::max)(ImGui::CalcTextSize(it->title.c_str()).x, ImGui::CalcTextSize(it->message.c_str()).x);
+            float toastW = (std::max)(baseToastW, textW + 56.0f);
 
             float animX = io.DisplaySize.x - rightMargin - (toastW * it->animProgress * fadeProgress);
             currentY -= (toastH + spacing);

@@ -29,7 +29,7 @@ namespace Solar::Widgets {
             draw->AddText(ImVec2(p.x + (size.x - ts.x) * 0.5f, p.y + (size.y - ts.y) * 0.5f), 0xFFFFFFFF, overlay);
         }
 
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + size.y + 4.0f);
+        ImGui::Dummy(ImVec2(size.x, size.y + 4.0f));
     }
 
 } // namespace Solar::Widgets

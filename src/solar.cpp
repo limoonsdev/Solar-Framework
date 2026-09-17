@@ -28,7 +28,7 @@ namespace Solar {
         Tools::LayoutAuditor::Get().RunAutomatedFullAudit();
 
         // Welcome Notification
-        Notify::Success("Solar Framework v1.0.4", "Industrial modular engine & procedural audio ready.");
+        Notify::Success("Solar Framework v1.1.0", "Industrial modular engine & procedural audio ready.");
     }
 
     void NewFrame() {

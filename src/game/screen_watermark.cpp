@@ -46,7 +46,7 @@ namespace Solar::Game {
         ImVec2 textSize = font ? font->CalcTextSizeA(effectiveFontSize, FLT_MAX, 0.0f, settings.text.c_str())
                                : ImGui::CalcTextSize(settings.text.c_str());
 
-        ImDrawList* draw = ImGui::GetForegroundDrawList();
+        ImDrawList* draw = ImGui::GetBackgroundDrawList();
 
         auto drawRotatedTextInstance = [&](ImVec2 center, float angleDeg, ImU32 col) {
             int vtx_start = draw->VtxBuffer.Size;
