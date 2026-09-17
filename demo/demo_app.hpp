@@ -165,9 +165,17 @@ namespace Solar {
         char m_configNameInput[64] = "MyNewConfig";
         int  m_selectedConfigIndex = 0;
 
-        // Custom accent color
+        // Custom accent color & Rotating border config
         float m_customColor[4] = { 1.0f, 0.48f, 0.0f, 1.0f };
-        bool  m_enableRotatingBorders = false;
+        bool  m_enableRotatingBorders = true;
+        FX::RotatingBorderConfig m_rotatingBorderConfig;
+
+        // Satellite & Floating Dock System
+        bool m_showSatelliteKeybinds = true;
+        bool m_showSatelliteSpectators = false;
+        UI::SatelliteConfig m_satelliteKeybindsConfig;
+        UI::SatelliteConfig m_satelliteSpectatorsConfig;
+
         bool  m_showWelcomeModal = false;
     };
 

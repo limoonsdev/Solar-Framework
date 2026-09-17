@@ -17,6 +17,7 @@
 #define ICON_FA_TERMINAL             "\xef\x84\xa0" // 0xf120
 #define ICON_FA_MICROCHIP            "\xef\x8b\x9b" // 0xf2db
 #define ICON_FA_LOCK                 "\xef\x80\xa3" // 0xf023
+#define ICON_FA_UNLOCK               "\xef\x82\x9c" // 0xf09c
 #define ICON_FA_FLOPPY_DISK          "\xef\x83\x87" // 0xf0c7
 #define ICON_FA_FIRE                 "\xef\x81\xad" // 0xf06d
 #define ICON_FA_SUN                  "\xef\x86\x85" // 0xf185

@@ -1,0 +1,1217 @@
+/* ==============================================================================
+   SOLAR STUDIO [BETA v0.1.2] - LUXURY DARK GLASSMOPRHIC UI DESIGN SYSTEM
+   Zero-Oval, Pixel-Perfect, High-DPI Ready, GPU-Accelerated
+   ============================================================================== */
+
+:root {
+    --solar-bg: #090a0f;
+    --solar-surface: #10121a;
+    --solar-card: #151824;
+    --solar-card-hover: #1b1f2e;
+    --solar-border: rgba(255, 255, 255, 0.08);
+    --solar-border-active: rgba(255, 255, 255, 0.16);
+    --solar-text-primary: #f0f2f5;
+    --solar-text-secondary: #9aa0a6;
+    --solar-text-disabled: #555b68;
+    
+    /* Dynamic Theme Accent */
+    --solar-accent: #ff7a00;
+    --solar-accent-hover: #ff9433;
+    --solar-accent-glow: rgba(255, 122, 0, 0.45);
+    
+    /* Visual Calibration */
+    --solar-rounding: 10px;
+    --solar-border-speed: 2.5s;
+    --solar-border-thickness: 2px;
+    --solar-border-glow: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    background-color: var(--solar-bg);
+    color: var(--solar-text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==============================================================================
+   Top Navigation Bar
+   ============================================================================== */
+.topbar {
+    height: 58px;
+    background: rgba(16, 18, 26, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--solar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--solar-accent), #ff3b00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 0 16px var(--solar-accent-glow);
+}
+
+.brand-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #fff;
+}
+
+.brand-version {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--solar-accent);
+    letter-spacing: 0.5px;
+}
+
+.top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.template-selector-wrap {
+    display: flex;
+    gap: 8px;
+}
+
+.studio-select {
+    background: #141722;
+    border: 1px solid var(--solar-border);
+    color: var(--solar-text-primary);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+}
+
+.studio-select:focus {
+    border-color: var(--solar-accent);
+}
+
+.segmented-mode {
+    display: flex;
+    background: #141722;
+    padding: 3px;
+    border-radius: 7px;
+    border: 1px solid var(--solar-border);
+}
+
+.mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--solar-text-secondary);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+    background: var(--solar-accent);
+    color: #fff;
+    box-shadow: 0 0 10px var(--solar-accent-glow);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--solar-accent), var(--solar-accent-hover));
+    color: #fff;
+    box-shadow: 0 4px 14px var(--solar-accent-glow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--solar-accent-glow);
+}
+
+.btn-secondary {
+    background: #181c28;
+    color: var(--solar-text-primary);
+    border: 1px solid var(--solar-border);
+}
+
+.btn-secondary:hover {
+    background: #202636;
+    border-color: var(--solar-border-active);
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 11px;
+}
+
+/* ==============================================================================
+   Workspace Layout
+   ============================================================================== */
+.workspace {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 58px);
+    overflow: hidden;
+}
+
+/* Sidebar Left: Components Palette */
+.sidebar-left {
+    width: 260px;
+    background: rgba(16, 18, 26, 0.9);
+    border-right: 1px solid var(--solar-border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 14px;
+    overflow-y: auto;
+}
+
+.sidebar-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--solar-text-disabled);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.category-heading {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--solar-text-secondary);
+    margin: 10px 0 6px 4px;
+}
+
+.component-palette {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.widget-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #141722;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    color: var(--solar-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.widget-item:hover {
+    background: #1d2232;
+    border-color: var(--solar-accent);
+    transform: translateX(3px);
+}
+
+.layer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #131620;
+    border-radius: 5px;
+    font-size: 11px;
+    color: var(--solar-text-secondary);
+}
+
+.layer-item.active {
+    background: rgba(255, 122, 0, 0.12);
+    color: var(--solar-accent);
+    border: 1px solid rgba(255, 122, 0, 0.3);
+}
+
+/* Stage Container */
+.stage-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(circle at center, #111420 0%, #090a0f 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.stage-toolbar {
+    height: 42px;
+    border-bottom: 1px solid var(--solar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(14, 16, 24, 0.6);
+}
+
+.stage-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--solar-text-secondary);
+}
+
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+.stage-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stage-btn {
+    background: #161926;
+    border: 1px solid var(--solar-border);
+    color: var(--solar-text-secondary);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stage-btn:hover {
+    color: #fff;
+    border-color: var(--solar-border-active);
+}
+
+.stage-btn.active {
+    border-color: var(--solar-accent);
+    color: var(--solar-accent);
+    background: rgba(255, 122, 0, 0.1);
+}
+
+.stage-btn.danger:hover {
+    background: #ff2244;
+    color: #fff;
+}
+
+/* Canvas Viewport */
+.canvas-viewport {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 40px;
+}
+
+/* ==============================================================================
+   Main Solar Window Preview (Pixel-Perfect C++ DX11 Replication)
+   ============================================================================== */
+.solar-main-window {
+    width: 840px;
+    height: 520px;
+    background: #0d0f17;
+    border-radius: var(--solar-rounding);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 1px rgba(255, 255, 255, 0.15) inset;
+    transition: width 0.3s ease, height 0.3s ease, border-radius 0.2s ease;
+}
+
+/* Parametric Rotating Border Shader */
+.rotating-border-overlay {
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--solar-rounding) + 2px);
+    padding: var(--solar-border-thickness);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Rotating Gradient Keyframes */
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes spinAngle {
+    to { --angle: 360deg; }
+}
+
+@keyframes spinAngleReverse {
+    to { --angle: -360deg; }
+}
+
+/* Rotating Border Modes */
+.rotating-border-overlay.mode-rainbow {
+    background: conic-gradient(from var(--angle), #ff0055, #ff7a00, #ffea00, #00ff66, #00bbff, #aa00ff, #ff0055);
+    animation: spinAngle var(--solar-border-speed) linear infinite;
+    filter: drop-shadow(0 0 var(--solar-border-glow) var(--solar-accent));
+}
+
+.rotating-border-overlay.mode-twocolor {
+    background: conic-gradient(from var(--angle), var(--solar-accent), transparent 45%, var(--solar-accent-hover) 50%, transparent 95%, var(--solar-accent));
+    animation: spinAngle var(--solar-border-speed) linear infinite;
+    filter: drop-shadow(0 0 var(--solar-border-glow) var(--solar-accent));
+}
+
+.rotating-border-overlay.mode-comet {
+    background: conic-gradient(from var(--angle), var(--solar-accent) 0%, transparent 35%);
+    animation: spinAngle var(--solar-border-speed) linear infinite;
+    filter: drop-shadow(0 0 calc(var(--solar-border-glow) * 1.5) var(--solar-accent));
+}
+
+.rotating-border-overlay.mode-cyber {
+    background: conic-gradient(from var(--angle), #00e5ff, #8a2be2 33%, #ff7a00 66%, #00e5ff);
+    animation: spinAngle var(--solar-border-speed) linear infinite;
+    filter: drop-shadow(0 0 var(--solar-border-glow) #8a2be2);
+}
+
+.solar-titlebar {
+    height: 48px;
+    background: #11131c;
+    border-top-left-radius: var(--solar-rounding);
+    border-top-right-radius: var(--solar-rounding);
+    border-bottom: 1px solid var(--solar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+}
+
+.solar-titlebar-left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.solar-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.8px;
+}
+
+.solar-subtitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--solar-accent);
+    letter-spacing: 0.5px;
+}
+
+.solar-titlebar-right {
+    display: flex;
+    gap: 6px;
+}
+
+.window-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.window-dot.close {
+    background: rgba(255, 60, 80, 0.4);
+}
+
+.solar-window-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.solar-sidebar {
+    width: 200px;
+    background: #0f1119;
+    border-right: 1px solid var(--solar-border);
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-cat-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--solar-text-disabled);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-left: 6px;
+}
+
+.solar-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--solar-text-secondary);
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.solar-tab.active {
+    background: rgba(255, 122, 0, 0.12);
+    color: var(--solar-accent);
+    font-weight: 700;
+}
+
+.solar-user-chip {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+}
+
+.user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--solar-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.user-role {
+    font-size: 9px;
+    color: var(--solar-text-disabled);
+}
+
+.solar-content {
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    align-content: start;
+}
+
+/* ==============================================================================
+   Attached Detached Satellite Floating Window
+   ============================================================================== */
+.satellite-window {
+    position: absolute;
+    z-index: 50;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.satellite-window.dock-right {
+    left: calc(50% + 420px + 14px);
+    top: calc(50% - 140px);
+}
+
+.satellite-window.dock-left {
+    right: calc(50% + 420px + 14px);
+    top: calc(50% - 140px);
+}
+
+.satellite-window.dock-top {
+    left: calc(50% - 110px);
+    bottom: calc(50% + 260px + 14px);
+}
+
+.satellite-window.dock-bottom {
+    left: calc(50% - 110px);
+    top: calc(50% + 260px + 14px);
+}
+
+/* Neon Connector Beam */
+.satellite-connector-beam {
+    position: absolute;
+    pointer-events: none;
+    z-index: 45;
+}
+
+.dock-right .satellite-connector-beam {
+    left: -14px;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+}
+
+.dock-right .beam-line {
+    width: 100%;
+    height: 1.5px;
+    background: var(--solar-accent);
+    box-shadow: 0 0 8px var(--solar-accent-glow);
+}
+
+.dock-right .beam-node {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 6px var(--solar-accent);
+    top: -1.75px;
+}
+
+.dock-right .node-left { left: 0; }
+.dock-right .node-right { right: 0; }
+
+.satellite-card {
+    width: 220px;
+    background: rgba(18, 21, 30, 0.94);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--solar-border);
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+}
+
+.satellite-header {
+    height: 32px;
+    background: rgba(25, 29, 42, 0.7);
+    border-bottom: 1px solid var(--solar-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+.sat-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sat-orb {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--solar-accent);
+    box-shadow: 0 0 6px var(--solar-accent);
+}
+
+.sat-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sat-pin-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--solar-text-secondary);
+}
+
+.satellite-body {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+}
+
+.sat-lbl { color: var(--solar-text-secondary); }
+.sat-key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--solar-accent);
+}
+
+.sat-key.active { color: #00ff88; }
+
+/* ==============================================================================
+   Components & Cards on Canvas
+   ============================================================================== */
+.preview-card {
+    background: #151824;
+    border: 1px solid var(--solar-border);
+    border-radius: calc(var(--solar-rounding) - 2px);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.preview-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid var(--solar-border);
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 122, 0, 0.15);
+    color: var(--solar-accent);
+    font-weight: 700;
+}
+
+/* Interactive Components inside Cards */
+.component-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.component-label {
+    color: var(--solar-text-primary);
+    font-weight: 500;
+}
+
+.component-desc {
+    font-size: 10px;
+    color: var(--solar-text-disabled);
+}
+
+/* Custom Toggle */
+.custom-toggle {
+    appearance: none;
+    width: 38px;
+    height: 20px;
+    background: #202434;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.2s ease;
+    border: 1px solid var(--solar-border);
+}
+
+.custom-toggle::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-toggle:checked {
+    background: var(--solar-accent);
+    box-shadow: 0 0 10px var(--solar-accent-glow);
+}
+
+.custom-toggle:checked::after {
+    transform: translateX(18px);
+}
+
+/* Custom Slider */
+.preview-slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.slider-val {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--solar-accent);
+    font-weight: 600;
+}
+
+.preview-slider {
+    width: 100%;
+    height: 6px;
+    background: #202434;
+    border-radius: 4px;
+    outline: none;
+    appearance: none;
+    accent-color: var(--solar-accent);
+}
+
+/* Custom Action Button */
+.preview-action-btn {
+    width: 100%;
+    padding: 9px;
+    background: linear-gradient(135deg, var(--solar-accent), var(--solar-accent-hover));
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px var(--solar-accent-glow);
+    transition: all 0.2s ease;
+}
+
+.preview-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px var(--solar-accent-glow);
+}
+
+.preview-action-btn:active {
+    transform: translateY(1px);
+}
+
+/* License Input & Progress Bar */
+.preview-input {
+    width: 100%;
+    background: #11131c;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    color: #fff;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    outline: none;
+}
+
+.preview-input:focus {
+    border-color: var(--solar-accent);
+}
+
+.preview-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #202434;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 78%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--solar-accent), #00ff88);
+    box-shadow: 0 0 10px var(--solar-accent-glow);
+    transition: width 0.3s ease;
+}
+
+/* ==============================================================================
+   Right Sidebar: Properties & AI Copilot
+   ============================================================================== */
+.sidebar-right {
+    width: 320px;
+    background: rgba(16, 18, 26, 0.95);
+    border-left: 1px solid var(--solar-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.inspector-tabs {
+    display: flex;
+    background: #11131c;
+    border-bottom: 1px solid var(--solar-border);
+}
+
+.inspector-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--solar-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inspector-tab-btn.active {
+    color: var(--solar-accent);
+    border-bottom: 2px solid var(--solar-accent);
+    background: rgba(255, 122, 0, 0.06);
+}
+
+.inspector-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.inspector-content.active {
+    display: flex;
+}
+
+.prop-group {
+    background: #141722;
+    border: 1px solid var(--solar-border);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.prop-group-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--solar-text-disabled);
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+
+.prop-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--solar-text-secondary);
+}
+
+.prop-input {
+    background: #10121a;
+    border: 1px solid var(--solar-border);
+    border-radius: 5px;
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+}
+
+.prop-input:focus {
+    border-color: var(--solar-accent);
+}
+
+.prop-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.prop-slider {
+    width: 100%;
+    accent-color: var(--solar-accent);
+}
+
+.color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-swatch {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--solar-text-primary);
+    font-weight: 600;
+}
+
+/* ==============================================================================
+   Solar AI Copilot Panel
+   ============================================================================== */
+.ai-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--solar-border);
+}
+
+.ai-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #8a2be2, #00d2ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.ai-title-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.ai-badge {
+    font-size: 9px;
+    color: #00e5ff;
+    font-weight: 700;
+}
+
+.ai-chat-feed {
+    flex: 1;
+    min-height: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;
+}
+
+.ai-msg {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.ai-msg.ai {
+    background: #171b28;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    color: #e2e8f0;
+}
+
+.ai-msg.user {
+    background: rgba(255, 122, 0, 0.15);
+    border: 1px solid rgba(255, 122, 0, 0.3);
+    color: #fff;
+    align-self: flex-end;
+}
+
+.ai-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ai-chip {
+    padding: 6px 10px;
+    background: #141722;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    color: var(--solar-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-chip:hover {
+    background: #1f2536;
+    color: #fff;
+    border-color: var(--solar-accent);
+}
+
+.ai-input-wrap {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+}
+
+.ai-input {
+    flex: 1;
+    background: #10121a;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    color: #fff;
+    padding: 8px 10px;
+    font-size: 11px;
+    outline: none;
+}
+
+.ai-input:focus {
+    border-color: var(--solar-accent);
+}
+
+/* ==============================================================================
+   Modal Code Export & Toast
+   ============================================================================== */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-backdrop.active {
+    display: flex;
+}
+
+.modal-card {
+    width: 720px;
+    max-height: 80vh;
+    background: #12141e;
+    border: 1px solid var(--solar-border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+.modal-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--solar-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--solar-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 16px 18px;
+    overflow-y: auto;
+}
+
+.code-block {
+    background: #090a0f;
+    border: 1px solid var(--solar-border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #00ff88;
+    max-height: 380px;
+    overflow-y: auto;
+    white-space: pre;
+}
+
+.modal-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--solar-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #151824;
+    border: 1px solid var(--solar-accent);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px var(--solar-accent-glow);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}

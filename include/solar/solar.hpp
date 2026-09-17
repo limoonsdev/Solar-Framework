@@ -74,6 +74,7 @@
 #include "ui/splash_screen.hpp"
 #include "ui/welcome_screen.hpp"
 #include "ui/cursor.hpp"
+#include "ui/satellite_window.hpp"
 
 // ==============================================================================
 // 7. Interactive Widgets Suite

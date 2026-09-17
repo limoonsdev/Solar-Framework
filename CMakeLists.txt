@@ -90,6 +90,7 @@ set(SOLAR_SOURCES
     "src/ui/tooltip.cpp"
     "src/ui/welcome_screen.cpp"
     "src/ui/window.cpp"
+    "src/ui/satellite_window.cpp"
     "src/widgets/accordion.cpp"
     "src/widgets/badge.cpp"
     "src/widgets/button.cpp"

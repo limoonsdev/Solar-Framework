@@ -22,7 +22,35 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
+#include <filesystem>
+#include <shellapi.h>
+
+#pragma comment(lib, "shell32.lib")
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int) {
+    std::string cmd = (lpCmdLine ? lpCmdLine : "");
+    if (cmd.find("--native") == std::string::npos && cmd.find("--imgui") == std::string::npos) {
+        // Locate web/index.html
+        wchar_t exePath[MAX_PATH];
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        std::filesystem::path p(exePath);
+        std::filesystem::path webPath = p.parent_path() / ".." / ".." / "Solar Studio [BETA v0.1.2]" / "web" / "index.html";
+        std::error_code ec;
+        if (!std::filesystem::exists(webPath, ec)) {
+            webPath = std::filesystem::current_path() / "Solar Studio [BETA v0.1.2]" / "web" / "index.html";
+        }
+        if (std::filesystem::exists(webPath, ec)) {
+            std::wstring param = L"--app=\"file:///" + webPath.lexically_normal().wstring() + L"\" --window-size=1440,920";
+            HINSTANCE res = ::ShellExecuteW(nullptr, L"open", L"msedge.exe", param.c_str(), nullptr, SW_SHOW);
+            if ((intptr_t)res > 32) {
+                return 0; // Successfully launched modern standalone Webview app
+            }
+            res = ::ShellExecuteW(nullptr, L"open", webPath.lexically_normal().c_str(), nullptr, nullptr, SW_SHOW);
+            if ((intptr_t)res > 32) {
+                return 0;
+            }
+        }
+    }
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, hInstance, nullptr, nullptr, nullptr, nullptr, L"SolarStudioClass", nullptr };
     ::RegisterClassExW(&wc);
     HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Solar Studio [BETA v0.1.2] - Native C++20 UI Builder & MSBuild Generator", WS_OVERLAPPEDWINDOW, 60, 60, 1440, 920, nullptr, nullptr, wc.hInstance, nullptr);

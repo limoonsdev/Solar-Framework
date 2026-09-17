@@ -196,8 +196,9 @@ namespace Solar {
                 ImVec2 wPos = ImGui::GetWindowPos();
                 ImVec2 wSize = ImGui::GetWindowSize();
                 const auto& pal = ThemeManager::Get().GetPalette();
+                m_rotatingBorderConfig.colorA = pal.Accent;
                 FX::DrawRotatingBorder(ImGui::GetWindowDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
-                                       pal.Accent, Color(1.0f, 0.38f, 0.08f, 0.95f), 1.6f, 1.8f, 1.0f);
+                                       m_rotatingBorderConfig);
             }
             Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.0.1", &m_windowOpen, &m_minimized);
 
@@ -1021,7 +1022,9 @@ namespace Solar {
                     else if (m_currentTab == 6) {
                         Widgets::SubTab("Color Presets", 0, &m_themeSubTab);
                         Widgets::SubTab("Audio & FX", 1, &m_themeSubTab);
-                        Widgets::SubTab("Modded ImGui Engine", 2, &m_themeSubTab);
+                        Widgets::SubTab("Rotating Borders", 2, &m_themeSubTab);
+                        Widgets::SubTab("Satellite Windows", 3, &m_themeSubTab);
+                        Widgets::SubTab("Modded Engine", 4, &m_themeSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
@@ -1136,8 +1139,90 @@ namespace Solar {
                                 Widgets::EndCard();
                             }
                         }
-                        // SUBTAB 2: MODDED IMGUI ENGINE (IMGUIEXT)
+                        // SUBTAB 2: CONFIGURABLE ROTATING BORDERS
                         else if (m_themeSubTab == 2) {
+                            if (Widgets::BeginCard("##RotatingBorderStudio", "Rotating Glowing Border Engine", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                Widgets::Toggle("Enable Rotating Border", &m_enableRotatingBorders, "Parametric GPU multi-pass neon aura");
+                                Widgets::Spacing(6.0f);
+
+                                const char* modes[] = { "Two-Color Lerp Wave", "Rainbow 360° Spectrum", "Neon Energy Comet", "Cyber Tri-Gradient", "Dual Opposing Orbit" };
+                                int curMode = static_cast<int>(m_rotatingBorderConfig.mode);
+                                if (Widgets::Combo("Rotation Algorithm", &curMode, modes, 5)) {
+                                    m_rotatingBorderConfig.mode = static_cast<FX::BorderRotationMode>(curMode);
+                                }
+
+                                Widgets::SliderFloat("Rotation Speed", &m_rotatingBorderConfig.speed, 0.2f, 4.0f, "%.1f", "x");
+                                Widgets::SliderFloat("Border Thickness", &m_rotatingBorderConfig.thickness, 1.0f, 5.0f, "%.1f", "px");
+                                Widgets::SliderFloat("Glow Multiplier", &m_rotatingBorderConfig.glowIntensity, 0.0f, 3.0f, "%.1f", "x");
+                                Widgets::SliderFloat("Comet Tail Length", &m_rotatingBorderConfig.trailLength, 0.1f, 1.0f, "%.2f");
+                                Widgets::Toggle("Clockwise Direction", &m_rotatingBorderConfig.clockwise);
+                                Widgets::SliderInt("Gaussian Passes", &m_rotatingBorderConfig.glowPasses, 1, 5, "%d");
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##BorderColorPalette", "Secondary Neon Color Calibration", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                static float secColor[4] = { 0.70f, 0.20f, 1.00f, 0.95f };
+                                if (Widgets::ColorPicker("Secondary Neon Glow", secColor)) {
+                                    m_rotatingBorderConfig.colorB = Color(secColor[0], secColor[1], secColor[2], secColor[3]);
+                                }
+
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "The rotating border wraps seamlessly around rounded corners with 0.1ms compute cost and zero heap allocation.");
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 3: MODULAR SATELLITE WINDOWS & DOCK
+                        else if (m_themeSubTab == 3) {
+                            if (Widgets::BeginCard("##SatelliteDockCard", "Modular Detached Satellite Windows", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                                Widgets::Toggle("Floating Keybinds Satellite", &m_showSatelliteKeybinds, "Detached floating card attached to GUI");
+                                Widgets::Toggle("Floating Session Telemetry", &m_showSatelliteSpectators, "Secondary auxiliary floating card");
+                                Widgets::Spacing(6.0f);
+
+                                const char* anchors[] = { "Free Floating", "Dock Right", "Dock Left", "Dock Top", "Dock Bottom", "Dock Top Right", "Dock Bottom Right" };
+                                int anchorIdx = static_cast<int>(m_satelliteKeybindsConfig.anchor);
+                                if (Widgets::Combo("Keybinds Dock Side", &anchorIdx, anchors, 7)) {
+                                    m_satelliteKeybindsConfig.anchor = static_cast<UI::SatelliteAnchor>(anchorIdx);
+                                    if (m_satelliteKeybindsConfig.anchor != UI::SatelliteAnchor::FreeFloating) {
+                                        m_satelliteKeybindsConfig.isPinned = true;
+                                    }
+                                }
+
+                                Widgets::SliderFloat("Separation Gap", &m_satelliteKeybindsConfig.offsetGap, 4.0f, 40.0f, "%.0f", "px");
+                                Widgets::Toggle("Magnetic Snap to Parent", &m_satelliteKeybindsConfig.magneticSnap, "Snaps back automatically when dragged near GUI");
+                                Widgets::SliderFloat("Snap Radius", &m_satelliteKeybindsConfig.snapThreshold, 15.0f, 75.0f, "%.0f", "px");
+                                Widgets::Toggle("Smooth Spring Lag Physics", &m_satelliteKeybindsConfig.smoothSpring, "Fluid trailing motion when dragging GUI");
+                                Widgets::Toggle("Neon Connector Beam", &m_satelliteKeybindsConfig.drawConnectorBeam, "Glowing energy bracket connecting parent to satellite");
+                                Widgets::Toggle("Rotating Border on Satellite", &m_satelliteKeybindsConfig.enableRotatingBorder);
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##SatelliteArchCard", "Satellite Architecture Overview", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_SHIELD)) {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "ATTACHED-YET-DETACHED PARADIGM");
+                                ImGui::Spacing();
+                                ImGui::TextWrapped("Satellite windows are rendered as isolated DirectX 11 draw calls with independent drop shadows and glass cards. They lock magnetically to the host window edges and can be pinned or unpinned on the fly with the padlock icon.");
+
+                                Widgets::Separator();
+                                if (Widgets::Button("Reset Satellites to Dock", ImVec2(0, 36), ButtonStyle::Secondary)) {
+                                    m_satelliteKeybindsConfig.isPinned = true;
+                                    m_satelliteKeybindsConfig.anchor = UI::SatelliteAnchor::DockRight;
+                                    m_satelliteKeybindsConfig.currentPos = ImVec2(-1, -1);
+                                    m_satelliteSpectatorsConfig.isPinned = true;
+                                    m_satelliteSpectatorsConfig.anchor = UI::SatelliteAnchor::DockLeft;
+                                    m_satelliteSpectatorsConfig.currentPos = ImVec2(-1, -1);
+                                    Notify::Success("Satellites Reset", "Magnetic dock restored to default positions.");
+                                }
+
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 4: MODDED IMGUI ENGINE (IMGUIEXT)
+                        else if (m_themeSubTab == 4) {
                             if (Widgets::BeginCard("##ImGuiExtPrimitives", "Modded ImGui Custom Primitives", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
                                 ImDrawList* draw = ImGui::GetWindowDrawList();
                                 ImVec2 canvasPos = ImGui::GetCursorScreenPos();
@@ -1262,6 +1347,55 @@ namespace Solar {
             }
         }
         Widgets::EndWindow();
+
+        // ==============================================================================
+        // Modular Satellite Windows (Detached Floating Panels Attached to Main Window)
+        // ==============================================================================
+        if (m_windowOpen && !m_minimized) {
+            // Satellite 1: Active Keybinds HUD
+            if (m_showSatelliteKeybinds) {
+                if (UI::BeginSatellite("##SatelliteKeybinds", "Active Keybinds", ImVec2(215, 175),
+                                       m_satelliteKeybindsConfig, &m_showSatelliteKeybinds, "Solar Framework Demo")) {
+                    const auto& pal = ThemeManager::Get().GetPalette();
+                    auto renderKeyRow = [&](const char* name, const char* key, bool active) {
+                        ImGui::TextColored(active ? pal.TextPrimary : pal.TextDisabled, "%s", name);
+                        ImGui::SameLine(ImGui::GetWindowWidth() - 65.0f);
+                        ImGui::TextColored(active ? pal.Accent : pal.TextDisabled, "[%s]", key);
+                    };
+                    renderKeyRow("Aimbot Assist", "M5", m_aimbotEnabled);
+                    renderKeyRow("Silent Aim", "CAPS", m_silentAim);
+                    renderKeyRow("Triggerbot", "ALT", m_triggerbot);
+                    renderKeyRow("Tactical Radar", "F1", m_showRadarWindow);
+                    renderKeyRow("ESP Visuals", "INS", m_espSettings.enableBox);
+                    UI::EndSatellite();
+                }
+            }
+
+            // Satellite 2: Session & Telemetry HUD
+            if (m_showSatelliteSpectators) {
+                if (UI::BeginSatellite("##SatelliteSession", "Session Telemetry", ImVec2(215, 145),
+                                       m_satelliteSpectatorsConfig, &m_showSatelliteSpectators, "Solar Framework Demo")) {
+                    const auto& pal = ThemeManager::Get().GetPalette();
+                    ImGui::TextColored(pal.TextSecondary, "Framerate:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(pal.Accent, "%.0f FPS", ImGui::GetIO().Framerate);
+
+                    ImGui::TextColored(pal.TextSecondary, "GPU Latency:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(Color(0.2f, 0.9f, 0.4f, 1.0f), "1.8 ms");
+
+                    ImGui::TextColored(pal.TextSecondary, "Spectators:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(Color(1.0f, 0.4f, 0.2f, 1.0f), "2 Watching");
+
+                    ImGui::TextColored(pal.TextSecondary, "State:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(pal.Accent, "Synchronized");
+                    UI::EndSatellite();
+                }
+            }
+        }
+
         UI::CustomCursor::Get().Render();
     }
 
