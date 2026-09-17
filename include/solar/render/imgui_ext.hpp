@@ -60,6 +60,9 @@ namespace Solar::Render {
 
         // Pixel-perfect, anti-aliased inset border (half-pixel offset eliminates blur and jagged stair-stepping)
         static void AddSmoothBorder(ImDrawList* draw, const ImVec2& min, const ImVec2& max, u32 borderColor, float rounding = 0.0f, float thickness = 1.0f);
+
+        // Interactive luxury corner resize grip for ANY window with custom minimum dimensions
+        static void RenderResizeGrip(const ImVec2& minSize = ImVec2(140.0f, 90.0f), const char* idStr = "##WindowResizeGrip");
     };
 
 } // namespace Solar::Render

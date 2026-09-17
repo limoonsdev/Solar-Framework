@@ -1,4 +1,6 @@
 #include "solar/render/imgui_ext.hpp"
+#include "solar/theme/theme_manager.hpp"
+#include <imgui_internal.h>
 #include <cmath>
 #include <algorithm>
 
@@ -122,4 +124,43 @@ namespace Solar::Render {
         draw->AddRect(min, max, borderColor, rounding, 0, thickness);
     }
 
+    void ImGuiExt::RenderResizeGrip(const ImVec2& minSize, const char* idStr) {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (!window || window->SkipItems) return;
+
+        ImGuiIO& io = ImGui::GetIO();
+        float gripSize = 16.0f;
+        ImVec2 winPos = window->Pos;
+        ImVec2 winSize = window->Size;
+        ImVec2 gripPos(winPos.x + winSize.x - gripSize - 3.0f, winPos.y + winSize.y - gripSize - 3.0f);
+        ImRect gripRect(gripPos, ImVec2(gripPos.x + gripSize, gripPos.y + gripSize));
+
+        ImGuiID id = window->GetID(idStr ? idStr : "##WindowResizeGrip");
+        bool hovered = false, held = false;
+        ImGui::ButtonBehavior(gripRect, id, &hovered, &held);
+
+        if (held && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+            ImVec2 newSize(winSize.x + io.MouseDelta.x, winSize.y + io.MouseDelta.y);
+            newSize.x = (std::max)(newSize.x, minSize.x);
+            newSize.y = (std::max)(newSize.y, minSize.y);
+            ImGui::SetWindowSize(newSize);
+        }
+
+        ImDrawList* draw = ImGui::GetForegroundDrawList();
+        const auto& pal = ThemeManager::Get().GetPalette();
+        u32 gripCol = (held || hovered) ? pal.Accent.ToU32() : pal.TextDisabled.WithAlpha(0.38f).ToU32();
+
+        for (int i = 0; i < 3; ++i) {
+            float offset = static_cast<float>(i) * 4.5f;
+            ImVec2 p1(gripPos.x + gripSize - offset, gripPos.y + gripSize);
+            ImVec2 p2(gripPos.x + gripSize, gripPos.y + gripSize - offset);
+            draw->AddLine(p1, p2, gripCol, 1.4f);
+        }
+
+        if (hovered || held) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
+        }
+    }
+
 } // namespace Solar::Render
+

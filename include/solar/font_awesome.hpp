@@ -54,3 +54,7 @@
 #define ICON_FA_TAG                  "\xef\x80\xab" // 0xf02b
 #define ICON_FA_DESKTOP              "\xef\x84\x88" // 0xf108
 #define ICON_FA_LOCATION_ARROW       "\xef\x84\xa4" // 0xf124
+#define ICON_FA_SHIELD_HALVED        ICON_FA_SHIELD
+#define ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE ICON_FA_LINK
+
+

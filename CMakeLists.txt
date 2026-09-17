@@ -79,6 +79,7 @@ set(SOLAR_SOURCES
     "src/theme/theme_manager.cpp"
     "src/tools/inspector.cpp"
     "src/tools/profiler.cpp"
+    "src/tools/layout_auditor.cpp"
     "src/ui/card.cpp"
     "src/ui/cursor.cpp"
     "src/ui/groupbox.cpp"

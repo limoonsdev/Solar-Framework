@@ -1,7 +1,11 @@
 #include "demo_app.hpp"
 #include <cstdio>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <shellapi.h>
 
 namespace Solar {
+
 
     static void RenderCardPagination(int* currentPage, int totalPages, const char* idSuffix) {
         ImGui::Spacing();
@@ -49,6 +53,18 @@ namespace Solar {
             Audio::PlayClick();
         }
         if (!canNext) ImGui::EndDisabled();
+    }
+
+    extern void ApplyWindowStreamproof(bool enabled);
+
+    void DemoApp::SetStreamproof(bool enabled) {
+        m_streamproof = enabled;
+        ApplyWindowStreamproof(enabled);
+        if (enabled) {
+            Notify::Success("Stream Protection Active", "Window hidden from OBS, Discord & Screen Capture (WDA_EXCLUDEFROMCAPTURE).");
+        } else {
+            Notify::Info("Stream Protection Disabled", "Window capture visibility restored.");
+        }
     }
 
     DemoApp& DemoApp::Get() {
@@ -185,10 +201,12 @@ namespace Solar {
                                                       ThemeManager::Get().GetPalette().Accent);
         }
 
-        // Floating Watermark HUD (with Custom Links & Copy-to-Clipboard)
+        // Floating Watermark HUD (with Custom Links, Browser Opening & Styles)
+        static int s_wmStyleIdx = 0;
         if (m_showWatermark) {
             m_watermarkInfo.customLink = m_customLinkInput;
             m_watermarkInfo.position = static_cast<WatermarkPosition>(m_watermarkPosIndex);
+            m_watermarkInfo.style = static_cast<Game::WatermarkStyle>(s_wmStyleIdx);
             Watermark::Render(m_watermarkInfo);
         }
 
@@ -248,7 +266,7 @@ namespace Solar {
                 ImVec2 wSize = ImGui::GetWindowSize();
                 const auto& pal = ThemeManager::Get().GetPalette();
                 m_rotatingBorderConfig.colorA = pal.Accent;
-                FX::DrawRotatingBorder(ImGui::GetWindowDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
+                FX::DrawRotatingBorder(ImGui::GetForegroundDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
                                        m_rotatingBorderConfig);
             }
             Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.0.1", &m_windowOpen, &m_minimized);
@@ -326,8 +344,10 @@ namespace Solar {
                     Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
                                                       (userHovered ? pal.Accent.WithAlpha(0.65f).ToU32() : pal.Border.WithAlpha(0.60f).ToU32()), 6.0f, 1.0f);
 
-                    // User avatar circle
+                    // User avatar circle with pulsing radar beacon ring
                     ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
+                    float pingPhase = std::fmod(static_cast<float>(ImGui::GetTime()) * 2.5f, 1.0f);
+                    drawList->AddCircle(avatarC, 12.0f + pingPhase * 6.0f, pal.Accent.WithAlpha((1.0f - pingPhase) * 0.45f).ToU32(), 20, 1.2f);
                     drawList->AddCircleFilled(avatarC, 12.0f, pal.Accent.WithAlpha(0.18f).ToU32(), 20);
                     drawList->AddCircle(avatarC, 12.0f, pal.Accent.WithAlpha(userHovered ? 0.85f : 0.50f).ToU32(), 20, 1.0f);
                     IconRenderer::DrawIcon(drawList, IconType::User, avatarC, 11.0f,
@@ -347,52 +367,64 @@ namespace Solar {
                                       userHovered ? pal.Accent.ToU32() : pal.TextDisabled.ToU32(), ICON_FA_CHEVRON_RIGHT);
 
                     // Floating User Profile Context Menu
-                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 265.0f), ImGuiCond_Always);
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 290.0f), ImGuiCond_Always);
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
                     ImGui::PushStyleColor(ImGuiCol_PopupBg, pal.Card.WithAlpha(0.98f).ToVec4());
-                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Accent.WithAlpha(0.60f).ToVec4());
+                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Accent.WithAlpha(0.65f).ToVec4());
 
                     if (ImGui::BeginPopup("##UserProfilePopup")) {
-                        ImGui::TextColored(pal.Accent, "SolarDev Account");
-                        ImGui::TextColored(pal.TextDisabled, "ID: #SLR-9842 | Tier: VIP");
-                        Widgets::Separator();
+                        ImGui::TextColored(pal.Accent, ICON_FA_USER "  SolarDev Account");
+                        ImGui::SameLine(0, 8.0f);
+                        Widgets::Badge("VIP", pal.Accent);
 
-                        if (Widgets::Button("Command Palette (Ctrl+P)", ImVec2(175.0f, 26.0f), ButtonStyle::Primary)) {
+                        ImGui::TextColored(pal.TextDisabled, "ID: #SLR-9842 | Latency: 12ms | 144 FPS");
+                        Widgets::Spacing(2.0f);
+                        Widgets::Separator();
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_TERMINAL "  Command Palette (Ctrl+P)", ImVec2(190.0f, 26.0f), ButtonStyle::Primary)) {
                             UI::ToggleCommandPalette();
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Test Kill Frag Banner", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
+                        bool sp = IsStreamproof();
+                        std::string spLabel = sp ? (ICON_FA_SHIELD_HALVED "  Streamproof: Active") : (ICON_FA_SHIELD_HALVED "  Streamproof: Off");
+                        if (Widgets::Button(spLabel.c_str(), ImVec2(190.0f, 26.0f), sp ? ButtonStyle::Secondary : ButtonStyle::Ghost)) {
+                            SetStreamproof(!sp);
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_SKULL "  Test Kill Frag Banner", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
                             UI::TriggerKillBanner("Jett_Main_99", "VANDAL PRIME", 160, true, 3);
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Copy HWID", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
+                        if (Widgets::Button(ICON_FA_FINGERPRINT "  Copy Machine HWID", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
                             ImGui::SetClipboardText("HWID-SOLAR-7F9A-4B21-99CE-DEV");
                             Notify::Success("HWID Copied", "Client hardware identifier copied to clipboard.");
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Profiles & Presets", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
-                            m_currentTab = 7; // Profiles tab
+                        if (Widgets::Button(ICON_FA_FOLDER "  Profiles & Presets", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 7;
                             PushNavHistory(7);
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Themes & Engine", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
-                            m_currentTab = 6; // Themes tab
+                        if (Widgets::Button(ICON_FA_PALETTE "  Themes & Engine", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 6;
                             PushNavHistory(6);
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Sign Out / Lock", ImVec2(175.0f, 26.0f), ButtonStyle::Danger)) {
-                            m_currentTab = 5; // License tab
+                        if (Widgets::Button(ICON_FA_LOCK "  Sign Out / Lock", ImVec2(190.0f, 26.0f), ButtonStyle::Danger)) {
+                            m_currentTab = 5;
                             PushNavHistory(5);
                             Notify::Warning("Session Locked", "Authorization locked. Please re-enter license key.");
                             ImGui::CloseCurrentPopup();
@@ -840,9 +872,26 @@ namespace Solar {
 
                                 std::vector<std::string> posOptions = { "Top Right", "Top Left", "Bottom Right", "Bottom Left", "Free Draggable" };
                                 Widgets::Combo("Position Anchor", &m_watermarkPosIndex, posOptions);
+                                Widgets::Spacing(4.0f);
+
+                                std::vector<std::string> styleOptions = { "Cyber Telemetry Bar", "Minimal Rounded Pill", "Neon Terminal Bracket", "Holo Esports Badge", "Discrete Corner Tag" };
+                                if (Widgets::Combo("Watermark Visual Style", &s_wmStyleIdx, styleOptions)) {
+                                    m_watermarkInfo.style = static_cast<Game::WatermarkStyle>(s_wmStyleIdx);
+                                }
                                 Widgets::Spacing(6.0f);
 
-                                if (Widgets::Button("Test Copy Link to Clipboard", ImVec2(0, 34), ButtonStyle::Secondary)) {
+                                if (Widgets::Button(ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE "  Open Link in Browser", ImVec2(0, 32), ButtonStyle::Primary)) {
+                                    std::string target = m_customLinkInput;
+                                    if (target.rfind("http://", 0) != 0 && target.rfind("https://", 0) != 0) {
+                                        target = "https://" + target;
+                                    }
+                                    ShellExecuteA(NULL, "open", target.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                                    Audio::PlayClick();
+                                    Notify::Success("Link Opened", ("Navigating to: " + target).c_str());
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Copy Link to Clipboard", ImVec2(0, 30), ButtonStyle::Secondary)) {
                                     ImGui::SetClipboardText(m_customLinkInput);
                                     Audio::PlayClick();
                                     Notify::Success("Link Copied", (std::string(m_customLinkInput) + " copied to clipboard!").c_str());
@@ -1227,7 +1276,7 @@ namespace Solar {
                                     UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(curStyle));
                                 }
                                 const char* fpsOptions[] = { "VSync (Monitor Synchronized)", "30 FPS (Power Saver)", "60 FPS (Standard 60Hz)", "120 FPS (High Performance)", "144 FPS (Esports 144Hz)", "240 FPS (Ultra Smooth)", "Uncapped (Maximum Throttle)" };
-                                static int curFpsIdx = 0;
+                                static int curFpsIdx = 4;
                                 if (Widgets::Combo("Menu FPS Limiter", &curFpsIdx, fpsOptions, 7)) {
                                     if (curFpsIdx == 0) m_fpsCap = 0;
                                     else if (curFpsIdx == 1) m_fpsCap = 30;
@@ -1236,6 +1285,10 @@ namespace Solar {
                                     else if (curFpsIdx == 4) m_fpsCap = 144;
                                     else if (curFpsIdx == 5) m_fpsCap = 240;
                                     else if (curFpsIdx == 6) m_fpsCap = -1;
+                                }
+                                bool sp = IsStreamproof();
+                                if (Widgets::Toggle("Stream Protection (Streamproof)", &sp, "Invisible to OBS, Discord and screen recording")) {
+                                    SetStreamproof(sp);
                                 }
                                 Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
                                 if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {

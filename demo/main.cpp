@@ -27,19 +27,44 @@ struct ACCENT_POLICY { int State; int Flags; int Color; int AnimationId; };
 struct WINCOMPATTRDATA { int Attr; PVOID Data; ULONG Size; };
 typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
 
-static void EnableWindowAcrylicBlur(HWND hwnd) {
-    MARGINS margins = { -1, -1, -1, -1 };
-    DwmExtendFrameIntoClientArea(hwnd, &margins);
+HWND g_hWnd = nullptr;
 
-    HMODULE hUser32 = GetModuleHandleA("user32.dll");
-    if (!hUser32) return;
-    auto fn = (pSetWindowCompositionAttribute)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
-    if (fn) {
-        ACCENT_POLICY accent = { 4, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_ACRYLICBLURBEHIND
-        WINCOMPATTRDATA data = { 19, &accent, sizeof(accent) };
-        fn(hwnd, &data);
+namespace Solar {
+    void ApplyWindowStreamproof(bool enabled) {
+        if (g_hWnd) {
+            // WDA_EXCLUDEFROMCAPTURE = 0x00000011 (Windows 10 2004+), WDA_MONITOR = 0x00000001
+            DWORD affinity = enabled ? 0x00000011 : 0x00000000;
+            if (!SetWindowDisplayAffinity(g_hWnd, affinity)) {
+                if (enabled) SetWindowDisplayAffinity(g_hWnd, 0x00000001);
+            }
+        }
     }
 }
+
+void ApplyWindowStreamproof(bool enabled) {
+    Solar::ApplyWindowStreamproof(enabled);
+}
+
+
+static void ConfigureWindowGlass(HWND hwnd, bool enableBlur = false) {
+    BOOL darkMode = TRUE;
+    ::DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
+
+    if (enableBlur) {
+        MARGINS margins = { -1, -1, -1, -1 };
+        DwmExtendFrameIntoClientArea(hwnd, &margins);
+        HMODULE hUser32 = GetModuleHandleA("user32.dll");
+        if (hUser32) {
+            auto fn = (pSetWindowCompositionAttribute)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
+            if (fn) {
+                ACCENT_POLICY accent = { 3, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_BLURBEHIND (Lightweight, 200+ FPS)
+                WINCOMPATTRDATA data = { 19, &accent, sizeof(accent) };
+                fn(hwnd, &data);
+            }
+        }
+    }
+}
+
 
 static ID3D11Device*           g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -148,11 +173,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         posX, posY, winW, winH,
         nullptr, nullptr, wc.hInstance, nullptr
     );
+    g_hWnd = hwnd;
 
-    // Windows 11 Dark Mode Titlebar & Mica/Dark framing
-    BOOL darkMode = TRUE;
-    ::DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
-    EnableWindowAcrylicBlur(hwnd);
+    // Windows 11 Dark Mode Titlebar & Mica/Dark framing (High-performance 300+ FPS)
+    ConfigureWindowGlass(hwnd, false);
 
     if (!CreateDeviceD3D(hwnd)) {
         CleanupDeviceD3D();
@@ -190,13 +214,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     const char* fullCmd = GetCommandLineA();
     bool autoScreenshot = (strstr(fullCmd, "--screenshot") != nullptr);
+    bool showcaseAll = (strstr(fullCmd, "--showcase-all") != nullptr || strstr(fullCmd, "--capture-all") != nullptr);
     int screenshotFrame = 0;
-    if (autoScreenshot) {
+    if (showcaseAll) {
+        printf("[DEMO] showcaseAll enabled! Skipping intro screens...\n");
+        Solar::UI::SplashScreen::Get().Start(0.001f);
+        Solar::UI::WelcomeScreen::Get().Hide();
+        CreateDirectoryA("screenshots", NULL);
+    } else if (autoScreenshot) {
         printf("[DEMO] autoScreenshot enabled! skip_intro=%d\n", strstr(fullCmd, "--skip-intro") != nullptr);
         if (strstr(fullCmd, "--skip-intro") != nullptr) {
             Solar::UI::SplashScreen::Get().Start(0.001f);
             Solar::UI::WelcomeScreen::Get().Hide();
         }
+
         if (strstr(fullCmd, "--screenshot-radar") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(2);
             Solar::DemoApp::Get().SetMiscSubTab(0);
@@ -272,6 +303,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (fpsCap == 0) {
             // VSync enabled (synchronized with monitor refresh rate)
             g_pSwapChain->Present(1, 0);
+            QueryPerformanceCounter(&s_lastTime);
         } else if (fpsCap > 0) {
             // Cap to specific frame rate (e.g. 30, 60, 120, 144, 240, 360)
             g_pSwapChain->Present(0, 0);
@@ -291,11 +323,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
             s_lastTime = curTime;
         } else {
-            // Uncapped
+            // Uncapped (maximum FPS)
             g_pSwapChain->Present(0, 0);
+            QueryPerformanceCounter(&s_lastTime);
         }
 
-        if (autoScreenshot) {
+        bool showcaseAll = (strstr(fullCmd, "--showcase-all") != nullptr || strstr(fullCmd, "--capture-all") != nullptr);
+        if (showcaseAll) {
+            CreateDirectoryA("screenshots", NULL);
+            screenshotFrame++;
+            if (screenshotFrame == 8) {
+                Solar::DemoApp::Get().SetCurrentTab(0);
+            } else if (screenshotFrame == 15) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_0_combat.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(1);
+            } else if (screenshotFrame == 23) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_1_visuals.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(2);
+            } else if (screenshotFrame == 31) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_2_watermarks.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(3);
+            } else if (screenshotFrame == 39) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_3_widgets.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(4);
+            } else if (screenshotFrame == 47) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_4_satellites.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(6);
+            } else if (screenshotFrame == 55) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_6_themes.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(7);
+            } else if (screenshotFrame == 63) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_7_profiles.bmp");
+                Solar::UI::ToggleCommandPalette();
+            } else if (screenshotFrame == 72) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_8_command_palette.bmp");
+                printf("[DEMO] All showcase screenshots successfully exported to screenshots/\n");
+                done = true;
+            }
+        } else if (autoScreenshot) {
             screenshotFrame++;
             if (screenshotFrame >= 15) {
                 const char* targetFile = "demo_capture.bmp";

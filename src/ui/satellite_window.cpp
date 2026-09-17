@@ -117,10 +117,9 @@ namespace Solar::UI {
             }
         }
 
-        ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar
-                               | ImGuiWindowFlags_NoResize
                                | ImGuiWindowFlags_NoCollapse
                                | ImGuiWindowFlags_NoScrollbar;
 
@@ -238,6 +237,7 @@ namespace Solar::UI {
     }
 
     void SatelliteWindow::End() {
+        Render::ImGuiExt::RenderResizeGrip(ImVec2(160.0f, 90.0f), "##SatelliteResizeGrip");
         ImGui::End();
         ImGui::PopStyleVar(2);
     }

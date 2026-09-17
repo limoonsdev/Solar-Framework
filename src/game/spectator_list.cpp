@@ -13,7 +13,7 @@ namespace Solar::Game {
         if (!p_open || !(*p_open)) return;
 
         ImGui::SetNextWindowSize(ImVec2(210.0f, 150.0f), ImGuiCond_FirstUseEver);
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar;
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
         const auto& pal = ThemeManager::Get().GetPalette();
         ImGui::PushStyleColor(ImGuiCol_WindowBg, pal.Card.WithAlpha(0.96f).ToVec4());
@@ -77,6 +77,7 @@ namespace Solar::Game {
                     ImGui::Dummy(ImVec2(winSize.x - 20.0f, 26.0f));
                 }
             }
+            Render::ImGuiExt::RenderResizeGrip(ImVec2(180.0f, 90.0f), "##SpectatorsResize");
         }
         ImGui::End();
 

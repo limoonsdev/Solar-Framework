@@ -124,14 +124,20 @@ namespace Solar::FX {
 
         if (m_mode == ParticleEffectMode::Constellation) {
             const f32 connectDist = 75.0f;
-            size_t n = m_particles.size();
+            const f32 connectDistSq = connectDist * connectDist;
+            size_t n = (std::min)(m_particles.size(), (size_t)60);
             for (size_t i = 0; i < n; i++) {
-                for (size_t j = i + 1; j < n; j++) {
-                    f32 d = Math::Distance(m_particles[i].pos, m_particles[j].pos);
-                    if (d < connectDist) {
+                int connections = 0;
+                for (size_t j = i + 1; j < n && connections < 3; j++) {
+                    float dx = m_particles[i].pos.x - m_particles[j].pos.x;
+                    float dy = m_particles[i].pos.y - m_particles[j].pos.y;
+                    float dSq = dx * dx + dy * dy;
+                    if (dSq < connectDistSq) {
+                        float d = std::sqrt(dSq);
                         f32 lineAlpha = (1.0f - (d / connectDist)) * 0.18f;
                         u32 lineCol = accentColor.WithAlpha(lineAlpha).ToU32();
                         draw->AddLine(m_particles[i].pos, m_particles[j].pos, lineCol, 1.0f);
+                        connections++;
                     }
                 }
             }

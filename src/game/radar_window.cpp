@@ -272,6 +272,7 @@ namespace Solar::Game {
 
             // Far right: Live radar status
             draw->AddCircleFilled(ImVec2(ftMax.x - 12.0f, ftMin.y + 11.0f), 2.5f, pal.Accent.ToU32(), 10);
+            Render::ImGuiExt::RenderResizeGrip(ImVec2(190.0f, 220.0f), "##RadarResize");
         }
         ImGui::End();
 

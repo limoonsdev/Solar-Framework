@@ -1,4 +1,5 @@
 #include "solar/ui/command_palette.hpp"
+#include "solar/ui/kill_banner.hpp"
 #include "solar/theme/theme_manager.hpp"
 #include "solar/render/imgui_ext.hpp"
 #include "solar/render/shadow_caster.hpp"
@@ -34,38 +35,73 @@ namespace Solar::UI {
 
     void CommandPalette::PopulateDefaultCommands() {
         m_commands.clear();
-        // Themes
-        RegisterCommand("Switch Theme: Solar Apex", "Themes", "Alt+1", ICON_FA_SUN, []() {
+
+        // 1. All 12 Themes
+        RegisterCommand("Theme: Solar Apex (Gold Obsidian)", "Themes", "Alt+1", ICON_FA_SUN, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::SolarApex);
-            Notify::Success("Theme Switched", "Activated Solar Apex gold Obsidian theme.");
+            Notify::Success("Theme Switched", "Activated Solar Apex gold obsidian theme.");
         });
-        RegisterCommand("Switch Theme: Neo Tokyo 2077", "Themes", "Alt+2", ICON_FA_MOON, []() {
+        RegisterCommand("Theme: Neo Tokyo 2077 (Cyberpunk)", "Themes", "Alt+2", ICON_FA_MOON, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::NeoTokyo2077);
             Notify::Success("Theme Switched", "Activated Neo Tokyo 2077 theme.");
         });
-        RegisterCommand("Switch Theme: Ares Crimson", "Themes", "Alt+3", ICON_FA_FIRE, []() {
+        RegisterCommand("Theme: Ares Crimson (Tactical Red)", "Themes", "Alt+3", ICON_FA_FIRE, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::AresCrimson);
             Notify::Success("Theme Switched", "Activated Ares Crimson theme.");
         });
-        RegisterCommand("Switch Theme: Viper Matrix", "Themes", "Alt+4", ICON_FA_GHOST, []() {
+        RegisterCommand("Theme: Viper Matrix (Toxic Green)", "Themes", "Alt+4", ICON_FA_GHOST, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::ViperMatrix);
             Notify::Success("Theme Switched", "Activated Viper Matrix theme.");
         });
-        RegisterCommand("Switch Theme: Subzero Frost", "Themes", "Alt+5", ICON_FA_SNOWFLAKE, []() {
+        RegisterCommand("Theme: Subzero Frost (Glacial Cyan)", "Themes", "Alt+5", ICON_FA_SNOWFLAKE, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::SubzeroFrost);
             Notify::Success("Theme Switched", "Activated Subzero Frost theme.");
         });
-        RegisterCommand("Switch Theme: Astral Amethyst", "Themes", "Alt+6", ICON_FA_GEM, []() {
+        RegisterCommand("Theme: Astral Amethyst (Imperial Purple)", "Themes", "Alt+6", ICON_FA_GEM, []() {
             ThemeManager::Get().ApplyPreset(ThemePreset::AstralAmethyst);
             Notify::Success("Theme Switched", "Activated Astral Amethyst theme.");
         });
+        RegisterCommand("Theme: Onyx Chroma (Dynamic Spectrum)", "Themes", "Alt+7", ICON_FA_PALETTE, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::OnyxChroma);
+            Notify::Success("Theme Switched", "Activated Onyx Chroma theme.");
+        });
+        RegisterCommand("Theme: Synthwave Sunset (80s Retrowave)", "Themes", "Alt+8", ICON_FA_SUN, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::SynthwaveSunset);
+            Notify::Success("Theme Switched", "Activated Synthwave Sunset theme.");
+        });
+        RegisterCommand("Theme: Glacier Titanium (Cryo Metallic)", "Themes", "Alt+9", ICON_FA_SNOWFLAKE, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::GlacierTitanium);
+            Notify::Success("Theme Switched", "Activated Glacier Titanium theme.");
+        });
+        RegisterCommand("Theme: Kintsugi Gold (Fractured Ceramic)", "Themes", "Alt+0", ICON_FA_GEM, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::KintsugiGold);
+            Notify::Success("Theme Switched", "Activated Kintsugi Gold theme.");
+        });
+        RegisterCommand("Theme: Nebula Void (Deep Cosmos)", "Themes", "", ICON_FA_MOON, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::NebulaVoid);
+            Notify::Success("Theme Switched", "Activated Nebula Void theme.");
+        });
+        RegisterCommand("Theme: Blood Moon (Gothic Ruby)", "Themes", "", ICON_FA_FIRE, []() {
+            ThemeManager::Get().ApplyPreset(ThemePreset::BloodMoon);
+            Notify::Success("Theme Switched", "Activated Blood Moon theme.");
+        });
 
-        // Security / System
+        // 2. Engine & Mode Toggles
+        RegisterCommand("Mode: Toggle Rainbow Chroma Mode", "Engine", "F9", ICON_FA_WAND_MAGIC, []() {
+            bool cur = ThemeManager::Get().IsRainbowMode();
+            ThemeManager::Get().SetRainbowMode(!cur);
+            Notify::Info("Rainbow Chroma", !cur ? "Rainbow spectrum cycling activated." : "Rainbow mode disabled.");
+        });
+        RegisterCommand("Action: Trigger Esports Kill Banner", "Testing", "F10", ICON_FA_SKULL, []() {
+            TriggerKillBanner("Jett_Carry_01", "VANDAL PRIME", 160, true, 4);
+        });
+
+        // 3. System & Utilities
         RegisterCommand("System: Copy HWID to Clipboard", "System", "Ctrl+H", ICON_FA_COPY, []() {
             ImGui::SetClipboardText("HWID-SOLAR-7F9A-4B21-99CE-DEV");
             Notify::Success("HWID Copied", "Hardware ID copied to clipboard.");
         });
-        RegisterCommand("System: Clear Audio Stream", "System", "", ICON_FA_VOLUME_HIGH, []() {
+        RegisterCommand("System: Flush Audio Synthesizer Stream", "System", "", ICON_FA_VOLUME_HIGH, []() {
             Audio::PlayClick();
             Notify::Info("Audio", "Sound synthesizer buffer flushed.");
         });
@@ -119,11 +155,13 @@ namespace Solar::UI {
         }
 
         const auto& pal = ThemeManager::Get().GetPalette();
-        ImDrawList* fgDraw = ImGui::GetForegroundDrawList();
-
-        // 1. Full-screen dimmed backdrop overlay
         ImVec2 dispSize = io.DisplaySize;
-        fgDraw->AddRectFilled(ImVec2(0, 0), dispSize, IM_COL32(6, 7, 10, static_cast<int>(180 * m_animProgress)));
+
+        // Render soft ambient vignette BEHIND windows so palette window is never dimmed
+        ImGui::GetBackgroundDrawList()->AddRectFilled(
+            ImVec2(0, 0), dispSize,
+            IM_COL32(0, 0, 0, static_cast<int>(55 * m_animProgress))
+        );
 
         // Filter commands matching current query
         std::string query = m_filter;

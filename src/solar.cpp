@@ -1,4 +1,5 @@
 #include "solar/solar.hpp"
+#include "solar/tools/layout_auditor.hpp"
 #include <iostream>
 
 namespace Solar {
@@ -23,8 +24,11 @@ namespace Solar {
         // Prebake Audio Procedural Tones
         Audio::SoundBank::Get();
 
+        // Run automated UI layout and text margin audit
+        Tools::LayoutAuditor::Get().RunAutomatedFullAudit();
+
         // Welcome Notification
-        Notify::Success("Solar Framework v1.0.1", "Industrial modular engine & procedural audio ready.");
+        Notify::Success("Solar Framework v1.0.4", "Industrial modular engine & procedural audio ready.");
     }
 
     void NewFrame() {
