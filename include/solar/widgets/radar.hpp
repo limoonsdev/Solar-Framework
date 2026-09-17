@@ -16,6 +16,12 @@ namespace Solar::Widgets {
         float healthFrac = 1.0f; // 0.0f to 1.0f
     };
 
+    enum class RadarShape {
+        Circle = 0,
+        RoundedSquare,
+        Square
+    };
+
     struct RadarSettings {
         float rangeMeters = 40.0f;      // Radar radius in meters
         bool  showSweep = true;         // Continuous rotating radar sweep
@@ -23,6 +29,10 @@ namespace Solar::Widgets {
         bool  showCardinal = true;      // N, S, E, W markers
         bool  showRings = true;         // Range concentric circles
         float sweepSpeed = 90.0f;       // Degrees per second
+        RadarShape shape = RadarShape::Circle;
+        float zoom = 1.0f;              // Zoom scale
+        float blipSize = 3.5f;          // Blip radius in pixels
+        bool  showGrid = true;          // Tactical Cartesian grid lines
     };
 
     /**

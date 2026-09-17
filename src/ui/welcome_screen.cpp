@@ -59,27 +59,29 @@ namespace Solar::UI {
             1.8f, 1.6f, 1.2f * m_alpha
         );
 
-        // 3. Central Solar Insignia Header
+        // 3. Central Brand Cyber Emblem
         float centerX = min.x + modalW * 0.5f;
         float curY = min.y + 36.0f;
 
         {
-            ImVec2 sunC(centerX, curY);
-            float sunR = 14.0f;
-            float pulse = 0.90f + 0.10f * std::sin(timeSec * 3.5f);
+            ImVec2 emblemC(centerX, curY);
+            float pulse = 0.92f + 0.08f * std::sin(timeSec * 3.0f);
+            float sz = 18.0f * pulse;
 
-            // Radiant corona
-            draw->AddCircleFilled(sunC, sunR * 1.8f * pulse, pal.Accent.WithAlpha(0.25f * m_alpha).ToU32(), 24);
-            // Solar rays
-            for (int r = 0; r < 8; ++r) {
-                float a = static_cast<float>(r) * (3.14159265f / 4.0f) + timeSec * 0.6f;
-                ImVec2 r1(sunC.x + std::cos(a) * (sunR + 2.0f), sunC.y + std::sin(a) * (sunR + 2.0f));
-                ImVec2 r2(sunC.x + std::cos(a) * (sunR + 6.5f), sunC.y + std::sin(a) * (sunR + 6.5f));
-                draw->AddLine(r1, r2, pal.Accent.WithAlpha(0.9f * m_alpha).ToU32(), 1.6f);
-            }
-            // Sun Core
-            draw->AddCircleFilled(sunC, sunR, pal.Accent.WithAlpha(m_alpha).ToU32(), 20);
-            draw->AddCircleFilled(sunC, sunR * 0.5f, IM_COL32(255, 255, 255, static_cast<int>(240 * m_alpha)), 16);
+            // Ambient glow behind emblem
+            draw->AddCircleFilled(emblemC, sz * 1.5f, pal.Accent.WithAlpha(0.25f * m_alpha).ToU32(), 24);
+
+            // Sleek Cyber Diamond
+            ImVec2 pTop(emblemC.x, emblemC.y - sz);
+            ImVec2 pRight(emblemC.x + sz, emblemC.y);
+            ImVec2 pBottom(emblemC.x, emblemC.y + sz);
+            ImVec2 pLeft(emblemC.x - sz, emblemC.y);
+
+            draw->AddQuadFilled(pTop, pRight, pBottom, pLeft, pal.Accent.WithAlpha(0.20f * m_alpha).ToU32());
+            draw->AddQuad(pTop, pRight, pBottom, pLeft, pal.Accent.WithAlpha(0.90f * m_alpha).ToU32(), 1.5f);
+
+            // Core center dot
+            draw->AddCircleFilled(emblemC, 3.5f, IM_COL32(255, 255, 255, static_cast<int>(240 * m_alpha)), 12);
 
             curY += 34.0f;
         }

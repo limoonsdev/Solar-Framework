@@ -17,7 +17,7 @@ namespace Solar::Widgets {
 
         float availX = ImGui::GetContentRegionAvail().x;
         float height = 30.0f;
-        float totalH = (lv.size.x > 0.0f) ? (height + 20.0f) : height;
+        float totalH = (lv.size.x > 0.0f) ? (height + 22.0f) : height;
 
         ImVec2 p = window->DC.CursorPos;
         ImRect bb(p, ImVec2(p.x + availX, p.y + totalH));
@@ -34,7 +34,7 @@ namespace Solar::Widgets {
         }
 
         // Combo Box Frame
-        float boxY = (lv.size.x > 0.0f) ? (p.y + 18.0f) : p.y;
+        float boxY = (lv.size.x > 0.0f) ? (p.y + 20.0f) : p.y;
         ImVec2 boxMin(p.x, boxY);
         ImVec2 boxMax(p.x + availX - 2.0f, boxY + height);
         ImRect boxBB(boxMin, boxMax);
@@ -52,12 +52,14 @@ namespace Solar::Widgets {
         float rounding = 6.0f;
         u32 bgCol = hovered ? pal.CardHover.ToU32() : pal.Card.ToU32();
         draw->AddRectFilled(boxMin, boxMax, bgCol, rounding);
+        Render::ImGuiExt::DrawSpecularEdge(draw, boxMin, boxMax, IM_COL32(255, 255, 255, 18), rounding, 1.0f);
         Render::ImGuiExt::AddSmoothBorder(draw, boxMin, boxMax, (hovered ? pal.Accent : pal.Border).ToU32(), rounding, 1.0f);
 
-        // Current item text
+        // Current item text (optically centered)
         const char* previewText = (*current_item >= 0 && *current_item < items_count) ? items[*current_item] : "";
-        draw->AddText(ImVec2(boxMin.x + 10.0f, boxMin.y + (height - ImGui::GetTextLineHeight()) * 0.5f),
-                      pal.TextPrimary.ToU32(), previewText);
+        ImVec2 textSize = ImGui::CalcTextSize(previewText);
+        float textY = boxMin.y + (height - textSize.y) * 0.5f - 0.5f;
+        draw->AddText(ImVec2(boxMin.x + 10.0f, textY), pal.TextPrimary.ToU32(), previewText);
 
         // Chevron arrow indicator
         ImVec2 chevronCenter(boxMax.x - 14.0f, boxMin.y + height * 0.5f);
@@ -97,6 +99,15 @@ namespace Solar::Widgets {
         ImGui::PopStyleVar(2);
 
         return changed;
+    }
+
+    bool Combo(const char* label, int* current_item, const std::vector<std::string>& items) {
+        std::vector<const char*> itemPtrs;
+        itemPtrs.reserve(items.size());
+        for (const auto& s : items) {
+            itemPtrs.push_back(s.c_str());
+        }
+        return Combo(label, current_item, itemPtrs.data(), static_cast<int>(itemPtrs.size()));
     }
 
 } // namespace Solar::Widgets

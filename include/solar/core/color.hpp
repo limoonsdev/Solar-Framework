@@ -14,6 +14,7 @@ namespace Solar {
         Color(u32 hexU32);
 
         constexpr operator ImVec4() const { return ImVec4(r, g, b, a); }
+        constexpr ImVec4 ToVec4() const { return ImVec4(r, g, b, a); }
         u32 ToU32() const;
 
         Color WithAlpha(f32 newAlpha) const { return Color(r, g, b, newAlpha); }

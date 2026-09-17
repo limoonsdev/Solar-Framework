@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <tchar.h>
 #include <shellscalingapi.h>
+#include <timeapi.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_win32.h>
@@ -26,19 +27,44 @@ struct ACCENT_POLICY { int State; int Flags; int Color; int AnimationId; };
 struct WINCOMPATTRDATA { int Attr; PVOID Data; ULONG Size; };
 typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
 
-static void EnableWindowAcrylicBlur(HWND hwnd) {
-    MARGINS margins = { -1, -1, -1, -1 };
-    DwmExtendFrameIntoClientArea(hwnd, &margins);
+HWND g_hWnd = nullptr;
 
-    HMODULE hUser32 = GetModuleHandleA("user32.dll");
-    if (!hUser32) return;
-    auto fn = (pSetWindowCompositionAttribute)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
-    if (fn) {
-        ACCENT_POLICY accent = { 4, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_ACRYLICBLURBEHIND
-        WINCOMPATTRDATA data = { 19, &accent, sizeof(accent) };
-        fn(hwnd, &data);
+namespace Solar {
+    void ApplyWindowStreamproof(bool enabled) {
+        if (g_hWnd) {
+            // WDA_EXCLUDEFROMCAPTURE = 0x00000011 (Windows 10 2004+), WDA_MONITOR = 0x00000001
+            DWORD affinity = enabled ? 0x00000011 : 0x00000000;
+            if (!SetWindowDisplayAffinity(g_hWnd, affinity)) {
+                if (enabled) SetWindowDisplayAffinity(g_hWnd, 0x00000001);
+            }
+        }
     }
 }
+
+void ApplyWindowStreamproof(bool enabled) {
+    Solar::ApplyWindowStreamproof(enabled);
+}
+
+
+static void ConfigureWindowGlass(HWND hwnd, bool enableBlur = false) {
+    BOOL darkMode = TRUE;
+    ::DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
+
+    if (enableBlur) {
+        MARGINS margins = { -1, -1, -1, -1 };
+        DwmExtendFrameIntoClientArea(hwnd, &margins);
+        HMODULE hUser32 = GetModuleHandleA("user32.dll");
+        if (hUser32) {
+            auto fn = (pSetWindowCompositionAttribute)GetProcAddress(hUser32, "SetWindowCompositionAttribute");
+            if (fn) {
+                ACCENT_POLICY accent = { 3, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_BLURBEHIND (Lightweight, 200+ FPS)
+                WINCOMPATTRDATA data = { 19, &accent, sizeof(accent) };
+                fn(hwnd, &data);
+            }
+        }
+    }
+}
+
 
 static ID3D11Device*           g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -147,11 +173,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         posX, posY, winW, winH,
         nullptr, nullptr, wc.hInstance, nullptr
     );
+    g_hWnd = hwnd;
 
-    // Windows 11 Dark Mode Titlebar & Mica/Dark framing
-    BOOL darkMode = TRUE;
-    ::DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
-    EnableWindowAcrylicBlur(hwnd);
+    // Windows 11 Dark Mode Titlebar & Mica/Dark framing (High-performance 300+ FPS)
+    ConfigureWindowGlass(hwnd, false);
 
     if (!CreateDeviceD3D(hwnd)) {
         CleanupDeviceD3D();
@@ -176,34 +201,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     float dpiScale = (winDpi > 0) ? (static_cast<float>(winDpi) / 96.0f) : initialDpiScale;
     if (dpiScale < 1.0f) dpiScale = 1.0f;
 
-    // Razor-Sharp Typography with 3x Oversampling & Enhanced Contrast
-    ImFontConfig fontConfig;
-    fontConfig.OversampleH = 3;
-    fontConfig.OversampleV = 3;
-    fontConfig.PixelSnapH = true;
-    fontConfig.RasterizerMultiply = 1.18f; // Crisp contrast, high readability
-
-    float baseFontSize = 15.5f * dpiScale;
-    float iconFontSize = 14.5f * dpiScale;
-
-    ImFont* mainFont = nullptr;
-    if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
-        mainFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", baseFontSize, &fontConfig);
-    } else if (GetFileAttributesA("C:\\Windows\\Fonts\\segoeui.ttf") != INVALID_FILE_ATTRIBUTES) {
-        mainFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseFontSize, &fontConfig);
-    } else {
-        mainFont = io.Fonts->AddFontDefault(&fontConfig);
-    }
-
-    // Merge FontAwesome 6 Solid Icons at native resolution directly from embedded memory
-    ImFontConfig iconConfig;
-    iconConfig.MergeMode = true;
-    iconConfig.PixelSnapH = true;
-    iconConfig.OversampleH = 3;
-    iconConfig.OversampleV = 3;
-    iconConfig.RasterizerMultiply = 1.15f;
-    static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
-    io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconFontSize, &iconConfig, icon_ranges);
+    // Initialize Razor-Sharp High-DPI Fonts & Gaming Typography Suite via FontManager
+    Solar::Render::FontManager::Get().LoadFonts(dpiScale);
 
     // Note: With modern Dear ImGui backends, io.Fonts->Build() is called automatically by ImGui_ImplDX11_NewFrame().
 
@@ -215,17 +214,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     const char* fullCmd = GetCommandLineA();
     bool autoScreenshot = (strstr(fullCmd, "--screenshot") != nullptr);
+    bool showcaseAll = (strstr(fullCmd, "--showcase-all") != nullptr || strstr(fullCmd, "--capture-all") != nullptr);
     int screenshotFrame = 0;
-    if (autoScreenshot) {
+    if (showcaseAll) {
+        printf("[DEMO] showcaseAll enabled! Skipping intro screens...\n");
+        Solar::UI::SplashScreen::Get().Start(0.001f);
+        Solar::UI::WelcomeScreen::Get().Hide();
+        CreateDirectoryA("screenshots", NULL);
+    } else if (autoScreenshot) {
         printf("[DEMO] autoScreenshot enabled! skip_intro=%d\n", strstr(fullCmd, "--skip-intro") != nullptr);
         if (strstr(fullCmd, "--skip-intro") != nullptr) {
             Solar::UI::SplashScreen::Get().Start(0.001f);
             Solar::UI::WelcomeScreen::Get().Hide();
         }
+
         if (strstr(fullCmd, "--screenshot-radar") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(2);
+            Solar::DemoApp::Get().SetMiscSubTab(0);
+        } else if (strstr(fullCmd, "--screenshot-watermarks") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(2);
+            Solar::DemoApp::Get().SetMiscSubTab(1);
+        } else if (strstr(fullCmd, "--screenshot-themes") != nullptr) {
+            Solar::DemoApp::Get().SetCurrentTab(6);
+            Solar::DemoApp::Get().SetThemeSubTab(0);
         } else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(3);
+            Solar::DemoApp::Get().SetWidgetsPage(1);
         } else if (strstr(fullCmd, "--screenshot-visuals") != nullptr) {
             Solar::DemoApp::Get().SetCurrentTab(1);
         }
@@ -265,6 +279,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         );
         ImGui::SetNextWindowPos(centerPos, ImGuiCond_FirstUseEver);
 
+        if (autoScreenshot && (io.MousePos.x < 0.0f || io.MousePos.x > io.DisplaySize.x)) {
+            io.MousePos = ImVec2(centerPos.x + 380.0f, centerPos.y + 190.0f);
+        }
+
         Solar::DemoApp::Get().Render();
 
         ImGui::Render();
@@ -273,13 +291,82 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-        g_pSwapChain->Present(1, 0);
+        int fpsCap = Solar::DemoApp::Get().GetFpsCap();
+        static LARGE_INTEGER s_freq = {};
+        static LARGE_INTEGER s_lastTime = {};
+        if (s_freq.QuadPart == 0) {
+            QueryPerformanceFrequency(&s_freq);
+            QueryPerformanceCounter(&s_lastTime);
+            timeBeginPeriod(1);
+        }
 
-        if (autoScreenshot) {
+        if (fpsCap == 0) {
+            // VSync enabled (synchronized with monitor refresh rate)
+            g_pSwapChain->Present(1, 0);
+            QueryPerformanceCounter(&s_lastTime);
+        } else if (fpsCap > 0) {
+            // Cap to specific frame rate (e.g. 30, 60, 120, 144, 240, 360)
+            g_pSwapChain->Present(0, 0);
+            double targetInterval = 1.0 / static_cast<double>(fpsCap);
+            LARGE_INTEGER curTime;
+            QueryPerformanceCounter(&curTime);
+            double elapsed = static_cast<double>(curTime.QuadPart - s_lastTime.QuadPart) / static_cast<double>(s_freq.QuadPart);
+            while (elapsed < targetInterval) {
+                double remaining = targetInterval - elapsed;
+                if (remaining > 0.002) {
+                    Sleep(1);
+                } else {
+                    YieldProcessor();
+                }
+                QueryPerformanceCounter(&curTime);
+                elapsed = static_cast<double>(curTime.QuadPart - s_lastTime.QuadPart) / static_cast<double>(s_freq.QuadPart);
+            }
+            s_lastTime = curTime;
+        } else {
+            // Uncapped (maximum FPS)
+            g_pSwapChain->Present(0, 0);
+            QueryPerformanceCounter(&s_lastTime);
+        }
+
+        bool showcaseAll = (strstr(fullCmd, "--showcase-all") != nullptr || strstr(fullCmd, "--capture-all") != nullptr);
+        if (showcaseAll) {
+            CreateDirectoryA("screenshots", NULL);
+            screenshotFrame++;
+            if (screenshotFrame == 8) {
+                Solar::DemoApp::Get().SetCurrentTab(0);
+            } else if (screenshotFrame == 15) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_0_combat.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(1);
+            } else if (screenshotFrame == 23) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_1_visuals.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(2);
+            } else if (screenshotFrame == 31) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_2_watermarks.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(3);
+            } else if (screenshotFrame == 39) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_3_widgets.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(4);
+            } else if (screenshotFrame == 47) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_4_satellites.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(6);
+            } else if (screenshotFrame == 55) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_6_themes.bmp");
+                Solar::DemoApp::Get().SetCurrentTab(7);
+            } else if (screenshotFrame == 63) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_7_profiles.bmp");
+                Solar::UI::ToggleCommandPalette();
+            } else if (screenshotFrame == 72) {
+                SaveBackBufferToBmp(g_pd3dDevice, g_pd3dDeviceContext, g_pSwapChain, "screenshots/showcase_8_command_palette.bmp");
+                printf("[DEMO] All showcase screenshots successfully exported to screenshots/\n");
+                done = true;
+            }
+        } else if (autoScreenshot) {
             screenshotFrame++;
             if (screenshotFrame >= 15) {
                 const char* targetFile = "demo_capture.bmp";
                 if (strstr(fullCmd, "--screenshot-visuals") != nullptr) targetFile = "visuals_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-watermarks") != nullptr) targetFile = "watermarks_capture.bmp";
+                else if (strstr(fullCmd, "--screenshot-themes") != nullptr) targetFile = "themes_capture.bmp";
                 else if (strstr(fullCmd, "--screenshot-radar") != nullptr) targetFile = "radar_capture.bmp";
                 else if (strstr(fullCmd, "--screenshot-widgets") != nullptr) targetFile = "widgets_capture.bmp";
                 char envPath[MAX_PATH];

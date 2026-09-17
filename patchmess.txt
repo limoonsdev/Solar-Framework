@@ -1,0 +1,19 @@
+[#] - Version & numéro de commit : v1.1.0 [commit: 50e6952]
+
+[+] - Ajout : Console de développement intégrée style Unreal Engine dans SolarWorld (déclenchée par Suppr / Delete ou ~) avec historique, autocomplétion et commandes système (stat fps, stat unit, stat hud, viewmode wireframe/lit, r.SetRes, fov, gamma, slomo, god, teleport, spawn, modules, inject, cls, help)
+[+] - Ajout : Menu de pause en jeu style Unreal Engine Slate dans SolarWorld (déclenché par Échap) avec libération automatique du curseur, réglages d'affichage, gestionnaire de mannequins et inspecteur de DLL injectées
+[+] - Ajout : HUD de combat tactique complet dans SolarWorld comprenant ruban de boussole azimutale synchronisé avec la caméra, réticule 4 axes haute précision, jauges de santé et d'armure, compteur de munitions et plaques nominatives 3D-vers-2D au-dessus des cibles
+[+] - Ajout : Ciel atmosphérique procédural avec dégradé zénith-horizon et disque solaire, éclairage spéculaire Blinn-Phong, ombres de contact au sol et décors tactiques d'entraînement
+[+] - Ajout : Poignée universelle de redimensionnement interactif (RenderResizeGrip) sur l'ensemble des fenêtres auxiliaires (KeybindList, SpectatorList, RadarWindow, SatelliteWindow)
+[+] - Ajout : Mode de protection de diffusion Streamproof matériel avec affinité d'affichage Windows (WDA_EXCLUDEFROMCAPTURE 0x00000011) masquant le menu sur OBS, Discord et les logiciels de capture
+[+] - Ajout : Carte utilisateur modernisée avec anneau radar pulsant en temps réel et menu contextuel VIP avec copie du HWID et raccourcis
+[+] - Ajout : Watermark HUD interactif avec 5 styles visuels et ouverture automatique de lien web par ShellExecuteA
+[+] - Ajout : Système d'audit automatisé des marges et textes (LayoutAuditor) générant le rapport solar_layout_audit.log
+[+] - Ajout : Mode vitrine automatisé (--showcase-all) exportant 8 captures haute résolution dans le dossier screenshots/
+[-] - Retrait : Suppression intégrale et définitive de tous les fichiers et dépendances de Solar Studio
+[-] - Retrait : Élimination des passes de flou acrylique DWM Windows lourdes au profit d'une composition verre fluide garantissant 300+ FPS
+[-] - Retrait : Réduction des couches d'ombres redondantes de 10 à 3 passes divisant les appels de rendu par 3
+[\] - Fix : Déplacement du voile de fond de la palette de commandes (Ctrl + P) sur le BackgroundDrawList supprimant tout assombrissement sur l'interface
+[\] - Fix : Paramétrage continu du tracé de bordure rotative colorée le long de l'intégralité du périmètre arrondi
+[\] - Fix : Optimisation drastique du système de particules constellation avec calcul de distance au carré et plafond de 3 connexions
+[\] - Fix : Centrage optique rigoureux et padding supérieur sur les zones de texte éliminant tout contact avec les bordures

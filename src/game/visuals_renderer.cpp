@@ -1,5 +1,6 @@
 #include "solar/game/visuals_renderer.hpp"
 #include "solar/render/drawlist_utils.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui.h>
 #include <cmath>
 #include <algorithm>
@@ -369,27 +370,32 @@ namespace Solar::Game {
         draw->AddText(p, color.ToU32(), buf);
     }
 
-    void VisualsRenderer::DrawFlagTags(ImDrawList* draw, const ImVec2& boxMax,
+    void VisualsRenderer::DrawFlagTags(ImDrawList* draw, const ImVec2& boxMin, const ImVec2& boxMax,
                                        const std::vector<std::pair<std::string, Color>>& flags) {
         if (!draw || flags.empty()) return;
 
-        float currY = boxMax.y - 12.0f;
-        float startX = boxMax.x + 6.0f;
+        float currY = boxMin.y + 3.0f;
+        float startX = boxMax.x + 8.0f;
 
         for (const auto& flag : flags) {
             ImVec2 ts = ImGui::CalcTextSize(flag.first.c_str());
             ImVec2 badgeMin(startX - 2.0f, currY - 1.0f);
             ImVec2 badgeMax(startX + ts.x + 4.0f, currY + ts.y + 1.0f);
 
-            // Subtle dark obsidian badge background with 1px border
-            draw->AddRectFilled(badgeMin, badgeMax, IM_COL32(14, 14, 18, 210), 3.0f);
-            draw->AddRect(badgeMin, badgeMax, IM_COL32(0, 0, 0, 180), 3.0f);
+            // Subtle dark obsidian badge background with smooth border
+            draw->AddRectFilled(badgeMin, badgeMax, IM_COL32(14, 14, 18, 220), 3.0f);
+            Render::ImGuiExt::AddSmoothBorder(draw, badgeMin, badgeMax, flag.second.WithAlpha(0.40f).ToU32(), 3.0f, 1.0f);
 
             // Text
             draw->AddText(ImVec2(startX + 1.0f, currY), flag.second.ToU32(), flag.first.c_str());
 
-            currY += ts.y + 3.0f;
+            currY += ts.y + 4.0f;
         }
+    }
+
+    void VisualsRenderer::DrawFlagTags(ImDrawList* draw, const ImVec2& boxMax,
+                                       const std::vector<std::pair<std::string, Color>>& flags) {
+        DrawFlagTags(draw, ImVec2(boxMax.x, boxMax.y - 45.0f), boxMax, flags);
     }
 
     // ==============================================================================

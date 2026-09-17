@@ -4,6 +4,7 @@
 #include "solar/render/imgui_ext.hpp"
 #include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
+#include <cmath>
 
 namespace Solar::UI {
 
@@ -19,8 +20,8 @@ namespace Solar::UI {
         ImDrawList* draw = ImGui::GetWindowDrawList();
         const auto& pal = ThemeManager::Get().GetPalette();
 
-        ImVec2 cardMin = p;
-        ImVec2 cardMax = ImVec2(p.x + w, p.y + h);
+        ImVec2 cardMin = ImVec2(std::floor(p.x), std::floor(p.y));
+        ImVec2 cardMax = ImVec2(std::floor(p.x + w), std::floor(p.y + h));
 
         // 1. Layered Ambient Drop Shadow
         Render::ShadowCaster::DrawShadow(draw, cardMin, cardMax, 16.0f, rounding, Color(0, 0, 0, 0.45f), ImVec2(0, 4.0f));
@@ -50,8 +51,10 @@ namespace Solar::UI {
 
             ImVec2 iconSize = ImGui::CalcTextSize(icon);
             if (iconSize.x > 2.0f) {
-                draw->AddText(ImVec2(iconBoxMin.x + (26.0f - iconSize.x) * 0.5f, iconBoxMin.y + (26.0f - iconSize.y) * 0.5f),
-                              pal.Accent.ToU32(), icon);
+                // Optical compensation for FontAwesome font metrics
+                float optY = iconBoxMin.y + (26.0f - iconSize.y) * 0.5f - 0.5f;
+                float optX = iconBoxMin.x + (26.0f - iconSize.x) * 0.5f;
+                draw->AddText(ImVec2(optX, optY), pal.Accent.ToU32(), icon);
             } else {
                 Icons::VectorIconRenderer::DrawByGlyph(draw, icon, ImVec2(iconBoxMin.x + 13.0f, iconBoxMin.y + 13.0f), 14.0f, pal.Accent);
             }
@@ -62,18 +65,16 @@ namespace Solar::UI {
         float titleY = cardMin.y + (headerH - lv.size.y) * 0.5f;
         draw->AddText(ImVec2(curX, titleY), pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
 
-        // 7. Child container for inner elements (border = false to eliminate ugly ImGui grey borders)
+        // 7. Child container for inner elements (generous 18px padding for breathing room)
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f, 14.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(18.0f, 16.0f));
 
-        bool visible = ImGui::BeginChild(str_id, ImVec2(w, h), false, ImGuiWindowFlags_NoBackground);
-        if (visible) {
-            ImGui::SetCursorPosY(headerH + 12.0f);
-            ImGui::SetCursorPosX(14.0f);
-        }
+        ImGui::BeginChild(str_id, ImVec2(w, h), false, ImGuiWindowFlags_NoBackground);
+        ImGui::SetCursorPosY(headerH + 14.0f);
+        ImGui::SetCursorPosX(18.0f);
 
-        return visible;
+        return true;
     }
 
     void Card::End() {

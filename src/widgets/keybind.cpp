@@ -97,7 +97,7 @@ namespace Solar::Widgets {
 
         const char* keyText = isListening ? "PRESS KEY" : KeyToString(*key);
         ImVec2 ts = ImGui::CalcTextSize(keyText);
-        draw->AddText(ImVec2(btnPos.x + (btnW - ts.x) * 0.5f, btnPos.y + (height - ts.y) * 0.5f),
+        draw->AddText(ImVec2(btnPos.x + (btnW - ts.x) * 0.5f, btnPos.y + (height - ts.y) * 0.5f - 0.5f),
                       isListening ? pal.Accent.ToU32() : pal.TextPrimary.ToU32(), keyText);
 
         return false;

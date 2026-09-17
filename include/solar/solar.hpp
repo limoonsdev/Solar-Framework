@@ -73,6 +73,10 @@
 #include "ui/tooltip.hpp"
 #include "ui/splash_screen.hpp"
 #include "ui/welcome_screen.hpp"
+#include "ui/cursor.hpp"
+#include "ui/satellite_window.hpp"
+#include "ui/kill_banner.hpp"
+#include "ui/command_palette.hpp"
 
 // ==============================================================================
 // 7. Interactive Widgets Suite
@@ -99,6 +103,8 @@
 #include "widgets/stat_card.hpp"
 #include "widgets/performance_graph.hpp"
 #include "widgets/radar.hpp"
+#include "widgets/radial_gauge.hpp"
+#include "widgets/chip_selector.hpp"
 
 // ==============================================================================
 // 8. Game, Visuals & ESP Components
@@ -106,14 +112,18 @@
 #include "game/esp_preview.hpp"
 #include "game/hitbox_picker.hpp"
 #include "game/radar.hpp"
+#include "game/radar_window.hpp"
 #include "game/spectator_list.hpp"
 #include "game/keybind_list.hpp"
 #include "game/watermark.hpp"
+#include "game/screen_watermark.hpp"
 #include "game/chams_preview.hpp"
 #include "game/visuals_renderer.hpp"
 #include "game/recoil_visualizer.hpp"
 #include "game/trajectory_renderer.hpp"
 #include "game/obb_renderer.hpp"
+#include "game/fov_renderer.hpp"
+#include "game/skin_changer.hpp"
 
 // ==============================================================================
 // 9. Security & Anti-Cheat Utilities
@@ -173,7 +183,14 @@ namespace Solar {
     using ESPPreviewSettings = Game::ESPSettings;
     using ESPPreview = Game::ESPPreview;
     using WatermarkInfo = Game::WatermarkInfo;
+    using WatermarkPosition = Game::WatermarkPosition;
     using Watermark = Game::Watermark;
+    using ScreenWatermarkLayout = Game::ScreenWatermarkLayout;
+    using ScreenWatermarkEffect = Game::ScreenWatermarkEffect;
+    using ScreenWatermarkSettings = Game::ScreenWatermarkSettings;
+    using ScreenWatermark = Game::ScreenWatermark;
+    using GamingFontPreset = Render::GamingFontPreset;
+    using FontManager = Render::FontManager;
     using Visuals = Game::VisualsRenderer;
     using VisualsRenderer = Game::VisualsRenderer;
     using BoxStyle = Game::BoxStyle;
@@ -184,12 +201,18 @@ namespace Solar {
     using HookBridge = Hook::HookBridge;
     using RotatingBorder = FX::RotatingBorder;
     using WelcomeScreen = UI::WelcomeScreen;
+    using CustomCursor = UI::CustomCursor;
     using ImGuiExt = Render::ImGuiExt;
     using PatternScanner = Security::PatternScanner;
     using RecoilVisualizer = Game::RecoilVisualizer;
     using TrajectoryRenderer = Game::TrajectoryRenderer;
     using RecoilWeapon = Game::RecoilWeapon;
     using ProjectileType = Game::ProjectileType;
+    using FOVSettings = Game::FOVSettings;
+    using FOVRenderer = Game::FOVRenderer;
+    using SkinRarity = Game::SkinRarity;
+    using SkinItem = Game::SkinItem;
+    using SkinChangerPreview = Game::SkinChangerPreview;
 
     namespace Widgets {
         inline bool BeginWindow(const char* name, bool* p_open, const ImVec2& size = ImVec2(940, 620)) {
@@ -249,6 +272,10 @@ namespace Solar {
             Game::KeybindList::Render(p_open, binds);
         }
 
+        inline void RadarWindow(bool* p_open, const Widgets::RadarSettings& settings, const std::vector<Widgets::RadarEntity>& entities) {
+            Game::RadarWindow::Render(p_open, settings, entities);
+        }
+
         inline void LicenseScreen(char* keyBuf, size_t bufSize, const char* hwid, bool* rememberMe, bool* loggedIn) {
             Auth::LicenseScreen::Render(keyBuf, bufSize, hwid, rememberMe, loggedIn);
         }
@@ -256,7 +283,24 @@ namespace Solar {
         inline void SpooferPanel(Security::SpooferState& state) {
             Security::SpooferPanel::Render(state);
         }
+
+        inline void FOVPreview(const char* id, const ImVec2& size, Game::FOVSettings& settings) {
+            Game::FOVRenderer::RenderPreview(id, size, settings);
+        }
+
+        inline void SkinChanger(const char* id, const ImVec2& size, Game::SkinItem& item, std::vector<Game::SkinItem>& inventory) {
+            Game::SkinChangerPreview::Render(id, size, item, inventory);
+        }
     }
+
+    // Engine Mode (External Overlay vs Internal DLL with full DX11 Isolation)
+    enum class FrameworkMode {
+        External = 0, // Standalone desktop window / external overlay
+        Internal = 1  // In-process SwapChain hook / DLL mode with full DirectX 11 pipeline isolation
+    };
+
+    void SetMode(FrameworkMode mode);
+    FrameworkMode GetMode();
 
     // Engine Lifecycle
     void Initialize();

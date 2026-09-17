@@ -16,6 +16,13 @@ namespace Solar {
             m_currentTab = tab;
             PushNavHistory(tab);
         }
+        void SetWidgetsPage(int page) { m_widgetsPage = page; }
+        void SetMiscSubTab(int sub) { m_miscSubTab = sub; }
+        void SetThemeSubTab(int sub) { m_themeSubTab = sub; }
+        int  GetFpsCap() const { return m_fpsCap; }
+        void SetFpsCap(int cap) { m_fpsCap = cap; }
+        bool IsStreamproof() const { return m_streamproof; }
+        void SetStreamproof(bool enabled);
 
     private:
         DemoApp() = default;
@@ -89,6 +96,7 @@ namespace Solar {
         float  m_acousticWaveTimer = 0.0f;
 
         // Widget Suite State
+        int   m_widgetsPage = 0;
         int   m_widgetSubTab = 0;
         int   m_segmentedIdx = 0;
         float m_rangeMin = 20.0f;
@@ -98,6 +106,9 @@ namespace Solar {
         std::vector<bool> m_multiDropdownSelections = { true, false, true, false };
         std::vector<std::string> m_multiDropdownItems = { "Chams Shading", "Glow Contour", "Bullet Tracers", "Sound Wave Rings" };
         float m_knobVal = 55.0f;
+        std::vector<bool> m_chipSelections = { true, true, false, true, false };
+        std::vector<std::string> m_chipItems = { "Players", "Bots", "NPCs", "Weapons", "Vehicles" };
+        float m_radialGaugeVal = 74.5f;
         bool  m_accordion1Open = true;
         bool  m_accordion2Open = false;
         float m_fpsSparkline[16] = { 142.0f, 144.0f, 141.0f, 150.0f, 158.0f, 162.0f, 165.0f, 164.0f, 170.0f, 168.0f, 172.0f, 175.0f, 174.0f, 178.0f, 180.0f, 185.0f };
@@ -128,8 +139,24 @@ namespace Solar {
         bool m_fastCrouch = false;
         int  m_fakeLag = 4;
         bool m_showWatermark = true;
+        WatermarkInfo m_watermarkInfo;
+        ScreenWatermarkSettings m_screenWatermark;
+        char m_customLinkInput[128] = "discord.gg/solarud";
+
+        // FOV & Skin Changer State
+        Game::FOVSettings m_fovSettings;
+        Game::SkinItem m_activeSkin = { "Vandal", "Prime 2.0", Game::SkinRarity::Ultra, 0.0210f, 661, true, 1337, ImVec4(1.0f, 0.28f, 0.55f, 1.0f), true };
+        std::vector<Game::SkinItem> m_skinInventory;
+        char m_screenWatermarkTextInput[128] = ".gg/solarud";
+        int  m_watermarkPosIndex = 0;
+        int  m_screenFontIndex = 0;
+        int  m_screenLayoutIndex = 0;
+        int  m_screenEffectIndex = 0;
         bool m_showSpectators = true;
         bool m_showKeybinds = true;
+        bool m_showRadarWindow = true;
+        Widgets::RadarSettings m_radarSettings;
+        std::vector<Widgets::RadarEntity> m_radarEntities;
         bool m_showProfiler = false;
 
         // Spoofer state
@@ -144,10 +171,20 @@ namespace Solar {
         char m_configNameInput[64] = "MyNewConfig";
         int  m_selectedConfigIndex = 0;
 
-        // Custom accent color
+        // Custom accent color & Rotating border config
         float m_customColor[4] = { 1.0f, 0.48f, 0.0f, 1.0f };
-        bool  m_enableRotatingBorders = false;
+        bool  m_enableRotatingBorders = true;
+        FX::RotatingBorderConfig m_rotatingBorderConfig;
+
+        // Satellite & Floating Dock System
+        bool m_showSatelliteKeybinds = true;
+        bool m_showSatelliteSpectators = false;
+        UI::SatelliteConfig m_satelliteKeybindsConfig;
+        UI::SatelliteConfig m_satelliteSpectatorsConfig;
+
         bool  m_showWelcomeModal = false;
+        int   m_fpsCap = 144; // Default high esports refresh rate: 144 FPS
+        bool  m_streamproof = false;
     };
 
 } // namespace Solar

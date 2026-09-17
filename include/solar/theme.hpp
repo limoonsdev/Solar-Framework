@@ -7,13 +7,27 @@
 namespace Solar {
 
     enum class ThemePreset {
-        SolarFlare,     // Amber / Gold (Default)
-        CyberNeon,      // Electric Cyan / Aqua
-        VoidAmethyst,   // Deep Purple
-        EmeraldMatrix,  // Vivid Mint / Emerald
-        BloodRuby,      // Crimson / Scarlet
-        ArcticWhite,    // Ice Blue / Platinum
-        Custom          // User-defined RGB accent
+        SolarApex = 0,
+        SolarFlare = 0,
+        CyberNexus = 1,
+        CyberNeon = 1,
+        AstralAmethyst = 2,
+        VoidAmethyst = 2,
+        ViperMatrix = 3,
+        EmeraldMatrix = 3,
+        AresCrimson = 4,
+        BloodRuby = 4,
+        SubzeroFrost = 5,
+        ArcticWhite = 5,
+        NeoTokyo2077 = 6,
+        TokyoNight = 6,
+        StealthMonolith = 7,
+        MidnightCarbon = 7,
+        ObsidianVeil = 8,
+        ObsidianViolet = 8,
+        PhantomSpectre = 9,
+        ChampagneRoyale = 10,
+        Custom = 11
     };
 
     struct Palette {

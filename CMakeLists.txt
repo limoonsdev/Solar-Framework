@@ -47,11 +47,15 @@ set(SOLAR_SOURCES
     "src/game/keybind_list.cpp"
     "src/game/obb_renderer.cpp"
     "src/game/radar.cpp"
+    "src/game/radar_window.cpp"
     "src/game/recoil_visualizer.cpp"
     "src/game/spectator_list.cpp"
     "src/game/trajectory_renderer.cpp"
     "src/game/visuals_renderer.cpp"
     "src/game/watermark.cpp"
+    "src/game/screen_watermark.cpp"
+    "src/game/fov_renderer.cpp"
+    "src/game/skin_changer.cpp"
     "src/hook/hook_bridge.cpp"
     "src/hook/state_guard.cpp"
     "src/icons.cpp"
@@ -75,7 +79,9 @@ set(SOLAR_SOURCES
     "src/theme/theme_manager.cpp"
     "src/tools/inspector.cpp"
     "src/tools/profiler.cpp"
+    "src/tools/layout_auditor.cpp"
     "src/ui/card.cpp"
+    "src/ui/cursor.cpp"
     "src/ui/groupbox.cpp"
     "src/ui/modal.cpp"
     "src/ui/sidebar.cpp"
@@ -85,6 +91,9 @@ set(SOLAR_SOURCES
     "src/ui/tooltip.cpp"
     "src/ui/welcome_screen.cpp"
     "src/ui/window.cpp"
+    "src/ui/satellite_window.cpp"
+    "src/ui/kill_banner.cpp"
+    "src/ui/command_palette.cpp"
     "src/widgets/accordion.cpp"
     "src/widgets/badge.cpp"
     "src/widgets/button.cpp"
@@ -100,6 +109,8 @@ set(SOLAR_SOURCES
     "src/widgets/performance_graph.cpp"
     "src/widgets/progress_bar.cpp"
     "src/widgets/radar.cpp"
+    "src/widgets/chip_selector.cpp"
+    "src/widgets/radial_gauge.cpp"
     "src/widgets/range_slider.cpp"
     "src/widgets/search_input.cpp"
     "src/widgets/segmented_control.cpp"
@@ -154,3 +165,32 @@ target_link_libraries(solar_demo PRIVATE
 target_include_directories(solar_demo PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/demo"
 )
+
+# SolarWorld: Standalone 3D DirectX 11 testbed emulating Unreal Engine internal structures
+set(SOLAR_WORLD_SOURCES
+    "tools/solar_world/main.cpp"
+    "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
+    "${IMGUI_DIR}/backends/imgui_impl_dx11.cpp"
+)
+
+add_executable(solar_world WIN32
+    ${SOLAR_WORLD_SOURCES}
+)
+
+target_link_libraries(solar_world PRIVATE
+    solar_lib
+    d3d11
+    dxgi
+    d3dcompiler
+    dwmapi
+    winmm
+    shcore
+)
+
+target_include_directories(solar_world PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${IMGUI_DIR}"
+    "${IMGUI_DIR}/backends"
+)
+
+

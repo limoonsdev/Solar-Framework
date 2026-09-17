@@ -1,7 +1,11 @@
 #include "demo_app.hpp"
 #include <cstdio>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <shellapi.h>
 
 namespace Solar {
+
 
     static void RenderCardPagination(int* currentPage, int totalPages, const char* idSuffix) {
         ImGui::Spacing();
@@ -51,6 +55,18 @@ namespace Solar {
         if (!canNext) ImGui::EndDisabled();
     }
 
+    extern void ApplyWindowStreamproof(bool enabled);
+
+    void DemoApp::SetStreamproof(bool enabled) {
+        m_streamproof = enabled;
+        ApplyWindowStreamproof(enabled);
+        if (enabled) {
+            Notify::Success("Stream Protection Active", "Window hidden from OBS, Discord & Screen Capture (WDA_EXCLUDEFROMCAPTURE).");
+        } else {
+            Notify::Info("Stream Protection Disabled", "Window capture visibility restored.");
+        }
+    }
+
     DemoApp& DemoApp::Get() {
         static DemoApp instance;
         return instance;
@@ -87,34 +103,138 @@ namespace Solar {
         m_espSettings.distance = 28.5f;
         m_espSettings.health = 85.0f;
         m_espSettings.armor = 60.0f;
+        m_showRadarWindow = true;
+        m_showSpectators = true;
+        m_showKeybinds = true;
+        m_showWatermark = true;
+        m_watermarkInfo.frameworkName = "SOLAR";
+        m_watermarkInfo.version = "v1.0.2-dev";
+        m_watermarkInfo.username = "SolarDev";
+        m_watermarkInfo.customLink = "discord.gg/solarud";
+        m_watermarkInfo.pingMs = 12;
+        m_watermarkInfo.showLink = true;
+
+        m_screenWatermark.enabled = true;
+        m_screenWatermark.text = ".gg/solarud";
+        m_screenWatermark.fontPreset = GamingFontPreset::ValorantTactical;
+        m_screenWatermark.opacity = 0.12f;
+        m_screenWatermark.scale = 1.0f;
+        m_screenWatermark.layout = ScreenWatermarkLayout::CenterDiagonal;
+        m_screenWatermark.effect = ScreenWatermarkEffect::SolidAlpha;
+        m_screenWatermark.useThemeColor = true;
+        m_screenWatermark.animatedPulse = true;
+
         PushNavHistory(0);
-        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
+        ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianVeil);
+
+        m_radarEntities = {
+            { 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f },
+            { -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f },
+            { -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f },
+            { 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f },
+            { 6.0f, 32.0f, 1.2f, 15.0f, true, false, 0.90f }
+        };
+
+        // Register Command Palette Commands (Ctrl + P)
+        auto& cp = UI::CommandPalette::Get();
+        cp.RegisterCommand("Go to: Combat & Aimbot", "Navigation", "Tab 1", ICON_FA_CROSSHAIRS, [this]() {
+            SetCurrentTab(0);
+        });
+        cp.RegisterCommand("Go to: Visuals 2.0 & ESP", "Navigation", "Tab 2", ICON_FA_EYE, [this]() {
+            SetCurrentTab(1);
+        });
+        cp.RegisterCommand("Go to: Radar & HUD Overlays", "Navigation", "Tab 3", ICON_FA_EXPAND, [this]() {
+            SetCurrentTab(2);
+        });
+        cp.RegisterCommand("Go to: Widget Suite", "Navigation", "Tab 4", ICON_FA_SLIDERS, [this]() {
+            SetCurrentTab(3);
+        });
+        cp.RegisterCommand("Go to: Security & Pattern Scanner", "Navigation", "Tab 5", ICON_FA_SHIELD, [this]() {
+            SetCurrentTab(4);
+        });
+        cp.RegisterCommand("Go to: License & Auth", "Navigation", "Tab 6", ICON_FA_LOCK, [this]() {
+            SetCurrentTab(5);
+        });
+        cp.RegisterCommand("Go to: Themes & Engine Preferences", "Navigation", "Tab 7", ICON_FA_PALETTE, [this]() {
+            SetCurrentTab(6);
+        });
+        cp.RegisterCommand("Go to: Profiles & Presets", "Navigation", "Tab 8", ICON_FA_FLOPPY_DISK, [this]() {
+            SetCurrentTab(7);
+        });
+        cp.RegisterCommand("Trigger Kill Frag Banner (Esports Popup)", "Combat", "Test", ICON_FA_SKULL, []() {
+            UI::TriggerKillBanner("Jett_Main_99", "VANDAL PRIME", 160, true, 4);
+        });
+        cp.RegisterCommand("Toggle Tactical Radar Window", "Overlays", "F1", ICON_FA_CROSSHAIRS, [this]() {
+            m_showRadarWindow = !m_showRadarWindow;
+        });
+        cp.RegisterCommand("Toggle Watermark Overlay", "Overlays", "", ICON_FA_TAG, [this]() {
+            m_showWatermark = !m_showWatermark;
+        });
+        cp.RegisterCommand("Toggle Advanced Big Screen Watermark", "Overlays", "", ICON_FA_DESKTOP, [this]() {
+            m_screenWatermark.enabled = !m_screenWatermark.enabled;
+        });
+        cp.RegisterCommand("Cycle Cursor Visual Style", "Preferences", "", ICON_FA_LOCATION_ARROW, []() {
+            int nextStyle = (static_cast<int>(UI::CustomCursor::Get().GetStyle()) + 1) % 5;
+            UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(nextStyle));
+        });
     }
 
     void DemoApp::Render() {
         // Luxury Animated Splash / Loading Screen
         if (UI::SplashScreen::Get().Render()) {
+            UI::CustomCursor::Get().Render();
             return;
         }
 
         // Luxury Animated Welcome Screen Overlay
         if (UI::WelcomeScreen::Get().Render()) {
+            UI::CustomCursor::Get().Render();
             return;
         }
 
-        // Floating Watermark HUD
-        if (m_showWatermark) {
-            WatermarkInfo wm;
-            wm.frameworkName = "SOLAR";
-            wm.version = "v1.0.1";
-            wm.username = "SolarDev";
-            wm.pingMs = 12;
-            Watermark::Render(wm);
+        const ImGuiIO& io = ImGui::GetIO();
+
+        // Fullscreen Ambient Cyber Snow / Particle FX
+        if (ThemeManager::Get().GetStyle().EnableParticles) {
+            FX::ParticleSystem::Get().UpdateAndRender(ImGui::GetBackgroundDrawList(),
+                                                      ImVec2(0, 0), io.DisplaySize,
+                                                      ThemeManager::Get().GetPalette().Accent);
         }
 
-        // Floating HUD Windows: Spectators & Keybinds
+        // Floating Watermark HUD (with Custom Links, Browser Opening & Styles)
+        static int s_wmStyleIdx = 0;
+        if (m_showWatermark) {
+            m_watermarkInfo.customLink = m_customLinkInput;
+            m_watermarkInfo.position = static_cast<WatermarkPosition>(m_watermarkPosIndex);
+            m_watermarkInfo.style = static_cast<Game::WatermarkStyle>(s_wmStyleIdx);
+            Watermark::Render(m_watermarkInfo);
+        }
+
+        // Advanced Screen Watermark Overlay (Gaming Typography Suite)
+        if (m_screenWatermark.enabled) {
+            m_screenWatermark.text = m_screenWatermarkTextInput;
+            m_screenWatermark.fontPreset = static_cast<GamingFontPreset>(m_screenFontIndex);
+            m_screenWatermark.layout = static_cast<ScreenWatermarkLayout>(m_screenLayoutIndex);
+            m_screenWatermark.effect = static_cast<ScreenWatermarkEffect>(m_screenEffectIndex);
+            ScreenWatermark::Render(m_screenWatermark);
+        }
+
+        // Floating HUD Windows: Tactical Radar, Spectators & Keybinds
+        if (m_showRadarWindow) {
+            static Widgets::RadarSettings winRadarSettings;
+            static std::vector<Widgets::RadarEntity> winRadarEntities = {
+                { 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f },
+                { -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f },
+                { -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f },
+                { 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f }
+            };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 250.0f, 380.0f), ImGuiCond_FirstUseEver);
+            Widgets::RadarWindow(&m_showRadarWindow, winRadarSettings, winRadarEntities);
+        }
+
         if (m_showSpectators) {
             std::vector<std::string> specs = { "spectator_bot1", "Admin_04" };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 230.0f, 48.0f), ImGuiCond_FirstUseEver);
             Widgets::SpectatorList(&m_showSpectators, specs);
         }
 
@@ -124,6 +244,7 @@ namespace Solar {
                 { "Triggerbot", "ALT [TOGGLE]" },
                 { "Thirdperson", "M4 [TOGGLE]" }
             };
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 230.0f, 215.0f), ImGuiCond_FirstUseEver);
             Widgets::KeybindList(&m_showKeybinds, binds);
         }
 
@@ -132,7 +253,10 @@ namespace Solar {
             Tools::Profiler::Render(&m_showProfiler);
         }
 
-        if (!m_windowOpen) return;
+        if (!m_windowOpen) {
+            UI::CustomCursor::Get().Render();
+            return;
+        }
 
         ImGui::SetNextWindowSize(ImVec2(940, 620), ImGuiCond_FirstUseEver);
 
@@ -141,8 +265,9 @@ namespace Solar {
                 ImVec2 wPos = ImGui::GetWindowPos();
                 ImVec2 wSize = ImGui::GetWindowSize();
                 const auto& pal = ThemeManager::Get().GetPalette();
-                FX::DrawRotatingBorder(ImGui::GetWindowDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
-                                       pal.Accent, Color(1.0f, 0.38f, 0.08f, 0.95f), 1.6f, 1.8f, 1.0f);
+                m_rotatingBorderConfig.colorA = pal.Accent;
+                FX::DrawRotatingBorder(ImGui::GetForegroundDrawList(), wPos, ImVec2(wPos.x + wSize.x, wPos.y + wSize.y), 8.0f,
+                                       m_rotatingBorderConfig);
             }
             Widgets::RenderTitlebar("SOLAR", "FRAMEWORK  v1.0.1", &m_windowOpen, &m_minimized);
 
@@ -195,36 +320,120 @@ namespace Solar {
                     if (Widgets::SidebarTab("Themes & Engine", IconType::Palette, 6, &m_currentTab, 0, ICON_FA_PALETTE)) PushNavHistory(6);
                     if (Widgets::SidebarTab("Profiles", IconType::Folder, 7, &m_currentTab, 0, ICON_FA_FLOPPY_DISK)) PushNavHistory(7);
 
-                    // User Profile at bottom of sidebar (luxury glass chip)
+                    // User Profile at bottom of sidebar (luxury glass chip with interactive profile menu)
                     ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 62.0f);
                     ImGui::SetCursorPosX(10.0f);
                     ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    const auto& pal = ThemeManager::Get().GetPalette();
                     ImVec2 userPos = ImGui::GetCursorScreenPos();
                     float userCardW = 185.0f;
                     float userCardH = 46.0f;
 
-                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                           ThemeManager::Get().GetPalette().Card.WithAlpha(0.70f).ToU32(), 6.0f);
-                    Render::ImGuiExt::DrawSpecularEdge(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                                       IM_COL32(255, 255, 255, 20), 4.0f, 1.0f);
-                    Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
-                                                      ThemeManager::Get().GetPalette().Border.WithAlpha(0.60f).ToU32(), 6.0f, 1.0f);
+                    ImGui::InvisibleButton("##UserProfileBtn", ImVec2(userCardW, userCardH));
+                    bool userHovered = ImGui::IsItemHovered();
+                    bool userActive = ImGui::IsItemActive();
+                    if (ImGui::IsItemClicked()) {
+                        Audio::PlayClick();
+                        ImGui::OpenPopup("##UserProfilePopup");
+                    }
 
-                    // User avatar circle
+                    u32 cardBg = userActive ? pal.CardHover.ToU32() : (userHovered ? pal.CardHover.WithAlpha(0.85f).ToU32() : pal.Card.WithAlpha(0.70f).ToU32());
+                    drawList->AddRectFilled(userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH), cardBg, 6.0f);
+                    Render::ImGuiExt::DrawSpecularEdge(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                       IM_COL32(255, 255, 255, userHovered ? 38 : 20), 4.0f, 1.0f);
+                    Render::ImGuiExt::AddSmoothBorder(drawList, userPos, ImVec2(userPos.x + userCardW, userPos.y + userCardH),
+                                                      (userHovered ? pal.Accent.WithAlpha(0.65f).ToU32() : pal.Border.WithAlpha(0.60f).ToU32()), 6.0f, 1.0f);
+
+                    // User avatar circle with pulsing radar beacon ring
                     ImVec2 avatarC(userPos.x + 22.0f, userPos.y + userCardH * 0.5f);
-                    drawList->AddCircleFilled(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.18f).ToU32(), 20);
-                    drawList->AddCircle(avatarC, 12.0f, ThemeManager::Get().GetPalette().Accent.WithAlpha(0.50f).ToU32(), 20, 1.0f);
+                    float pingPhase = std::fmod(static_cast<float>(ImGui::GetTime()) * 2.5f, 1.0f);
+                    drawList->AddCircle(avatarC, 12.0f + pingPhase * 6.0f, pal.Accent.WithAlpha((1.0f - pingPhase) * 0.45f).ToU32(), 20, 1.2f);
+                    drawList->AddCircleFilled(avatarC, 12.0f, pal.Accent.WithAlpha(0.18f).ToU32(), 20);
+                    drawList->AddCircle(avatarC, 12.0f, pal.Accent.WithAlpha(userHovered ? 0.85f : 0.50f).ToU32(), 20, 1.0f);
                     IconRenderer::DrawIcon(drawList, IconType::User, avatarC, 11.0f,
-                                          ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), 1.4f);
+                                          ThemeManager::ToU32(pal.Accent), 1.4f);
 
                     // Status online dot
                     drawList->AddCircleFilled(ImVec2(avatarC.x + 8.0f, avatarC.y + 8.0f), 3.0f, IM_COL32(35, 215, 95, 255), 10);
 
                     // Text labels
                     drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 7.0f),
-                                      ThemeManager::ToU32(ThemeManager::Get().GetPalette().TextPrimary), "SolarDev");
+                                      pal.TextPrimary.ToU32(), "SolarDev");
                     drawList->AddText(ImVec2(userPos.x + 42.0f, userPos.y + 23.0f),
-                                      ThemeManager::ToU32(ThemeManager::Get().GetPalette().Accent), "LIFETIME VIP");
+                                      pal.Accent.ToU32(), "LIFETIME VIP");
+
+                    // Small indicator chevron on right
+                    drawList->AddText(ImVec2(userPos.x + userCardW - 18.0f, userPos.y + 16.0f),
+                                      userHovered ? pal.Accent.ToU32() : pal.TextDisabled.ToU32(), ICON_FA_CHEVRON_RIGHT);
+
+                    // Floating User Profile Context Menu
+                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 290.0f), ImGuiCond_Always);
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, pal.Card.WithAlpha(0.98f).ToVec4());
+                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Accent.WithAlpha(0.65f).ToVec4());
+
+                    if (ImGui::BeginPopup("##UserProfilePopup")) {
+                        ImGui::TextColored(pal.Accent, ICON_FA_USER "  SolarDev Account");
+                        ImGui::SameLine(0, 8.0f);
+                        Widgets::Badge("VIP", pal.Accent);
+
+                        ImGui::TextColored(pal.TextDisabled, "ID: #SLR-9842 | Latency: 12ms | 144 FPS");
+                        Widgets::Spacing(2.0f);
+                        Widgets::Separator();
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_TERMINAL "  Command Palette (Ctrl+P)", ImVec2(190.0f, 26.0f), ButtonStyle::Primary)) {
+                            UI::ToggleCommandPalette();
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        bool sp = IsStreamproof();
+                        std::string spLabel = sp ? (ICON_FA_SHIELD_HALVED "  Streamproof: Active") : (ICON_FA_SHIELD_HALVED "  Streamproof: Off");
+                        if (Widgets::Button(spLabel.c_str(), ImVec2(190.0f, 26.0f), sp ? ButtonStyle::Secondary : ButtonStyle::Ghost)) {
+                            SetStreamproof(!sp);
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_SKULL "  Test Kill Frag Banner", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            UI::TriggerKillBanner("Jett_Main_99", "VANDAL PRIME", 160, true, 3);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_FINGERPRINT "  Copy Machine HWID", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            ImGui::SetClipboardText("HWID-SOLAR-7F9A-4B21-99CE-DEV");
+                            Notify::Success("HWID Copied", "Client hardware identifier copied to clipboard.");
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_FOLDER "  Profiles & Presets", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 7;
+                            PushNavHistory(7);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_PALETTE "  Themes & Engine", ImVec2(190.0f, 26.0f), ButtonStyle::Secondary)) {
+                            m_currentTab = 6;
+                            PushNavHistory(6);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button(ICON_FA_LOCK "  Sign Out / Lock", ImVec2(190.0f, 26.0f), ButtonStyle::Danger)) {
+                            m_currentTab = 5;
+                            PushNavHistory(5);
+                            Notify::Warning("Session Locked", "Authorization locked. Please re-enter license key.");
+                            ImGui::CloseCurrentPopup();
+                        }
+
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopStyleColor(2);
+                    ImGui::PopStyleVar(2);
                 }
                 Widgets::EndSidebar();
 
@@ -430,6 +639,7 @@ namespace Solar {
                         Widgets::SubTab("Player ESP", 0, &m_visualsSubTab);
                         Widgets::SubTab("In-Game Engine & FOV", 1, &m_visualsSubTab);
                         Widgets::SubTab("World & Ballistics", 2, &m_visualsSubTab);
+                        Widgets::SubTab("Cosmetics & Skin Changer", 3, &m_visualsSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
@@ -492,7 +702,7 @@ namespace Solar {
                                 ESPPreview::Render("##LiveMannequin", ImVec2(cardWidth - 24.0f, 305.0f), m_espSettings);
 
                                 Widgets::Separator();
-                                std::vector<std::string> stanceItems = { "Stand", "Crouch", "Scope", "Jump", "Defuse" };
+                                std::vector<std::string> stanceItems = { "T-Pose", "Stand", "Crouch", "Scope", "Jump" };
                                 if (Widgets::SegmentedControl("Stance Pose", &m_espSettings.stance, stanceItems)) {
                                     Audio::PlayClick();
                                 }
@@ -506,170 +716,15 @@ namespace Solar {
                         }
                         // SUBTAB 1: IN-GAME COMBAT OVERLAYS & FOV
                         else if (m_visualsSubTab == 1) {
-                            if (Widgets::BeginCard("##CombatEngineCard", "Visuals Engine Settings", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                                Widgets::Toggle("Draw Aim FOV Circle", &m_drawFOVCircle);
-                                Widgets::SliderFloat("FOV Radius", &m_fovRadius, 30.0f, 220.0f, "%.0f", "px");
-                                Widgets::Toggle("FOV Corona Glow", &m_fovGlow);
-                                float fovCol[4] = { m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w };
-                                if (Widgets::ColorPicker("FOV Ring Tint", fovCol)) {
-                                    m_fovColor = ImVec4(fovCol[0], fovCol[1], fovCol[2], fovCol[3]);
-                                }
-
-                                Widgets::Separator();
-                                Widgets::Toggle("Dynamic Spread Crosshair", &m_drawSpreadCrosshair);
-                                Widgets::SliderFloat("Weapon Spread Gap", &m_currentSpread, 10.0f, 60.0f, "%.0f", "px");
-
-                                Widgets::Separator();
-                                const char* snapOrigins[] = { "Screen Bottom", "Screen Center", "Screen Top" };
-                                Widgets::Combo("Snapline Origin", &m_snaplineOrigin, snapOrigins, 3);
-                                Widgets::Toggle("Dashed Snapline Mode", &m_snaplineDashed);
-                                Widgets::Toggle("Offscreen Enemy Arrows", &m_offscreenArrows);
-
-                                Widgets::Separator();
-                                Widgets::SliderFloat("Test Hit DMG", &m_hitmarkerDamage, 10.0f, 150.0f, "%.0f", "HP");
-                                if (Widgets::Button("Trigger Damage Impact", ImVec2(0, 36), ButtonStyle::Primary)) {
-                                    m_hitmarkerProgress = 1.0f;
-                                    Audio::PlayClick();
-                                    FloatingDmg dmg;
-                                    ImVec2 winPos = ImGui::GetWindowPos();
-                                    dmg.screenPos = ImVec2(winPos.x + cardWidth + 150.0f, winPos.y + 200.0f);
-                                    dmg.damage = m_hitmarkerDamage;
-                                    dmg.isCrit = (m_hitmarkerDamage > 90.0f);
-                                    dmg.lifetime = 1.2f;
-                                    dmg.initialLifetime = 1.2f;
-                                    dmg.velocity = ImVec2(static_cast<float>((rand() % 40) - 20) * 1.5f, -65.0f);
-                                    m_floatingDamages.push_back(dmg);
-                                }
-
+                            if (Widgets::BeginCard("##CombatEngineCard", "Dynamic FOV Engine & Reticle", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                Game::FOVRenderer::RenderControls(m_fovSettings);
                                 Widgets::EndCard();
                             }
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##LiveGameSimCard", "In-Game Combat Simulation", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                                ImGuiIO& io = ImGui::GetIO();
-                                ImVec2 canvasPos = ImGui::GetCursorScreenPos();
-                                ImVec2 canvasSize(cardWidth - 24.0f, 430.0f);
-                                ImGui::InvisibleButton("##CombatViewport", canvasSize);
-
-                                ImDrawList* draw = ImGui::GetWindowDrawList();
-
-                                // Viewport dark obsidian field
-                                draw->AddRectFilled(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(11, 12, 16, 255), 6.0f);
-                                draw->AddRect(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(255, 255, 255, 18), 6.0f);
-
-                                ImVec2 viewCenter(canvasPos.x + canvasSize.x * 0.5f, canvasPos.y + canvasSize.y * 0.5f);
-
-                                // Dynamic Spread Crosshair
-                                if (m_drawSpreadCrosshair) {
-                                    Visuals::DrawSpreadCrosshair(draw, viewCenter, 4.0f, m_currentSpread, 8.0f,
-                                                                 Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w), true);
-                                } else {
-                                    draw->AddCircleFilled(viewCenter, 2.0f, IM_COL32(255, 255, 255, 220), 8);
-                                    draw->AddLine(ImVec2(viewCenter.x - 7, viewCenter.y), ImVec2(viewCenter.x - 3, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x + 3, viewCenter.y), ImVec2(viewCenter.x + 7, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y - 7), ImVec2(viewCenter.x, viewCenter.y - 3), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y + 3), ImVec2(viewCenter.x, viewCenter.y + 7), IM_COL32(255, 255, 255, 180), 1.2f);
-                                }
-
-                                // FOV Circle
-                                if (m_drawFOVCircle) {
-                                    Visuals::DrawFOVCircle(draw, viewCenter, m_fovRadius,
-                                                           Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w),
-                                                           1.5f, m_fovGlow);
-                                }
-
-                                // Animated Enemy Target 1 (Close Target)
-                                m_targetOscillate += static_cast<float>(io.DeltaTime) * 1.8f;
-                                float shiftX = std::sin(m_targetOscillate) * 32.0f;
-                                ImVec2 e1Pos(viewCenter.x - 55.0f + shiftX, viewCenter.y - 40.0f);
-                                ImVec2 e1BoxMin(e1Pos.x - 22.0f, e1Pos.y - 35.0f);
-                                ImVec2 e1BoxMax(e1Pos.x + 22.0f, e1BoxMin.y + 115.0f);
-
-                                // Acoustic sound wave rings
-                                m_acousticWaveTimer += io.DeltaTime * 0.7f;
-                                if (m_acousticWaveTimer >= 1.0f) m_acousticWaveTimer = 0.0f;
-                                Visuals::DrawAcousticWave(draw, e1Pos, 15.0f + m_acousticWaveTimer * 50.0f,
-                                                          (15.0f + m_acousticWaveTimer * 50.0f) * 0.45f, 0.0f,
-                                                          Color(1.0f, 0.45f, 0.1f, 1.0f - m_acousticWaveTimer), 1.5f);
-
-                                // 2D Corner Bounding Box
-                                Visuals::DrawBoundingBox2D(draw, e1BoxMin, e1BoxMax, BoxStyle::Corner,
-                                                           Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w));
-
-                                // Head Circle
-                                Visuals::DrawHeadCircle(draw, ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), 7.5f, Color(1.0f, 1.0f, 1.0f, 0.9f));
-
-                                // Skeleton
-                                std::vector<std::pair<ImVec2, ImVec2>> bones = {
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), ImVec2(e1Pos.x, e1BoxMin.y + 35.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x - 14.0f, e1BoxMin.y + 40.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x + 14.0f, e1BoxMin.y + 40.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x - 10.0f, e1BoxMax.y) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x + 10.0f, e1BoxMax.y) }
-                                };
-                                Visuals::DrawSkeleton(draw, bones, Color(m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, 0.85f));
-
-                                // Health, Armor, Ammo Status Bars
-                                Visuals::DrawHealthBar(draw, e1BoxMin, e1BoxMax, 74.0f, 100.0f, BarPosition::Left, true, true);
-                                Visuals::DrawArmorBar(draw, e1BoxMin, e1BoxMax, 60.0f, 100.0f, BarPosition::Left);
-                                Visuals::DrawAmmoBar(draw, e1BoxMin, e1BoxMax, 22, 30, BarPosition::Bottom);
-
-                                // Name, Weapon, and Stacked Badge Flags
-                                Visuals::DrawNameTag(draw, ImVec2(e1Pos.x, e1BoxMin.y - 4.0f), "Phantom_01");
-                                Visuals::DrawWeaponTag(draw, ImVec2(e1Pos.x, e1BoxMax.y + 8.0f), "Vandal", 22, 30);
-
-                                std::vector<std::pair<std::string, Color>> flags = {
-                                    { "SCOPED", Color(0.24f, 0.70f, 1.0f, 1.0f) },
-                                    { "FLASHED", Color(1.0f, 0.75f, 0.15f, 1.0f) },
-                                    { "ARMOR", Color(0.35f, 0.85f, 0.40f, 1.0f) }
-                                };
-                                Visuals::DrawFlagTags(draw, e1BoxMax, flags);
-
-                                // Targeting Snapline
-                                SnaplineOrigin snapOrig = static_cast<SnaplineOrigin>(m_snaplineOrigin);
-                                Visuals::DrawSnapline(draw, ImVec2(e1Pos.x, e1BoxMax.y), snapOrig,
-                                                      Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, 0.75f),
-                                                      1.4f, m_snaplineDashed);
-
-                                // Target 2 (Far Enemy)
-                                ImVec2 e2Pos(viewCenter.x + 95.0f, viewCenter.y - 85.0f);
-                                ImVec2 e2Min(e2Pos.x - 14.0f, e2Pos.y - 20.0f);
-                                ImVec2 e2Max(e2Pos.x + 14.0f, e2Pos.y + 45.0f);
-                                Visuals::DrawBoundingBox2D(draw, e2Min, e2Max, BoxStyle::Corner, Color(1.0f, 0.35f, 0.35f, 0.9f));
-                                Visuals::DrawHealthBar(draw, e2Min, e2Max, 28.0f, 100.0f, BarPosition::Left, true, true);
-                                Visuals::DrawDistanceTag(draw, ImVec2(e2Pos.x, e2Max.y + 4.0f), 58.0f);
-
-                                // Offscreen Indicator
-                                if (m_offscreenArrows) {
-                                    float arrowAngle = -0.75f + std::sin(m_targetOscillate * 0.8f) * 0.20f;
-                                    Visuals::DrawOffscreenIndicator(draw, viewCenter, arrowAngle, 120.0f,
-                                                                    Color(1.0f, 0.30f, 0.30f, 0.95f), 74.0f);
-                                }
-
-                                // Interactive Hitmarker Rendering
-                                if (m_hitmarkerProgress > 0.001f) {
-                                    Visuals::DrawHitmarker(draw, viewCenter, 14.0f,
-                                                           Color(1.0f, 0.22f, 0.22f, 1.0f),
-                                                           m_hitmarkerProgress, m_hitmarkerDamage);
-                                    m_hitmarkerProgress = (std::max)(0.0f, m_hitmarkerProgress - static_cast<float>(io.DeltaTime) * 1.5f);
-                                }
-
-                                // Update & Render Floating Damage Numbers
-                                for (auto it = m_floatingDamages.begin(); it != m_floatingDamages.end(); ) {
-                                    it->lifetime -= io.DeltaTime;
-                                    if (it->lifetime <= 0.0f) {
-                                        it = m_floatingDamages.erase(it);
-                                    } else {
-                                        it->screenPos.x += it->velocity.x * io.DeltaTime;
-                                        it->screenPos.y += it->velocity.y * io.DeltaTime;
-                                        it->velocity.y += 98.0f * io.DeltaTime;
-                                        Color dmgCol = it->isCrit ? Color(1.0f, 0.25f, 0.25f, 1.0f) : Color(1.0f, 0.85f, 0.2f, 1.0f);
-                                        Visuals::DrawFloatingDamage(draw, it->screenPos, it->damage, dmgCol, it->lifetime / 1.2f, it->isCrit);
-                                        ++it;
-                                    }
-                                }
-
+                            if (Widgets::BeginCard("##LiveGameSimCard", "Dynamic FOV Vector Preview", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                Game::FOVRenderer::RenderPreview("##FovPreviewCanvas", ImVec2(cardWidth - 36.0f, 430.0f), m_fovSettings);
                                 Widgets::EndCard();
                             }
                         }
@@ -716,6 +771,13 @@ namespace Solar {
                                 Widgets::EndCard();
                             }
                         }
+                        // SUBTAB 3: COSMETICS & WEAPON SKIN CHANGER
+                        else if (m_visualsSubTab == 3) {
+                            if (Widgets::BeginCard("##SkinChangerCard", "Cosmetics & Weapon Skin Changer Suite", IconType::Sparkle, ImVec2(contentWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                Game::SkinChangerPreview::Render("##SkinChangerMain", ImVec2(contentWidth - 36.0f, 440.0f), m_activeSkin, m_skinInventory);
+                                Widgets::EndCard();
+                            }
+                        }
                     }
 
                     // ==========================================
@@ -723,56 +785,161 @@ namespace Solar {
                     // ==========================================
                     else if (m_currentTab == 2) {
                         Widgets::SubTab("Tactical Radar", 0, &m_miscSubTab);
-                        Widgets::SubTab("HUD Overlays", 1, &m_miscSubTab);
+                        Widgets::SubTab("Watermarks & HUD", 1, &m_miscSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
-                        if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                            static Widgets::RadarSettings radarSettings;
-                            static std::vector<Widgets::RadarEntity> radarEntities;
-                            if (radarEntities.empty()) {
-                                radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
-                                radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
-                                radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
-                                radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
-                            }
-                            Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
-                            Widgets::Separator();
+                        if (m_miscSubTab == 0) {
+                            if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                if (m_radarEntities.empty()) {
+                                    m_radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
+                                    m_radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
+                                    m_radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
+                                    m_radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
+                                }
+                                Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 220.0f), m_radarSettings, m_radarEntities);
+                                Widgets::Separator();
 
-                            Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
-                            Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
-                            Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
+                                const char* radarShapes[] = { "Circular Dial", "Rounded Square", "Square Cartesian" };
+                                int curShape = static_cast<int>(m_radarSettings.shape);
+                                if (Widgets::Combo("Radar Geometry", &curShape, radarShapes, 3)) {
+                                    m_radarSettings.shape = static_cast<Widgets::RadarShape>(curShape);
+                                }
+                                Widgets::SliderFloat("Radar Zoom", &m_radarSettings.zoom, 0.5f, 2.5f, "%.2f", "x");
+                                Widgets::SliderFloat("Blip Marker Size", &m_radarSettings.blipSize, 2.0f, 6.0f, "%.1f", "px");
+                                Widgets::SliderFloat("Radar Radius", &m_radarSettings.rangeMeters, 15.0f, 120.0f, "%.0f", "m");
+                                Widgets::Toggle("Sweep Beam Animation", &m_radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
+                                Widgets::Toggle("Directional Heading Cones", &m_radarSettings.showHeadingCones, "Entity orientation vectors");
+                                Widgets::Toggle("Tactical Cartesian Grid", &m_radarSettings.showGrid);
+                                Widgets::Toggle("Concentric Distance Rings", &m_radarSettings.showRings);
 
-                            Widgets::EndCard();
-                        }
-
-                        ImGui::SameLine(0, 10.0f);
-
-                        if (Widgets::BeginCard("##HUDCard", "HUD Elements & Windows", IconType::Bell, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
-                            Widgets::Toggle("Show Watermark Overlay", &m_showWatermark);
-                            Widgets::Toggle("Show Spectator List Window", &m_showSpectators);
-                            Widgets::Toggle("Show Active Keybinds Window", &m_showKeybinds);
-                            Widgets::Toggle("Show Engine Telemetry Profiler", &m_showProfiler);
-                            Widgets::Separator();
-
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Trigger Notification Toasts:");
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Success Notification", ImVec2(0, 34), ButtonStyle::Primary)) {
-                                Notify::Success("Solar Framework", "Operation finished successfully!");
-                            }
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Warning Notification", ImVec2(0, 34), ButtonStyle::Secondary)) {
-                                Notify::Warning("Security Alert", "High memory signature detected.");
-                            }
-                            Widgets::Spacing(4.0f);
-
-                            if (Widgets::Button("Post Error Notification", ImVec2(0, 34), ButtonStyle::Danger)) {
-                                Notify::Error("Hook Failure", "Failed to resolve swapchain pointer.");
+                                Widgets::EndCard();
                             }
 
-                            Widgets::EndCard();
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##HUDCard", "HUD Elements & Windows", IconType::Bell, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                                Widgets::Toggle("Show External Radar Window", &m_showRadarWindow, "Floating square HUD box with tactical grid & sweep");
+                                Widgets::Toggle("Show Watermark Overlay", &m_showWatermark);
+                                Widgets::Toggle("Show Spectator List Window", &m_showSpectators);
+                                Widgets::Toggle("Show Active Keybinds Window", &m_showKeybinds);
+                                Widgets::Toggle("Show Engine Telemetry Profiler", &m_showProfiler);
+                                Widgets::Separator();
+
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Combat Frag Telemetry:");
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Test Esports Kill Banner (Frag Popup)", ImVec2(0, 34), ButtonStyle::Primary)) {
+                                    static int killStreak = 1;
+                                    killStreak = (killStreak % 5) + 1;
+                                    const char* victims[] = { "Sova_Main_99", "Reyna_Duels", "Jett_Pro_42", "Phoenix_Ace", "Omen_Shadow" };
+                                    const char* weapons[] = { "VANDAL PRIME", "OPERATOR DRAGON", "PHANTOM ONI", "SHERIFF REAVER", "VANDAL REAVER" };
+                                    UI::TriggerKillBanner(victims[killStreak - 1], weapons[killStreak - 1], 160, true, killStreak);
+                                }
+                                Widgets::Spacing(6.0f);
+
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Trigger Notification Toasts:");
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Success Notification", ImVec2(0, 30), ButtonStyle::Secondary)) {
+                                    Notify::Success("Solar Framework", "Operation finished successfully!");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Warning Notification", ImVec2(0, 30), ButtonStyle::Secondary)) {
+                                    Notify::Warning("Security Alert", "High memory signature detected.");
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Post Error Notification", ImVec2(0, 30), ButtonStyle::Danger)) {
+                                    Notify::Error("Hook Failure", "Failed to resolve swapchain pointer.");
+                                }
+
+                                Widgets::EndCard();
+                            }
+                        } else if (m_miscSubTab == 1) {
+                            if (Widgets::BeginCard("##HUDWatermarkCard", "HUD Status Watermark (Links & Interactivity)", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_LINK)) {
+                                Widgets::Toggle("Enable HUD Watermark", &m_showWatermark, "Show sleek status pill in viewport");
+                                Widgets::Spacing(4.0f);
+                                Widgets::InputText("Custom Link URL", m_customLinkInput, sizeof(m_customLinkInput));
+                                Widgets::Toggle("Display Link Badge", &m_watermarkInfo.showLink, "Include interactive link in HUD bar");
+                                Widgets::Toggle("Display Latency (Ping)", &m_watermarkInfo.showPing);
+                                Widgets::Toggle("Display Framerate (FPS)", &m_watermarkInfo.showFps);
+                                Widgets::Toggle("Display System Clock", &m_watermarkInfo.showTime);
+                                Widgets::Toggle("Display User Profile", &m_watermarkInfo.showUser);
+                                Widgets::Toggle("Pulsing Status LED", &m_watermarkInfo.showStatusDot);
+                                Widgets::Separator();
+
+                                std::vector<std::string> posOptions = { "Top Right", "Top Left", "Bottom Right", "Bottom Left", "Free Draggable" };
+                                Widgets::Combo("Position Anchor", &m_watermarkPosIndex, posOptions);
+                                Widgets::Spacing(4.0f);
+
+                                std::vector<std::string> styleOptions = { "Cyber Telemetry Bar", "Minimal Rounded Pill", "Neon Terminal Bracket", "Holo Esports Badge", "Discrete Corner Tag" };
+                                if (Widgets::Combo("Watermark Visual Style", &s_wmStyleIdx, styleOptions)) {
+                                    m_watermarkInfo.style = static_cast<Game::WatermarkStyle>(s_wmStyleIdx);
+                                }
+                                Widgets::Spacing(6.0f);
+
+                                if (Widgets::Button(ICON_FA_ARROW_UP_RIGHT_FROM_SQUARE "  Open Link in Browser", ImVec2(0, 32), ButtonStyle::Primary)) {
+                                    std::string target = m_customLinkInput;
+                                    if (target.rfind("http://", 0) != 0 && target.rfind("https://", 0) != 0) {
+                                        target = "https://" + target;
+                                    }
+                                    ShellExecuteA(NULL, "open", target.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                                    Audio::PlayClick();
+                                    Notify::Success("Link Opened", ("Navigating to: " + target).c_str());
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Copy Link to Clipboard", ImVec2(0, 30), ButtonStyle::Secondary)) {
+                                    ImGui::SetClipboardText(m_customLinkInput);
+                                    Audio::PlayClick();
+                                    Notify::Success("Link Copied", (std::string(m_customLinkInput) + " copied to clipboard!").c_str());
+                                }
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##AdvancedScreenWatermarkCard", "Advanced Screen Watermark (Gaming Fonts)", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_GAMEPAD)) {
+                                Widgets::Toggle("Enable Screen Watermark", &m_screenWatermark.enabled, "Large subtle overlay across entire screen");
+                                Widgets::Spacing(4.0f);
+                                Widgets::InputText("Screen Overlay Text", m_screenWatermarkTextInput, sizeof(m_screenWatermarkTextInput));
+
+                                std::vector<std::string> fontOptions = {
+                                    "Valorant / CS2 Tactical (DIN)",
+                                    "Cyberpunk 2077 Matrix (Consolas)",
+                                    "Call of Duty / Warzone (Arial Black)",
+                                    "Arcade Strike / Titan (Impact)",
+                                    "Apex Legends Esports (Segoe Black)",
+                                    "Overwatch Sci-Fi (Corbel Bold)",
+                                    "Halo Spartan HUD (Trebuchet Bold)"
+                                };
+                                Widgets::Combo("Gaming Font Family", &m_screenFontIndex, fontOptions);
+
+                                std::vector<std::string> layoutOptions = {
+                                    "Center Diagonal (-25 deg)",
+                                    "Center Horizontal",
+                                    "Bottom Streamer Banner",
+                                    "Top Header Banner",
+                                    "Tiled Security Matrix (Anti-Leak)"
+                                };
+                                Widgets::Combo("Overlay Layout", &m_screenLayoutIndex, layoutOptions);
+
+                                std::vector<std::string> effectOptions = {
+                                    "Solid Alpha (Crisp Vector)",
+                                    "Outlined Aura Glow"
+                                };
+                                Widgets::Combo("Render Effect", &m_screenEffectIndex, effectOptions);
+
+                                Widgets::SliderFloat("Watermark Opacity", &m_screenWatermark.opacity, 0.03f, 0.45f, "%.2f");
+                                Widgets::SliderFloat("Font Scale Multiplier", &m_screenWatermark.scale, 0.5f, 2.2f, "%.1f", "x");
+                                Widgets::Toggle("Match Theme Color", &m_screenWatermark.useThemeColor, "Tint watermark with active theme accent");
+                                Widgets::Toggle("Breathing Opacity Pulse", &m_screenWatermark.animatedPulse, "Subtle organic luminance wave");
+
+                                Widgets::EndCard();
+                            }
                         }
                     }
 
@@ -780,28 +947,38 @@ namespace Solar {
                     // TAB 3: UI CONTROLS & WIDGET SUITE
                     // ==========================================
                     else if (m_currentTab == 3) {
-                        if (Widgets::BeginCard("##WidgetsCard1", "Advanced PastOwl Controls", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_SLIDERS)) {
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "SEGMENTED PILL CONTROL");
-                            std::vector<std::string> segModes = { "Stealth", "Adaptive", "Rage", "Legit" };
-                            Widgets::SegmentedControl("Aimbot Mode", &m_segmentedIdx, segModes);
+                        if (Widgets::BeginCard("##WidgetsCard1", "Advanced Controls Suite", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_SLIDERS)) {
+                            if (m_widgetsPage == 0) {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "SEGMENTED PILL CONTROL");
+                                std::vector<std::string> segModes = { "Stealth", "Adaptive", "Rage", "Legit" };
+                                Widgets::SegmentedControl("Aimbot Mode", &m_segmentedIdx, segModes);
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DUAL-THUMB RANGE SLIDER");
-                            Widgets::RangeSlider("Field of View Range", &m_rangeMin, &m_rangeMax, 0.0f, 120.0f, "%.0f", "deg");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DUAL-THUMB RANGE SLIDER");
+                                Widgets::RangeSlider("Field of View Range", &m_rangeMin, &m_rangeMax, 0.0f, 120.0f, "%.0f", "deg");
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "NUMERIC STEPPER & SEARCH FILTER");
-                            Widgets::NumberStepper("Simulation Tickrate", &m_stepperVal, 16, 256, 16);
-                            Widgets::SearchInput("##WidgetSearch", m_searchQuery, sizeof(m_searchQuery), "Search component signatures...");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "NUMERIC STEPPER & SEARCH FILTER");
+                                Widgets::NumberStepper("Simulation Tickrate", &m_stepperVal, 16, 256, 16);
+                                Widgets::SearchInput("##WidgetSearch", m_searchQuery, sizeof(m_searchQuery), "Search component signatures...");
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DROPDOWN MULTI-TAG SELECTOR");
-                            Widgets::DropdownMultiSelect("Active Visual Shaders", m_multiDropdownSelections, m_multiDropdownItems);
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "DROPDOWN MULTI-TAG SELECTOR");
+                                Widgets::DropdownMultiSelect("Active Visual Shaders", m_multiDropdownSelections, m_multiDropdownItems);
+                            } else {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "INTERACTIVE FILTER CHIPS");
+                                Widgets::ChipSelector("Target Filter", m_chipSelections, m_chipItems);
 
-                            Widgets::Separator();
-                            ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "270-DEGREE ROTARY KNOB");
-                            Widgets::KnobSlider("Gain Master", &m_knobVal, 0.0f, 100.0f, 26.0f, "%.0f", "%");
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "240-DEGREE RADIAL GAUGE");
+                                Widgets::RadialGauge("Core Compute Load", &m_radialGaugeVal, 0.0f, 100.0f, 36.0f, "%.1f", "%");
 
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "270-DEGREE ROTARY KNOB");
+                                Widgets::KnobSlider("Gain Master", &m_knobVal, 0.0f, 100.0f, 26.0f, "%.0f", "%");
+                            }
+
+                            RenderCardPagination(&m_widgetsPage, 2, "WidgetsCard1Page");
                             Widgets::EndCard();
                         }
 
@@ -976,54 +1153,32 @@ namespace Solar {
                     else if (m_currentTab == 6) {
                         Widgets::SubTab("Color Presets", 0, &m_themeSubTab);
                         Widgets::SubTab("Audio & FX", 1, &m_themeSubTab);
-                        Widgets::SubTab("Modded ImGui Engine", 2, &m_themeSubTab);
+                        Widgets::SubTab("Rotating Borders", 2, &m_themeSubTab);
+                        Widgets::SubTab("Satellite Windows", 3, &m_themeSubTab);
+                        Widgets::SubTab("Modded Engine", 4, &m_themeSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
                         // SUBTAB 0: COLOR PRESETS
                         if (m_themeSubTab == 0) {
-                            if (Widgets::BeginCard("##ThemesList", "Color Presets (PastOwl & Peach Signature)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
-                                if (Widgets::Button("Obsidian Violet (Peach Periwinkle)", ImVec2(0, 36), ButtonStyle::Primary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianViolet);
-                                    Notify::Success("Theme Applied", "Switched to Obsidian Violet theme.");
+                            if (Widgets::BeginCard("##ThemesList", "Color Presets (Pro Engineering & Esports)", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                ImGui::BeginChild("##ThemesScrollArea", ImVec2(0, 420.0f), false, ImGuiWindowFlags_NoBackground);
+                                auto allPresets = Presets::GetAll();
+                                ThemePreset activePreset = ThemeManager::Get().GetCurrentPreset();
+                                for (const auto& pi : allPresets) {
+                                    bool isActive = (pi.preset == activePreset);
+                                    char label[128];
+                                    snprintf(label, sizeof(label), "%s%s", pi.name.c_str(), isActive ? "  [ACTIVE]" : "");
+                                    if (Widgets::Button(label, ImVec2(0, 35), isActive ? ButtonStyle::Primary : ButtonStyle::Secondary)) {
+                                        ThemeManager::Get().ApplyPreset(pi.preset);
+                                        Notify::Success("Theme Applied", (std::string("Switched to ") + pi.name + " theme.").c_str());
+                                    }
+                                    if (ImGui::IsItemHovered()) {
+                                        ImGui::SetTooltip("%s", pi.description.c_str());
+                                    }
+                                    Widgets::Spacing(3.0f);
                                 }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Solar Flare (Amber Gold)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::SolarFlare);
-                                    Notify::Success("Theme Applied", "Switched to Solar Flare theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Cyber Neon (Electric Cyan)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::CyberNeon);
-                                    Notify::Success("Theme Applied", "Switched to Cyber Neon theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Void Amethyst (Deep Purple)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::VoidAmethyst);
-                                    Notify::Success("Theme Applied", "Switched to Void Amethyst theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Emerald Matrix (Vivid Green)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::EmeraldMatrix);
-                                    Notify::Success("Theme Applied", "Switched to Emerald Matrix theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Blood Ruby (Crimson Rose)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::BloodRuby);
-                                    Notify::Success("Theme Applied", "Switched to Blood Ruby theme.");
-                                }
-                                Widgets::Spacing(4.0f);
-
-                                if (Widgets::Button("Arctic White (Ice Blue)", ImVec2(0, 36), ButtonStyle::Secondary)) {
-                                    ThemeManager::Get().ApplyPreset(ThemePreset::ArcticWhite);
-                                    Notify::Success("Theme Applied", "Switched to Arctic White theme.");
-                                }
-
+                                ImGui::EndChild();
                                 Widgets::EndCard();
                             }
 
@@ -1038,6 +1193,18 @@ namespace Solar {
                                         Color(m_customColor[0], m_customColor[1], m_customColor[2], 1.0f),
                                         Color(m_customColor[0] * 1.2f, m_customColor[1] * 1.2f, m_customColor[2] * 1.2f, 1.0f)
                                     );
+                                }
+                                Widgets::Spacing(4.0f);
+
+                                bool rainbow = ThemeManager::Get().IsRainbowMode();
+                                if (Widgets::Toggle("Rainbow Chroma Mode", &rainbow, "Smooth spectrum RGB hue cycling")) {
+                                    ThemeManager::Get().SetRainbowMode(rainbow);
+                                }
+                                if (rainbow) {
+                                    float speed = ThemeManager::Get().GetRainbowSpeed();
+                                    if (Widgets::SliderFloat("Rainbow Speed", &speed, 0.2f, 4.0f, "%.1f", "x")) {
+                                        ThemeManager::Get().SetRainbowSpeed(speed);
+                                    }
                                 }
 
                                 Widgets::Separator();
@@ -1099,6 +1266,30 @@ namespace Solar {
                                 Widgets::SliderInt("Particle Count", &style.ParticleCount, 10, 100, "%d");
 
                                 Widgets::Separator();
+                                bool cursorEnabled = UI::CustomCursor::Get().IsEnabled();
+                                if (Widgets::Toggle("Cyber Glowing Cursor", &cursorEnabled, "Theme-reactive neon core with trailing ghost and click ripple")) {
+                                    UI::CustomCursor::Get().SetEnabled(cursorEnabled);
+                                }
+                                const char* cursorStyles[] = { "Cyber Arrow", "Crosshair Dot", "Cyber Dot", "Precision Triangle", "Minimal Ring" };
+                                int curStyle = static_cast<int>(UI::CustomCursor::Get().GetStyle());
+                                if (Widgets::Combo("Cursor Visual Style", &curStyle, cursorStyles, 5)) {
+                                    UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(curStyle));
+                                }
+                                const char* fpsOptions[] = { "VSync (Monitor Synchronized)", "30 FPS (Power Saver)", "60 FPS (Standard 60Hz)", "120 FPS (High Performance)", "144 FPS (Esports 144Hz)", "240 FPS (Ultra Smooth)", "Uncapped (Maximum Throttle)" };
+                                static int curFpsIdx = 4;
+                                if (Widgets::Combo("Menu FPS Limiter", &curFpsIdx, fpsOptions, 7)) {
+                                    if (curFpsIdx == 0) m_fpsCap = 0;
+                                    else if (curFpsIdx == 1) m_fpsCap = 30;
+                                    else if (curFpsIdx == 2) m_fpsCap = 60;
+                                    else if (curFpsIdx == 3) m_fpsCap = 120;
+                                    else if (curFpsIdx == 4) m_fpsCap = 144;
+                                    else if (curFpsIdx == 5) m_fpsCap = 240;
+                                    else if (curFpsIdx == 6) m_fpsCap = -1;
+                                }
+                                bool sp = IsStreamproof();
+                                if (Widgets::Toggle("Stream Protection (Streamproof)", &sp, "Invisible to OBS, Discord and screen recording")) {
+                                    SetStreamproof(sp);
+                                }
                                 Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
                                 if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {
                                     UI::WelcomeScreen::Get().Show();
@@ -1111,8 +1302,90 @@ namespace Solar {
                                 Widgets::EndCard();
                             }
                         }
-                        // SUBTAB 2: MODDED IMGUI ENGINE (IMGUIEXT)
+                        // SUBTAB 2: CONFIGURABLE ROTATING BORDERS
                         else if (m_themeSubTab == 2) {
+                            if (Widgets::BeginCard("##RotatingBorderStudio", "Rotating Glowing Border Engine", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                Widgets::Toggle("Enable Rotating Border", &m_enableRotatingBorders, "Parametric GPU multi-pass neon aura");
+                                Widgets::Spacing(6.0f);
+
+                                const char* modes[] = { "Two-Color Lerp Wave", "Rainbow 360° Spectrum", "Neon Energy Comet", "Cyber Tri-Gradient", "Dual Opposing Orbit" };
+                                int curMode = static_cast<int>(m_rotatingBorderConfig.mode);
+                                if (Widgets::Combo("Rotation Algorithm", &curMode, modes, 5)) {
+                                    m_rotatingBorderConfig.mode = static_cast<FX::BorderRotationMode>(curMode);
+                                }
+
+                                Widgets::SliderFloat("Rotation Speed", &m_rotatingBorderConfig.speed, 0.2f, 4.0f, "%.1f", "x");
+                                Widgets::SliderFloat("Border Thickness", &m_rotatingBorderConfig.thickness, 1.0f, 5.0f, "%.1f", "px");
+                                Widgets::SliderFloat("Glow Multiplier", &m_rotatingBorderConfig.glowIntensity, 0.0f, 3.0f, "%.1f", "x");
+                                Widgets::SliderFloat("Comet Tail Length", &m_rotatingBorderConfig.trailLength, 0.1f, 1.0f, "%.2f");
+                                Widgets::Toggle("Clockwise Direction", &m_rotatingBorderConfig.clockwise);
+                                Widgets::SliderInt("Gaussian Passes", &m_rotatingBorderConfig.glowPasses, 1, 5, "%d");
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##BorderColorPalette", "Secondary Neon Color Calibration", IconType::Palette, ImVec2(cardWidth, 490.0f), ICON_FA_PALETTE)) {
+                                static float secColor[4] = { 0.70f, 0.20f, 1.00f, 0.95f };
+                                if (Widgets::ColorPicker("Secondary Neon Glow", secColor)) {
+                                    m_rotatingBorderConfig.colorB = Color(secColor[0], secColor[1], secColor[2], secColor[3]);
+                                }
+
+                                Widgets::Separator();
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextDisabled, "The rotating border wraps seamlessly around rounded corners with 0.1ms compute cost and zero heap allocation.");
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 3: MODULAR SATELLITE WINDOWS & DOCK
+                        else if (m_themeSubTab == 3) {
+                            if (Widgets::BeginCard("##SatelliteDockCard", "Modular Detached Satellite Windows", IconType::Sliders, ImVec2(cardWidth, 490.0f), ICON_FA_EXPAND)) {
+                                Widgets::Toggle("Floating Keybinds Satellite", &m_showSatelliteKeybinds, "Detached floating card attached to GUI");
+                                Widgets::Toggle("Floating Session Telemetry", &m_showSatelliteSpectators, "Secondary auxiliary floating card");
+                                Widgets::Spacing(6.0f);
+
+                                const char* anchors[] = { "Free Floating", "Dock Right", "Dock Left", "Dock Top", "Dock Bottom", "Dock Top Right", "Dock Bottom Right" };
+                                int anchorIdx = static_cast<int>(m_satelliteKeybindsConfig.anchor);
+                                if (Widgets::Combo("Keybinds Dock Side", &anchorIdx, anchors, 7)) {
+                                    m_satelliteKeybindsConfig.anchor = static_cast<UI::SatelliteAnchor>(anchorIdx);
+                                    if (m_satelliteKeybindsConfig.anchor != UI::SatelliteAnchor::FreeFloating) {
+                                        m_satelliteKeybindsConfig.isPinned = true;
+                                    }
+                                }
+
+                                Widgets::SliderFloat("Separation Gap", &m_satelliteKeybindsConfig.offsetGap, 4.0f, 40.0f, "%.0f", "px");
+                                Widgets::Toggle("Magnetic Snap to Parent", &m_satelliteKeybindsConfig.magneticSnap, "Snaps back automatically when dragged near GUI");
+                                Widgets::SliderFloat("Snap Radius", &m_satelliteKeybindsConfig.snapThreshold, 15.0f, 75.0f, "%.0f", "px");
+                                Widgets::Toggle("Smooth Spring Lag Physics", &m_satelliteKeybindsConfig.smoothSpring, "Fluid trailing motion when dragging GUI");
+                                Widgets::Toggle("Neon Connector Beam", &m_satelliteKeybindsConfig.drawConnectorBeam, "Glowing energy bracket connecting parent to satellite");
+                                Widgets::Toggle("Rotating Border on Satellite", &m_satelliteKeybindsConfig.enableRotatingBorder);
+
+                                Widgets::EndCard();
+                            }
+
+                            ImGui::SameLine(0, 10.0f);
+
+                            if (Widgets::BeginCard("##SatelliteArchCard", "Satellite Architecture Overview", IconType::Shield, ImVec2(cardWidth, 490.0f), ICON_FA_SHIELD)) {
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().Accent, "ATTACHED-YET-DETACHED PARADIGM");
+                                ImGui::Spacing();
+                                ImGui::TextWrapped("Satellite windows are rendered as isolated DirectX 11 draw calls with independent drop shadows and glass cards. They lock magnetically to the host window edges and can be pinned or unpinned on the fly with the padlock icon.");
+
+                                Widgets::Separator();
+                                if (Widgets::Button("Reset Satellites to Dock", ImVec2(0, 36), ButtonStyle::Secondary)) {
+                                    m_satelliteKeybindsConfig.isPinned = true;
+                                    m_satelliteKeybindsConfig.anchor = UI::SatelliteAnchor::DockRight;
+                                    m_satelliteKeybindsConfig.currentPos = ImVec2(-1, -1);
+                                    m_satelliteSpectatorsConfig.isPinned = true;
+                                    m_satelliteSpectatorsConfig.anchor = UI::SatelliteAnchor::DockLeft;
+                                    m_satelliteSpectatorsConfig.currentPos = ImVec2(-1, -1);
+                                    Notify::Success("Satellites Reset", "Magnetic dock restored to default positions.");
+                                }
+
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 4: MODDED IMGUI ENGINE (IMGUIEXT)
+                        else if (m_themeSubTab == 4) {
                             if (Widgets::BeginCard("##ImGuiExtPrimitives", "Modded ImGui Custom Primitives", IconType::Sparkle, ImVec2(cardWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
                                 ImDrawList* draw = ImGui::GetWindowDrawList();
                                 ImVec2 canvasPos = ImGui::GetCursorScreenPos();
@@ -1237,6 +1510,67 @@ namespace Solar {
             }
         }
         Widgets::EndWindow();
+
+        // ==============================================================================
+        // Modular Satellite Windows (Detached Floating Panels Attached to Main Window)
+        // ==============================================================================
+        if (m_windowOpen && !m_minimized) {
+            // Satellite 1: Active Keybinds HUD
+            if (m_showSatelliteKeybinds) {
+                if (UI::BeginSatellite("##SatelliteKeybinds", "Active Keybinds", ImVec2(215, 175),
+                                       m_satelliteKeybindsConfig, &m_showSatelliteKeybinds, "Solar Framework Demo")) {
+                    const auto& pal = ThemeManager::Get().GetPalette();
+                    auto renderKeyRow = [&](const char* name, const char* key, bool active) {
+                        ImGui::TextColored(active ? pal.TextPrimary : pal.TextDisabled, "%s", name);
+                        ImGui::SameLine(ImGui::GetWindowWidth() - 65.0f);
+                        ImGui::TextColored(active ? pal.Accent : pal.TextDisabled, "[%s]", key);
+                    };
+                    renderKeyRow("Aimbot Assist", "M5", m_aimbotEnabled);
+                    renderKeyRow("Silent Aim", "CAPS", m_silentAim);
+                    renderKeyRow("Triggerbot", "ALT", m_triggerbot);
+                    renderKeyRow("Tactical Radar", "F1", m_showRadarWindow);
+                    renderKeyRow("ESP Visuals", "INS", m_espSettings.enableBox);
+                    UI::EndSatellite();
+                }
+            }
+
+            // Satellite 2: Session & Telemetry HUD
+            if (m_showSatelliteSpectators) {
+                if (UI::BeginSatellite("##SatelliteSession", "Session Telemetry", ImVec2(215, 145),
+                                       m_satelliteSpectatorsConfig, &m_showSatelliteSpectators, "Solar Framework Demo")) {
+                    const auto& pal = ThemeManager::Get().GetPalette();
+                    ImGui::TextColored(pal.TextSecondary, "Framerate:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(pal.Accent, "%.0f FPS", ImGui::GetIO().Framerate);
+
+                    ImGui::TextColored(pal.TextSecondary, "GPU Latency:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(Color(0.2f, 0.9f, 0.4f, 1.0f), "1.8 ms");
+
+                    ImGui::TextColored(pal.TextSecondary, "Spectators:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(Color(1.0f, 0.4f, 0.2f, 1.0f), "2 Watching");
+
+                    ImGui::TextColored(pal.TextSecondary, "State:");
+                    ImGui::SameLine(120.0f);
+                    ImGui::TextColored(pal.Accent, "Synchronized");
+                    UI::EndSatellite();
+                }
+            }
+        }
+
+        // Tactical Radar External HUD Window
+        if (m_showRadarWindow) {
+            Game::RadarWindow::Render(&m_showRadarWindow, m_radarSettings, m_radarEntities);
+        }
+
+        // Esports Kill Frag Banner Notification Popup
+        UI::KillBanner::Get().Render();
+
+        // High-Tech Quick Command Palette (Ctrl + P)
+        UI::CommandPalette::Get().Render();
+
+        UI::CustomCursor::Get().Render();
     }
 
 } // namespace Solar
