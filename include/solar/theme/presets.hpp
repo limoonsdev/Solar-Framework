@@ -25,7 +25,13 @@ namespace Solar {
         ObsidianVeil = 8,    // Peach-Framework Luxury Obsidian Glass & Electric Periwinkle
         ObsidianViolet = 8,  // Legacy alias
         PhantomSpectre = 9,  // Ghost Stealth Monochrome & Arctic Mint
-        ChampagneRoyale = 10 // Prestige Champagne Gold & Dark Velvet
+        ChampagneRoyale = 10, // Prestige Champagne Gold & Dark Velvet
+        OnyxChroma = 11,      // Deep Stealth Obsidian & Chromatic Neon
+        SynthwaveSunset = 12, // Hot Neon Magenta & Retro Sunset Peach
+        GlacierTitanium = 13, // Pure Ice Glacier & Slate Titanium
+        KintsugiGold = 14,    // Japanese Dark Ceramic & 24K Liquid Gold
+        NebulaVoid = 15,      // Cosmic Abyss Deep Indigo & Starlight Teal
+        BloodMoon = 16        // Eclipsed Lunar Crimson & Velvet Smoke
     };
 
     struct PresetInfo {

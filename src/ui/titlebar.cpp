@@ -2,6 +2,7 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
 #include "solar/font_awesome.hpp"
+#include "solar/render/imgui_ext.hpp"
 #include <imgui_internal.h>
 
 namespace Solar::UI {
@@ -32,13 +33,15 @@ namespace Solar::UI {
             }
         }
 
-        // Logo Sun Mark
-        ImVec2 logoCenter(startPos.x + 28.0f, startPos.y + 26.0f);
-        draw->AddCircleFilled(logoCenter, 7.5f, pal.Accent.ToU32(), 24);
-        draw->AddCircle(logoCenter, 11.5f, pal.Accent.WithAlpha(0.35f).ToU32(), 24, 1.5f);
+        // Modern High-Tech Brand Icon Badge
+        ImVec2 badgeMin(startPos.x + 18.0f, startPos.y + 13.0f);
+        ImVec2 badgeMax(badgeMin.x + 24.0f, badgeMin.y + 24.0f);
+        draw->AddRectFilled(badgeMin, badgeMax, pal.Accent.WithAlpha(0.18f).ToU32(), 5.0f);
+        Render::ImGuiExt::AddSmoothBorder(draw, badgeMin, badgeMax, pal.Accent.WithAlpha(0.60f).ToU32(), 5.0f, 1.0f);
+        draw->AddText(ImVec2(badgeMin.x + 6.0f, badgeMin.y + 4.0f), pal.Accent.ToU32(), ICON_FA_TERMINAL);
 
         // Title & Subtitle
-        ImGui::SetCursorScreenPos(ImVec2(startPos.x + 50.0f, startPos.y + 11.0f));
+        ImGui::SetCursorScreenPos(ImVec2(startPos.x + 52.0f, startPos.y + 11.0f));
         ImGui::BeginGroup();
         {
             ImGui::PushStyleColor(ImGuiCol_Text, pal.TextPrimary);

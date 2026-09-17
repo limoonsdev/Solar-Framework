@@ -4,6 +4,7 @@
 #include "solar/render/imgui_ext.hpp"
 #include "solar/icons/vector_icons.hpp"
 #include <imgui_internal.h>
+#include <cmath>
 
 namespace Solar::UI {
 
@@ -19,8 +20,8 @@ namespace Solar::UI {
         ImDrawList* draw = ImGui::GetWindowDrawList();
         const auto& pal = ThemeManager::Get().GetPalette();
 
-        ImVec2 cardMin = p;
-        ImVec2 cardMax = ImVec2(p.x + w, p.y + h);
+        ImVec2 cardMin = ImVec2(std::floor(p.x), std::floor(p.y));
+        ImVec2 cardMax = ImVec2(std::floor(p.x + w), std::floor(p.y + h));
 
         // 1. Layered Ambient Drop Shadow
         Render::ShadowCaster::DrawShadow(draw, cardMin, cardMax, 16.0f, rounding, Color(0, 0, 0, 0.45f), ImVec2(0, 4.0f));

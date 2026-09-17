@@ -19,6 +19,8 @@ namespace Solar {
         void SetWidgetsPage(int page) { m_widgetsPage = page; }
         void SetMiscSubTab(int sub) { m_miscSubTab = sub; }
         void SetThemeSubTab(int sub) { m_themeSubTab = sub; }
+        int  GetFpsCap() const { return m_fpsCap; }
+        void SetFpsCap(int cap) { m_fpsCap = cap; }
 
     private:
         DemoApp() = default;
@@ -179,6 +181,7 @@ namespace Solar {
         UI::SatelliteConfig m_satelliteSpectatorsConfig;
 
         bool  m_showWelcomeModal = false;
+        int   m_fpsCap = 0; // 0 = VSync, 30, 60, 120, 144, 240, 360, -1 = Uncapped
     };
 
 } // namespace Solar

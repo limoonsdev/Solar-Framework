@@ -28,6 +28,9 @@ namespace Solar {
     }
 
     void NewFrame() {
+        // Update Theme Dynamic Modes (e.g. Rainbow mode)
+        ThemeManager::Get().Update(ImGui::GetIO().DeltaTime);
+
         // Update High-Resolution Frame Timing
         FrameTimeTracker::Get().Update();
 

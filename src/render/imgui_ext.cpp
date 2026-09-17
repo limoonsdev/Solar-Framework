@@ -119,13 +119,7 @@ namespace Solar::Render {
 
     void ImGuiExt::AddSmoothBorder(ImDrawList* draw, const ImVec2& min, const ImVec2& max, u32 borderColor, float rounding, float thickness) {
         if (!draw || borderColor == 0 || thickness <= 0.0f) return;
-        float half = thickness * 0.5f;
-        float adjRounding = (rounding > half) ? (rounding - half) : 0.0f;
-        draw->AddRect(
-            ImVec2(min.x + half, min.y + half),
-            ImVec2(max.x - half, max.y - half),
-            borderColor, adjRounding, 0, thickness
-        );
+        draw->AddRect(min, max, borderColor, rounding, 0, thickness);
     }
 
 } // namespace Solar::Render

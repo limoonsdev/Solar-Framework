@@ -1,5 +1,6 @@
 #include "solar/theme/theme_manager.hpp"
 #include "solar/audio/audio_engine.hpp"
+#include <cmath>
 
 namespace Solar {
 
@@ -88,6 +89,19 @@ namespace Solar {
 
         colors[ImGuiCol_Text]                 = m_palette.TextPrimary;
         colors[ImGuiCol_TextDisabled]         = m_palette.TextDisabled;
+    }
+
+    void ThemeManager::Update(float dt) {
+        if (!m_rainbowMode) return;
+        m_rainbowTime += dt * m_rainbowSpeed * 0.35f;
+        float h = std::fmod(m_rainbowTime, 1.0f);
+        if (h < 0.0f) h += 1.0f;
+        Color rainbowCol = Color::FromHSV(h, 0.85f, 1.0f);
+        m_palette.Accent = rainbowCol;
+        m_palette.AccentHover = Color::FromHSV(h, 0.70f, 1.0f);
+        m_palette.AccentActive = Color::FromHSV(h, 0.95f, 0.85f);
+        m_palette.BorderHover = rainbowCol;
+        SyncWithImGui();
     }
 
 } // namespace Solar

@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <tchar.h>
 #include <shellscalingapi.h>
+#include <timeapi.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_win32.h>
@@ -259,7 +260,40 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-        g_pSwapChain->Present(1, 0);
+        int fpsCap = Solar::DemoApp::Get().GetFpsCap();
+        static LARGE_INTEGER s_freq = {};
+        static LARGE_INTEGER s_lastTime = {};
+        if (s_freq.QuadPart == 0) {
+            QueryPerformanceFrequency(&s_freq);
+            QueryPerformanceCounter(&s_lastTime);
+            timeBeginPeriod(1);
+        }
+
+        if (fpsCap == 0) {
+            // VSync enabled (synchronized with monitor refresh rate)
+            g_pSwapChain->Present(1, 0);
+        } else if (fpsCap > 0) {
+            // Cap to specific frame rate (e.g. 30, 60, 120, 144, 240, 360)
+            g_pSwapChain->Present(0, 0);
+            double targetInterval = 1.0 / static_cast<double>(fpsCap);
+            LARGE_INTEGER curTime;
+            QueryPerformanceCounter(&curTime);
+            double elapsed = static_cast<double>(curTime.QuadPart - s_lastTime.QuadPart) / static_cast<double>(s_freq.QuadPart);
+            while (elapsed < targetInterval) {
+                double remaining = targetInterval - elapsed;
+                if (remaining > 0.002) {
+                    Sleep(1);
+                } else {
+                    YieldProcessor();
+                }
+                QueryPerformanceCounter(&curTime);
+                elapsed = static_cast<double>(curTime.QuadPart - s_lastTime.QuadPart) / static_cast<double>(s_freq.QuadPart);
+            }
+            s_lastTime = curTime;
+        } else {
+            // Uncapped
+            g_pSwapChain->Present(0, 0);
+        }
 
         if (autoScreenshot) {
             screenshotFrame++;

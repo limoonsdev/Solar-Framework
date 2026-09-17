@@ -21,6 +21,12 @@ namespace Solar {
 
         ThemePreset GetCurrentPreset() const { return m_currentPreset; }
 
+        void SetRainbowMode(bool enabled) { m_rainbowMode = enabled; }
+        bool IsRainbowMode() const { return m_rainbowMode; }
+        void SetRainbowSpeed(float speed) { m_rainbowSpeed = speed; }
+        float GetRainbowSpeed() const { return m_rainbowSpeed; }
+
+        void Update(float dt);
         void SyncWithImGui();
 
         static u32 ToU32(const Color& c) { return c.ToU32(); }
@@ -30,6 +36,9 @@ namespace Solar {
         Palette m_palette;
         Style m_style;
         ThemePreset m_currentPreset = ThemePreset::SolarFlare;
+        bool m_rainbowMode = false;
+        float m_rainbowSpeed = 1.0f;
+        float m_rainbowTime = 0.0f;
     };
 
 } // namespace Solar

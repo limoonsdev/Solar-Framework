@@ -1,14 +1,16 @@
-[#] - Version & numéro de commit : v1.0.3-dev [commit: 02c474d]
-[+] - ajout : Palette de commande rapide Ctrl + P (CommandPalette) avec fuzzy-search, navigation clavier fluide (flèches haut/bas, Entrée, Échap), catégorisation et actions globales
-[+] - ajout : Système de popup Kill Banner Esports (KillBanner) avec animation spring, badge headshot critique, télémétrie de dégâts, nom d'arme, streak badge multi-kill et barre de vie résiduelle
-[+] - ajout : 5 styles de curseurs custom ultra-fluides (CyberArrow, CrosshairDot, CyberDot, PrecisionTriangle, MinimalRing) sélectionnables dans l'onglet Préférences
-[+] - ajout : Grip de redimensionnement de fenêtre interactif et stylisé dans le coin inférieur droit (Window::RenderResizeGrip) avec hachures lumineuses
-[+] - ajout : Moteur de radar tactique ultra configurable avec géométries au choix (Cercle, Carré arrondi, Carré cartésien), curseur de zoom, taille des blips, grille cartésienne et fenêtre HUD externe dédiée
-[+] - ajout : Menu contextuel moderne au clic sur le profil utilisateur SolarDev en bas de la sidebar avec liste d'options (palette Ctrl+P, test kill banner, copie HWID, profils, thèmes, verrouillage)
-[+] - ajout : Chargement et intégration native de la typographie tactique Valorant (ValorantTactical / Bahnschrift)
-[-] - retrait : Suppression complète du répertoire Solar Studio [BETA v0.1.2] et de launch_studio.bat à la demande de l'utilisateur pour une liberté totale de personnalisation en C++ natif
-[-] - retrait : Nettoyage de la cible de compilation solar_studio dans CMakeLists.txt
-[\] - fix : Alignement optique et centrage parfait des textes dans les pilules de raccourcis/keybinds pour éviter tout contact avec les bordures
-[\] - fix : Correction définitive des glyphes manquants et icônes "?" dans les hexagones grâce à la fusion des fontes FontAwesome et détection IsGlyphInFont avec fallback vectoriel automatique
-[\] - fix : Optimisation des performances du mannequin 3D ESP Preview pour garantir une fluidité absolue sans perte de fidélité visuelle
-[\] - fix : Correction du clipping en bas de page pour que la fin de tous les menus et cartes soit parfaitement visible
+[#] - Version & numéro de commit : v1.0.4-dev [commit: 26778a8]
+[+] - Ajout : Exécutable autonome SolarWorld.exe (banc d'essai 3D DirectX 11) émulant l'environnement interne d'Unreal Engine 5 (UWorld, ULevel, AActor, APlayerCameraManager, FVector, FRotator) pour tester les injections DLL et overlays en toute sécurité sans crash de jeu
+[+] - Ajout : Exportation native des symboles GWorld, GetUWorld() et g_ExportedSwapChain dans SolarWorld pour le hooking et l'accrochage direct de SwapChain DirectX 11
+[+] - Ajout : Scène 3D interactive avec caméra libre première personne (WASD + visée souris), grille cartésienne, colonnes d'occlusion et mannequins cibles animés avec os tête, torse et bassin
+[+] - Ajout : Détection dynamique et affichage en temps réel des modules DLL injectés dans le banc d'essai avec raccourci F5 pour injecteur externe
+[+] - Ajout : Système de limitation de framerate haute précision (Menu FPS Limiter) proposant VSync, 30, 60, 120, 144, 240, 360 FPS ou Illimité via timeBeginPeriod et QueryPerformanceCounter
+[+] - Ajout : Mode Rainbow Chroma animé avec cycle de spectre RVB fluide sur l'ensemble des accents, bordures actives et reflets de l'interface avec régulateur de vitesse
+[+] - Ajout : 6 nouveaux thèmes professionnels haut de gamme : Onyx Chroma, Synthwave Sunset, Glacier Titanium, Kintsugi Gold, Nebula Void et Blood Moon
+[+] - Ajout : Badge de marque cyber minimaliste haute technologie dans la barre de titre avec micro-icône terminal et luminescence dynamique
+[+] - Ajout : Emblème géométrique en diamant cybernétique lumineux sur l'écran d'accueil
+[-] - Retrait : Suppression totale du pictogramme soleil jaune à 8 rayons par défaut dans la barre de titre et l'écran d'accueil
+[-] - Retrait : Élimination des décalages d'un demi-pixel sur le traçage des contours qui créaient des défauts de jointure
+[\] - Fix : Alignement parfait au pixel près (std::floor) des bordures de cartes, des boîtes de saisie et des conteneurs pour éliminer tout artefact visuel
+[\] - Fix : Refonte de l'espacement et du positionnement des zones de texte (InputText) avec padding supérieur dédié pour empêcher tout contact du texte avec les marges
+[\] - Fix : Centrage optique rigoureux des textes et des keybinds dans leurs capsules sombres pour une lisibilité irréprochable
+[\] - Fix : Inclusion et liaison automatique des bibliothèques multimédia Windows (timeapi / winmm) pour une stabilité temporelle sans micro-stutter

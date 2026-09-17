@@ -1145,6 +1145,18 @@ namespace Solar {
                                         Color(m_customColor[0] * 1.2f, m_customColor[1] * 1.2f, m_customColor[2] * 1.2f, 1.0f)
                                     );
                                 }
+                                Widgets::Spacing(4.0f);
+
+                                bool rainbow = ThemeManager::Get().IsRainbowMode();
+                                if (Widgets::Toggle("Rainbow Chroma Mode", &rainbow, "Smooth spectrum RGB hue cycling")) {
+                                    ThemeManager::Get().SetRainbowMode(rainbow);
+                                }
+                                if (rainbow) {
+                                    float speed = ThemeManager::Get().GetRainbowSpeed();
+                                    if (Widgets::SliderFloat("Rainbow Speed", &speed, 0.2f, 4.0f, "%.1f", "x")) {
+                                        ThemeManager::Get().SetRainbowSpeed(speed);
+                                    }
+                                }
 
                                 Widgets::Separator();
                                 ImDrawList* draw = ImGui::GetWindowDrawList();
@@ -1213,6 +1225,17 @@ namespace Solar {
                                 int curStyle = static_cast<int>(UI::CustomCursor::Get().GetStyle());
                                 if (Widgets::Combo("Cursor Visual Style", &curStyle, cursorStyles, 5)) {
                                     UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(curStyle));
+                                }
+                                const char* fpsOptions[] = { "VSync (Monitor Synchronized)", "30 FPS (Power Saver)", "60 FPS (Standard 60Hz)", "120 FPS (High Performance)", "144 FPS (Esports 144Hz)", "240 FPS (Ultra Smooth)", "Uncapped (Maximum Throttle)" };
+                                static int curFpsIdx = 0;
+                                if (Widgets::Combo("Menu FPS Limiter", &curFpsIdx, fpsOptions, 7)) {
+                                    if (curFpsIdx == 0) m_fpsCap = 0;
+                                    else if (curFpsIdx == 1) m_fpsCap = 30;
+                                    else if (curFpsIdx == 2) m_fpsCap = 60;
+                                    else if (curFpsIdx == 3) m_fpsCap = 120;
+                                    else if (curFpsIdx == 4) m_fpsCap = 144;
+                                    else if (curFpsIdx == 5) m_fpsCap = 240;
+                                    else if (curFpsIdx == 6) m_fpsCap = -1;
                                 }
                                 Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
                                 if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {
