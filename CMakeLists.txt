@@ -166,31 +166,4 @@ target_include_directories(solar_demo PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/demo"
 )
 
-# SolarWorld: Standalone 3D DirectX 11 testbed emulating Unreal Engine internal structures
-set(SOLAR_WORLD_SOURCES
-    "tools/solar_world/main.cpp"
-    "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
-    "${IMGUI_DIR}/backends/imgui_impl_dx11.cpp"
-)
-
-add_executable(solar_world WIN32
-    ${SOLAR_WORLD_SOURCES}
-)
-
-target_link_libraries(solar_world PRIVATE
-    solar_lib
-    d3d11
-    dxgi
-    d3dcompiler
-    dwmapi
-    winmm
-    shcore
-)
-
-target_include_directories(solar_world PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${IMGUI_DIR}"
-    "${IMGUI_DIR}/backends"
-)
-
 

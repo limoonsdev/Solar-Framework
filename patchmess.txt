@@ -1,10 +1,4 @@
-[#] - Version & numéro de commit : v1.1.0 [commit: b2f7eee]
-[+] - Ajout : Exécutable autonome SolarWorld.exe (banc d'essai 3D DirectX 11) émulant l'environnement interne d'Unreal Engine 5 (UWorld, ULevel, AActor, APlayerCameraManager, FVector, FRotator) pour tester les injections DLL et overlays en toute sécurité sans crash de jeu
-[+] - Ajout : Exportation native des symboles GWorld, GetUWorld() et g_ExportedSwapChain dans SolarWorld pour le hooking et l'accrochage direct de SwapChain DirectX 11
-[+] - Ajout : Console de développement intégrée style Unreal Engine dans SolarWorld (déclenchée par Suppr / Delete ou ~) avec historique, autocomplétion et commandes système (stat fps, stat unit, stat hud, viewmode wireframe/lit/unlit, r.SetRes, fov, gamma, slomo, god, teleport, spawn, modules, inject, cls, help)
-[+] - Ajout : Menu de pause en jeu style Unreal Engine Slate dans SolarWorld (déclenché par Échap) avec libération automatique du curseur, réglages d'affichage, gestionnaire de mannequins et inspecteur de DLL injectées
-[+] - Ajout : HUD de combat tactique complet dans SolarWorld comprenant ruban de boussole azimutale synchronisé avec la caméra, réticule 4 axes haute précision, jauges de santé et d'armure, compteur de munitions et plaques nominatives 3D-vers-2D au-dessus des cibles
-[+] - Ajout : Ciel atmosphérique procédural avec dégradé zénith-horizon et disque solaire, éclairage spéculaire Blinn-Phong, ombres de contact au sol, plateforme centrale et décors tactiques d'entraînement
+[#] - Version & numéro de commit : v1.1.0 [commit: b0bb621]
 [+] - Ajout : Moteur de redimensionnement universel (RenderResizeGrip) avec poignées d'ajustement interactives au coin inférieur droit sur l'ensemble des fenêtres auxiliaires (KeybindList, SpectatorList, RadarWindow, SatelliteWindow)
 [+] - Ajout : Mode de protection de diffusion Streamproof matériel avec bascule instantanée vers l'affinité d'affichage Windows (WDA_EXCLUDEFROMCAPTURE 0x00000011 et repli 0x00000001) masquant le menu sur OBS, Discord et les captures d'écran
 [+] - Ajout : Carte utilisateur modernisée avec anneau radar pulsant en temps réel, indicateur de présence et menu contextuel stylisé avec badge VIP, bascule streamproof, copie HWID machine sécurisée et raccourcis navigation
@@ -12,8 +6,8 @@
 [+] - Ajout : Palette de commandes ultra-réactive (Ctrl + P) avec recherche dynamique, filtrage instantané par catégorie, raccourcis et exécution immédiate
 [+] - Ajout : Bannière de notification Kill Frag Esports avec animations de glissement, icônes d'armes, multiplicateurs de killstreak et audio tactile
 [+] - Ajout : 5 styles de curseurs personnalisés haute précision (Classic Vector, Cyber Triangle, Crosshair Dot, Sci-Fi Chevron, Minimal Needle)
-[+] - Ajout : Fenêtres satellites modulaires et détachées rattachées dynamiquement aux coordonnées de la fenêtre principale
-[+] - Ajout : Moteur de bordure rotative colorée (DrawRotatingBorder) avec paramétrage continu par longueur d'arc sur l'ensemble du périmètre arrondi
+[+] - Ajout : Fenêtres satellites modulaires et détachées rattachées dynamiquement aux coordonnées de la fenêtre principale avec faisceau d'énergie animé
+[+] - Ajout : Moteur de bordure rotative colorée (DrawRotatingBorder) avec paramétrage continu par longueur d'arc sur l'ensemble du périmètre arrondi et 5 algorithmes visuels
 [+] - Ajout : Système de limitation de framerate haute précision (Menu FPS Limiter) proposant VSync, 30, 60, 120, 144, 240, 360 FPS ou Illimité via timeBeginPeriod et QueryPerformanceCounter
 [+] - Ajout : Mode Rainbow Chroma animé avec cycle de spectre RVB fluide sur l'ensemble des accents, bordures actives et reflets de l'interface avec régulateur de vitesse
 [+] - Ajout : 6 nouveaux thèmes professionnels haut de gamme : Onyx Chroma, Synthwave Sunset, Glacier Titanium, Kintsugi Gold, Nebula Void et Blood Moon
@@ -36,3 +30,4 @@
 [\] - Fix : Centrage optique rigoureux des textes et des keybinds dans leurs capsules sombres pour une lisibilité irréprochable
 [\] - Fix : Paramétrage continu du tracé de bordure rotative empêchant toute coupure ou discontinuité sur les quatre côtés arrondis
 [\] - Fix : Inclusion et liaison automatique des bibliothèques multimédia Windows (timeapi / winmm / shell32 / shcore) pour une stabilité temporelle sans micro-stutter
+[\] - Fix : Prise en charge universelle du redimensionnement interactif sur toutes les fenêtres flottantes empêchant les débordements de contenu

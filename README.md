@@ -17,12 +17,11 @@
 2. [What's New in v1.1.0](#whats-new-in-v110)
 3. [Core Architecture](#core-architecture)
 4. [Solar-Render & Crash-Proof Pipeline](#solar-render--crash-proof-pipeline)
-5. [SolarWorld: Unreal Engine 5 Sandbox](#solarworld-unreal-engine-5-sandbox)
-6. [Component & Widget Suite](#component--widget-suite)
-7. [Tactile Audio Engine](#tactile-audio-engine)
-8. [Quickstart & Build Instructions](#quickstart--build-instructions)
-9. [Repository Layout](#repository-layout)
-10. [License](#license)
+5. [Component & Widget Suite](#component--widget-suite)
+6. [Tactile Audio Engine](#tactile-audio-engine)
+7. [Quickstart & Build Instructions](#quickstart--build-instructions)
+8. [Repository Layout](#repository-layout)
+9. [License](#license)
 
 ---
 
@@ -36,21 +35,25 @@ Targeting game overlays, telemetry dashboards, developer tools, and real-time gr
 - **High-DPI Per-Monitor v2 Awareness**: True 1:1 physical pixel rendering with subpixel font rasterization, eliminating Windows DWM bilinear scaling blur.
 - **Solar-Render Pipeline**: Full 6-stage DirectX 11 pipeline isolation protecting Vertex, Pixel, Geometry, Hull, Domain, and Compute shaders along with 14 constant buffer slots for crash-proof in-process hooking.
 - **Hardware Streamproof Protection**: Native integration with Windows Display Affinity (`WDA_EXCLUDEFROMCAPTURE 0x00000011` and fallback `0x00000001`), hiding the overlay from OBS, Discord, Medal, and screen capture tools.
-- **SolarWorld UE5 Testbed**: Standalone 3D simulation sandbox emulating Unreal Engine 5 internals with an interactive developer console (`Delete` / `~`), Slate pause menu (`Escape`), and tactical HUD.
-- **Universal Interactive Resizing**: Built-in corner resize grips on all auxiliary windows and satellite panels.
+- **Interactive Watermark & Web Integration**: HUD watermark supporting 5 visual styles (`CyberBar`, `MinimalPill`, `NeonTerminal`, `HoloBadge`, `DiscreteCorner`) and native browser launch via `ShellExecuteA`.
+- **Command Palette (`Ctrl + P`)**: Smooth floating search and command launcher with category filtering, shortcuts, and instant action execution.
+- **Universal Interactive Resizing**: Built-in corner resize grips (`RenderResizeGrip`) on all auxiliary windows and satellite panels.
 - **Synthesized Tactile Audio**: Procedural in-memory sound synthesis replicating lubricated mechanical switch acoustics with zero external audio assets.
 
 ---
 
 ## What's New in v1.1.0
 
-- **SolarWorld UE5 Developer Console**: Drop-down command terminal triggered by `Delete` / `Suppr` or `~` (Tilde) with command history, autocomplete, and commands (`stat fps`, `stat unit`, `stat hud`, `viewmode wireframe/lit`, `r.SetRes`, `fov`, `gamma`, `slomo`, `god`, `teleport`, `spawn`, `modules`, `inject`).
-- **SolarWorld Slate Pause Menu**: Unreal Engine-styled frosted glass menu triggered by `Escape` offering session controls, viewport settings, actor management, and live injected DLL inspection.
-- **In-Game Tactical HUD**: Real-time compass tape synchronized with camera yaw, precision 4-axis crosshair, vitality gauges, weapon ammo HUD, and 3D-to-2D world space target nameplates.
-- **Atmospheric Sky & Scene Lighting**: Procedural celestial gradient with sun disc glow, Blinn-Phong specular lighting model, tactical cover crates, elevated platforms, and ground contact shadows.
 - **Universal Window Resize Grips**: Integrated `RenderResizeGrip` across `KeybindList`, `SpectatorList`, `RadarWindow`, and `SatelliteWindow`.
-- **Streamproof Mode**: Integrated hardware capture masking switchable at runtime.
+- **Streamproof Mode**: Integrated hardware capture masking switchable at runtime with automatic `SetWindowDisplayAffinity` management.
+- **Interactive Watermark**: 5 custom visual presets with real-time framerate telemetry and clickable external link launch.
+- **Modernized User Card & Context Menu**: Real-time pulsing radar ring, VIP badge, streamproof switch, and secure machine HWID clipboard copy.
+- **Command Palette (`Ctrl + P`)**: Smooth keyboard-driven launcher with background dimming and direct feature execution.
+- **ESports Frag Banner**: High-intensity kill notification banner with smooth spring animations, weapon icons, and killstreak multipliers.
+- **5 Custom Cursor Styles**: Hardware-interpolated cursors (`ClassicVector`, `CyberTriangle`, `CrosshairDot`, `SciFiChevron`, `MinimalNeedle`).
 - **Continuous Rotating Borders**: Full perimeter arc-length parameterization ensuring even and continuous distribution around all four rounded sides.
+- **FPS Cap Limiter & Chroma Mode**: Configurable frame rate targets (VSync, 30, 60, 120, 144, 240, 360 FPS, Unlimited) and dynamic RGB Chroma spectrum mode.
+- **6 Premium Theme Presets**: Onyx Chroma, Synthwave Sunset, Glacier Titanium, Kintsugi Gold, Nebula Void, and Blood Moon.
 - **Render Engine Optimizations**: Streamlined 3-pass quadratic falloff shadow casting and distance-squared constellation particle system delivering 300+ FPS.
 - **Automated Layout Auditor**: Built-in `LayoutAuditor` verifying margin compliance (>=8px) and exporting `solar_layout_audit.log`.
 - **Automated Showcase**: Command-line flag `--showcase-all` generating sequential high-resolution verification screenshots across all features.
@@ -123,58 +126,6 @@ void RenderHook(IDXGISwapChain* pSwapChain) {
 
 ---
 
-## SolarWorld: Unreal Engine 5 Sandbox
-
-`solar_world.exe` is a standalone 3D DirectX 11 sandbox that emulates Unreal Engine 5 internal structures. It allows developers to test DLL injectors, memory scanners, and overlay hooks in a realistic environment without risking game bans or client crashes.
-
-### Exported Symbols
-```cpp
-extern "C" {
-    __declspec(dllexport) UWorld* GWorld;
-    __declspec(dllexport) void* GObjects;
-    __declspec(dllexport) void* GNames;
-    __declspec(dllexport) UWorld* GetUWorld();
-    __declspec(dllexport) IDXGISwapChain* g_ExportedSwapChain;
-}
-```
-
-### Unreal Engine Developer Console
-Press **Delete** (`Suppr`) or **~** (Tilde) to open the console:
-
-| Command | Description |
-|---|---|
-| `help` | Lists all available console commands |
-| `stat fps` | Toggles the real-time framerate display |
-| `stat unit` | Toggles CPU, GPU, and frame time telemetry |
-| `stat hud` | Toggles the tactical combat HUD |
-| `viewmode wireframe` | Renders the scene geometry in wireframe mode |
-| `viewmode lit` | Restores standard lit shading |
-| `r.SetRes <W>x<H>` | Resizes the viewport window (e.g. `r.SetRes 1920x1080`) |
-| `fov <degrees>` | Updates camera field of view (30° to 140°) |
-| `gamma <value>` | Adjusts scene exposure and brightness |
-| `slomo <factor>` | Adjusts game time dilation (e.g. `slomo 0.5`) |
-| `god` | Toggles infinite health on actors |
-| `teleport` | Resets camera location to spawn origin |
-| `spawn` | Spawns an additional target dummy actor |
-| `modules` | Lists all injected non-baseline DLL modules |
-| `inject <dll>` | Loads a DLL module via `LoadLibraryA` |
-| `cls` / `clear` | Clears console log buffer |
-| `quit` / `exit` | Exits the simulation |
-
-### Unreal Engine Pause Menu
-Press **Escape** to pause simulation and access:
-- **Session Controls**: Resume simulation, spawn dummies, teleport to spawn.
-- **Graphics & Viewport**: FOV slider, mouse sensitivity, render mode, atmosphere toggle, gamma.
-- **Injected Modules Inspector**: Real-time table of detected external modules with base memory addresses.
-
-### Tactical Combat HUD
-- **Top Compass Tape**: Cardinal marks (`N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, `NW`) and digital bearing synchronized with camera yaw.
-- **Crosshair Reticle**: High-precision 4-axis reticle with center dot.
-- **Vitality & Ammo Gauges**: Health bar (100 HP), Armor (100), Weapon label (`VANDAL PRIME`), ammo counter (`25 / 75`).
-- **3D World Nameplates**: 3D-to-2D projected nameplates over target bots with health bars, team indicators, and distance in meters.
-
----
-
 ## Component & Widget Suite
 
 Solar Framework provides an extensive set of custom ImGui widgets:
@@ -229,7 +180,7 @@ cd "Solar Framework"
 # Generate build files (x64 Release)
 cmake -B build -A x64
 
-# Compile static library, demonstration app, and SolarWorld sandbox
+# Compile static library and demonstration app
 cmake --build build --config Release
 ```
 
@@ -237,7 +188,6 @@ cmake --build build --config Release
 The build produces:
 - `build/Release/solar_lib.lib`: Core static framework library.
 - `build/Release/solar_demo.exe`: Full feature demonstration application.
-- `build/Release/solar_world.exe`: Unreal Engine 5 simulated testbed sandbox.
 
 ### Running Applications
 ```powershell
@@ -246,9 +196,6 @@ The build produces:
 
 # Run automated showcase (exports 8 screenshots to screenshots/)
 .\build\Release\solar_demo.exe --showcase-all
-
-# Run Unreal Engine 5 simulated sandbox
-.\build\Release\solar_world.exe
 ```
 
 ---
@@ -275,7 +222,6 @@ Solar Framework/
 │   └── tools/                          # LayoutAuditor, Profiler, Inspector
 ├── src/                                # Subsystem implementation sources
 ├── demo/                               # Full demonstration application
-├── tools/solar_world/                  # Unreal Engine 5 simulated sandbox testbed
 └── vendor/imgui/                       # Dear ImGui docking source distribution
 ```
 
