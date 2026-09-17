@@ -70,15 +70,16 @@ namespace Solar::Game {
 
                     draw->AddText(ImVec2(rowMin.x + 4.0f, rowMin.y + 4.0f), pal.TextPrimary.ToU32(), b.first.c_str());
 
-                    // Keycap Pill on right
+                    // Keycap Pill on right (optically centered)
                     ImVec2 keySize = ImGui::CalcTextSize(b.second.c_str());
-                    float pillW = keySize.x + 12.0f;
+                    float pillW = keySize.x + 16.0f;
                     ImVec2 pillMin(rowMax.x - pillW, rowMin.y + 2.0f);
                     ImVec2 pillMax(rowMax.x, rowMin.y + 22.0f);
 
-                    draw->AddRectFilled(pillMin, pillMax, pal.Header.WithAlpha(0.80f).ToU32(), 4.0f);
-                    Render::ImGuiExt::AddSmoothBorder(draw, pillMin, pillMax, pal.Accent.WithAlpha(0.40f).ToU32(), 4.0f, 1.0f);
-                    draw->AddText(ImVec2(pillMin.x + 6.0f, pillMin.y + 3.0f), pal.Accent.ToU32(), b.second.c_str());
+                    draw->AddRectFilled(pillMin, pillMax, pal.Header.WithAlpha(0.85f).ToU32(), 4.0f);
+                    Render::ImGuiExt::AddSmoothBorder(draw, pillMin, pillMax, pal.Accent.WithAlpha(0.45f).ToU32(), 4.0f, 1.0f);
+                    draw->AddText(ImVec2(pillMin.x + (pillW - keySize.x) * 0.5f, pillMin.y + (20.0f - keySize.y) * 0.5f - 0.5f),
+                                  pal.Accent.ToU32(), b.second.c_str());
 
                     ImGui::Dummy(ImVec2(winSize.x - 20.0f, 26.0f));
                 }

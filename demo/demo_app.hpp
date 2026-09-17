@@ -151,6 +151,8 @@ namespace Solar {
         bool m_showSpectators = true;
         bool m_showKeybinds = true;
         bool m_showRadarWindow = true;
+        Widgets::RadarSettings m_radarSettings;
+        std::vector<Widgets::RadarEntity> m_radarEntities;
         bool m_showProfiler = false;
 
         // Spoofer state

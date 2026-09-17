@@ -52,18 +52,49 @@ namespace Solar::Widgets {
 
         if (radius <= 10.0f) return;
 
-        // 1. Radar Circular Body Shadow & Fill
-        for (int l = 4; l >= 1; --l) {
-            float exp = static_cast<float>(l) * 2.0f;
-            draw->AddCircleFilled(center, radius + exp, IM_COL32(0, 0, 0, static_cast<int>(18 * (5 - l))), 48);
-        }
-        draw->AddCircleFilled(center, radius, pal.Background.WithAlpha(0.92f).ToU32(), 64);
+        bool isCircle = (settings.shape == RadarShape::Circle);
+        float boxRounding = (settings.shape == RadarShape::RoundedSquare) ? 8.0f : 0.0f;
+        ImVec2 boxMin(center.x - radius, center.y - radius);
+        ImVec2 boxMax(center.x + radius, center.y + radius);
 
-        // 2. Concentric Range Rings
+        // 1. Radar Body Shadow & Fill
+        if (isCircle) {
+            for (int l = 4; l >= 1; --l) {
+                float exp = static_cast<float>(l) * 2.0f;
+                draw->AddCircleFilled(center, radius + exp, IM_COL32(0, 0, 0, static_cast<int>(18 * (5 - l))), 48);
+            }
+            draw->AddCircleFilled(center, radius, pal.Background.WithAlpha(0.92f).ToU32(), 64);
+        } else {
+            Render::ShadowCaster::DrawShadow(draw, boxMin, boxMax, 10.0f, boxRounding, Color(0, 0, 0, 0.45f), ImVec2(0, 2.0f));
+            draw->AddRectFilled(boxMin, boxMax, pal.Background.WithAlpha(0.92f).ToU32(), boxRounding);
+        }
+
+        // Tactical Cartesian Grid
+        if (settings.showGrid) {
+            u32 gridCol = pal.Border.WithAlpha(0.18f).ToU32();
+            float step = radius * 0.333f;
+            for (int i = 1; i <= 2; ++i) {
+                float offset = step * i;
+                draw->AddLine(ImVec2(center.x - radius, center.y - offset), ImVec2(center.x + radius, center.y - offset), gridCol, 1.0f);
+                draw->AddLine(ImVec2(center.x - radius, center.y + offset), ImVec2(center.x + radius, center.y + offset), gridCol, 1.0f);
+                draw->AddLine(ImVec2(center.x - offset, center.y - radius), ImVec2(center.x - offset, center.y + radius), gridCol, 1.0f);
+                draw->AddLine(ImVec2(center.x + offset, center.y - radius), ImVec2(center.x + offset, center.y + radius), gridCol, 1.0f);
+            }
+        }
+
+        // 2. Concentric Range Rings / Distance Boxes
         if (settings.showRings) {
-            draw->AddCircle(center, radius * 0.33f, pal.Border.WithAlpha(0.25f).ToU32(), 48, 1.0f);
-            draw->AddCircle(center, radius * 0.66f, pal.Border.WithAlpha(0.25f).ToU32(), 48, 1.0f);
-            draw->AddCircle(center, radius, pal.Border.WithAlpha(0.40f).ToU32(), 64, 1.0f);
+            if (isCircle) {
+                draw->AddCircle(center, radius * 0.33f, pal.Border.WithAlpha(0.25f).ToU32(), 48, 1.0f);
+                draw->AddCircle(center, radius * 0.66f, pal.Border.WithAlpha(0.25f).ToU32(), 48, 1.0f);
+                draw->AddCircle(center, radius, pal.Border.WithAlpha(0.40f).ToU32(), 64, 1.0f);
+            } else {
+                float r1 = radius * 0.33f;
+                float r2 = radius * 0.66f;
+                draw->AddRect(ImVec2(center.x - r1, center.y - r1), ImVec2(center.x + r1, center.y + r1), pal.Border.WithAlpha(0.25f).ToU32(), boxRounding * 0.33f, 0, 1.0f);
+                draw->AddRect(ImVec2(center.x - r2, center.y - r2), ImVec2(center.x + r2, center.y + r2), pal.Border.WithAlpha(0.25f).ToU32(), boxRounding * 0.66f, 0, 1.0f);
+                draw->AddRect(boxMin, boxMax, pal.Border.WithAlpha(0.40f).ToU32(), boxRounding, 0, 1.0f);
+            }
 
             // Range label
             char rangeBuf[16];
@@ -79,16 +110,12 @@ namespace Solar::Widgets {
 
         // 4. Cardinal Markers
         if (settings.showCardinal) {
-            // North
             ImVec2 nSz = ImGui::CalcTextSize("N");
             draw->AddText(ImVec2(center.x - nSz.x * 0.5f, center.y - radius + 5.0f), pal.Accent.ToU32(), "N");
-            // South
             ImVec2 sSz = ImGui::CalcTextSize("S");
             draw->AddText(ImVec2(center.x - sSz.x * 0.5f, center.y + radius - sSz.y - 5.0f), pal.TextSecondary.WithAlpha(0.40f).ToU32(), "S");
-            // East
             ImVec2 eSz = ImGui::CalcTextSize("E");
             draw->AddText(ImVec2(center.x + radius - eSz.x - 6.0f, center.y - eSz.y * 0.5f), pal.TextSecondary.WithAlpha(0.40f).ToU32(), "E");
-            // West
             ImVec2 wSz = ImGui::CalcTextSize("W");
             draw->AddText(ImVec2(center.x - radius + 6.0f, center.y - wSz.y * 0.5f), pal.TextSecondary.WithAlpha(0.40f).ToU32(), "W");
         }
@@ -135,7 +162,9 @@ namespace Solar::Widgets {
         draw->AddLine(center, fovRight, pal.Accent.WithAlpha(0.60f).ToU32(), 1.0f);
 
         // 7. Tracked Entity Blips
-        float meterToPix = radius / (settings.rangeMeters > 0.001f ? settings.rangeMeters : 1.0f);
+        float zoomFactor = (std::clamp)(settings.zoom, 0.2f, 4.0f);
+        float meterToPix = (radius / (settings.rangeMeters > 0.001f ? settings.rangeMeters : 1.0f)) * zoomFactor;
+        float blipRadius = (std::clamp)(settings.blipSize, 1.5f, 9.0f);
 
         for (const auto& ent : entities) {
             float relX = ent.x * meterToPix;
@@ -145,12 +174,20 @@ namespace Solar::Widgets {
             ImVec2 blipPos;
             bool clamped = false;
 
-            if (dist > radius - 4.0f) {
-                float norm = (radius - 4.0f) / dist;
-                blipPos = ImVec2(center.x + relX * norm, center.y + relY * norm);
-                clamped = true;
+            if (isCircle) {
+                if (dist > radius - 4.0f) {
+                    float norm = (radius - 4.0f) / dist;
+                    blipPos = ImVec2(center.x + relX * norm, center.y + relY * norm);
+                    clamped = true;
+                } else {
+                    blipPos = ImVec2(center.x + relX, center.y + relY);
+                }
             } else {
-                blipPos = ImVec2(center.x + relX, center.y + relY);
+                float maxOffset = radius - 4.0f;
+                float clampedX = (std::clamp)(relX, -maxOffset, maxOffset);
+                float clampedY = (std::clamp)(relY, -maxOffset, maxOffset);
+                if (clampedX != relX || clampedY != relY) clamped = true;
+                blipPos = ImVec2(center.x + clampedX, center.y + clampedY);
             }
 
             Color blipColor = ent.isEnemy ? pal.Danger : Color(0.18f, 0.78f, 0.52f, 1.0f);
@@ -167,14 +204,13 @@ namespace Solar::Widgets {
                 draw->AddTriangleFilled(arrTip, arrB1, arrB2, blipColor.ToU32());
             } else {
                 // Entity dot
-                float blipRadius = 3.5f;
                 draw->AddCircleFilled(blipPos, blipRadius, blipColor.ToU32(), 16);
                 draw->AddCircle(blipPos, blipRadius, IM_COL32(255, 255, 255, 120), 16, 1.0f);
 
                 // Directional Heading Indicator
                 if (settings.showHeadingCones) {
                     float yawRad = (ent.yaw - 90.0f) * (3.14159265f / 180.0f);
-                    float dirLen = 8.0f;
+                    float dirLen = blipRadius + 5.0f;
                     ImVec2 dirEnd(blipPos.x + std::cos(yawRad) * dirLen, blipPos.y + std::sin(yawRad) * dirLen);
                     draw->AddLine(blipPos, dirEnd, blipColor.ToU32(), 1.5f);
                 }
@@ -182,16 +218,20 @@ namespace Solar::Widgets {
                 // Altitude Indicator (^ if above, v if below)
                 if (std::abs(ent.z) > 1.8f) {
                     const char* altChar = ent.z > 0.0f ? "^" : "v";
-                    draw->AddText(ImVec2(blipPos.x + 4.0f, blipPos.y - 7.0f), blipColor.ToU32(), altChar);
+                    draw->AddText(ImVec2(blipPos.x + blipRadius + 2.0f, blipPos.y - 7.0f), blipColor.ToU32(), altChar);
                 }
             }
         }
 
         // 8. Outer Bezel & Specular Sheen
-        draw->AddCircle(center, radius, pal.Border.ToU32(), 64, 1.2f);
-        // Top specular arc sheen
-        draw->PathArcTo(center, radius - 0.5f, -3.14159f * 0.75f, -3.14159f * 0.25f, 32);
-        draw->PathStroke(IM_COL32(255, 255, 255, 45), 0, 1.2f);
+        if (isCircle) {
+            draw->AddCircle(center, radius, pal.Border.ToU32(), 64, 1.2f);
+            draw->PathArcTo(center, radius - 0.5f, -3.14159f * 0.75f, -3.14159f * 0.25f, 32);
+            draw->PathStroke(IM_COL32(255, 255, 255, 45), 0, 1.2f);
+        } else {
+            draw->AddRect(boxMin, boxMax, pal.Border.ToU32(), boxRounding, 0, 1.2f);
+            Render::ImGuiExt::DrawSpecularEdge(draw, boxMin, boxMax, IM_COL32(255, 255, 255, 40), boxRounding, 1.0f);
+        }
     }
 
 } // namespace Solar::Widgets

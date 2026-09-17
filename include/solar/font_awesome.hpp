@@ -45,3 +45,12 @@
 #define ICON_FA_TRIANGLE_EXCLAMATION "\xef\x81\xb1" // 0xf071
 #define ICON_FA_LINK                 "\xef\x83\x81" // 0xf0c1
 #define ICON_FA_GAMEPAD              "\xef\x84\x9b" // 0xf11b
+#define ICON_FA_MOON                 "\xef\x86\x86" // 0xf186
+#define ICON_FA_GHOST                "\xef\x9b\xa2" // 0xf6e2
+#define ICON_FA_SNOWFLAKE            "\xef\x8b\x9c" // 0xf2dc
+#define ICON_FA_GEM                  "\xef\x8e\xa5" // 0xf3a5
+#define ICON_FA_KEYBOARD             "\xef\x84\x9c" // 0xf11c
+#define ICON_FA_USERS                "\xef\x83\x80" // 0xf0c0
+#define ICON_FA_TAG                  "\xef\x80\xab" // 0xf02b
+#define ICON_FA_DESKTOP              "\xef\x84\x88" // 0xf108
+#define ICON_FA_LOCATION_ARROW       "\xef\x84\xa4" // 0xf124

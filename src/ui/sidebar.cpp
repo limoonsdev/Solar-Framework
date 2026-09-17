@@ -108,8 +108,12 @@ namespace Solar::UI {
 
         if (icon) {
             u32 iconCol = selected ? pal.Accent.ToU32() : (hovered ? pal.TextPrimary.ToU32() : pal.TextSecondary.ToU32());
-            ImVec2 sz = ImGui::CalcTextSize(icon);
-            if (sz.x > 2.0f) {
+            ImFont* curFont = ImGui::GetFont();
+            unsigned int cPoint = 0;
+            ImTextCharFromUtf8(&cPoint, icon, icon + strlen(icon));
+            bool hasGlyph = curFont ? curFont->IsGlyphInFont((ImWchar)cPoint) : false;
+
+            if (hasGlyph) {
                 // Optical vertical alignment for FontAwesome icon glyph
                 draw->AddText(ImVec2(textOffsetX, textOffsetY - 0.75f), iconCol, icon);
             } else {

@@ -75,6 +75,8 @@
 #include "ui/welcome_screen.hpp"
 #include "ui/cursor.hpp"
 #include "ui/satellite_window.hpp"
+#include "ui/kill_banner.hpp"
+#include "ui/command_palette.hpp"
 
 // ==============================================================================
 // 7. Interactive Widgets Suite

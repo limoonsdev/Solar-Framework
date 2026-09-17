@@ -110,6 +110,57 @@ namespace Solar {
 
         PushNavHistory(0);
         ThemeManager::Get().ApplyPreset(ThemePreset::ObsidianVeil);
+
+        m_radarEntities = {
+            { 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f },
+            { -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f },
+            { -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f },
+            { 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f },
+            { 6.0f, 32.0f, 1.2f, 15.0f, true, false, 0.90f }
+        };
+
+        // Register Command Palette Commands (Ctrl + P)
+        auto& cp = UI::CommandPalette::Get();
+        cp.RegisterCommand("Go to: Combat & Aimbot", "Navigation", "Tab 1", ICON_FA_CROSSHAIRS, [this]() {
+            SetCurrentTab(0);
+        });
+        cp.RegisterCommand("Go to: Visuals 2.0 & ESP", "Navigation", "Tab 2", ICON_FA_EYE, [this]() {
+            SetCurrentTab(1);
+        });
+        cp.RegisterCommand("Go to: Radar & HUD Overlays", "Navigation", "Tab 3", ICON_FA_EXPAND, [this]() {
+            SetCurrentTab(2);
+        });
+        cp.RegisterCommand("Go to: Widget Suite", "Navigation", "Tab 4", ICON_FA_SLIDERS, [this]() {
+            SetCurrentTab(3);
+        });
+        cp.RegisterCommand("Go to: Security & Pattern Scanner", "Navigation", "Tab 5", ICON_FA_SHIELD, [this]() {
+            SetCurrentTab(4);
+        });
+        cp.RegisterCommand("Go to: License & Auth", "Navigation", "Tab 6", ICON_FA_LOCK, [this]() {
+            SetCurrentTab(5);
+        });
+        cp.RegisterCommand("Go to: Themes & Engine Preferences", "Navigation", "Tab 7", ICON_FA_PALETTE, [this]() {
+            SetCurrentTab(6);
+        });
+        cp.RegisterCommand("Go to: Profiles & Presets", "Navigation", "Tab 8", ICON_FA_FLOPPY_DISK, [this]() {
+            SetCurrentTab(7);
+        });
+        cp.RegisterCommand("Trigger Kill Frag Banner (Esports Popup)", "Combat", "Test", ICON_FA_SKULL, []() {
+            UI::TriggerKillBanner("Jett_Main_99", "VANDAL PRIME", 160, true, 4);
+        });
+        cp.RegisterCommand("Toggle Tactical Radar Window", "Overlays", "F1", ICON_FA_CROSSHAIRS, [this]() {
+            m_showRadarWindow = !m_showRadarWindow;
+        });
+        cp.RegisterCommand("Toggle Watermark Overlay", "Overlays", "", ICON_FA_TAG, [this]() {
+            m_showWatermark = !m_showWatermark;
+        });
+        cp.RegisterCommand("Toggle Advanced Big Screen Watermark", "Overlays", "", ICON_FA_DESKTOP, [this]() {
+            m_screenWatermark.enabled = !m_screenWatermark.enabled;
+        });
+        cp.RegisterCommand("Cycle Cursor Visual Style", "Preferences", "", ICON_FA_LOCATION_ARROW, []() {
+            int nextStyle = (static_cast<int>(UI::CustomCursor::Get().GetStyle()) + 1) % 5;
+            UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(nextStyle));
+        });
     }
 
     void DemoApp::Render() {
@@ -296,39 +347,51 @@ namespace Solar {
                                       userHovered ? pal.Accent.ToU32() : pal.TextDisabled.ToU32(), ICON_FA_CHEVRON_RIGHT);
 
                     // Floating User Profile Context Menu
-                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 200.0f), ImGuiCond_Always);
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
+                    ImGui::SetNextWindowPos(ImVec2(userPos.x, userPos.y - 265.0f), ImGuiCond_Always);
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
                     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
-                    ImGui::PushStyleColor(ImGuiCol_PopupBg, pal.Card.WithAlpha(0.96f).ToVec4());
-                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Border.ToVec4());
+                    ImGui::PushStyleColor(ImGuiCol_PopupBg, pal.Card.WithAlpha(0.98f).ToVec4());
+                    ImGui::PushStyleColor(ImGuiCol_Border, pal.Accent.WithAlpha(0.60f).ToVec4());
 
                     if (ImGui::BeginPopup("##UserProfilePopup")) {
                         ImGui::TextColored(pal.Accent, "SolarDev Account");
                         ImGui::TextColored(pal.TextDisabled, "ID: #SLR-9842 | Tier: VIP");
                         Widgets::Separator();
 
-                        if (Widgets::Button("Copy HWID", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                        if (Widgets::Button("Command Palette (Ctrl+P)", ImVec2(175.0f, 26.0f), ButtonStyle::Primary)) {
+                            UI::ToggleCommandPalette();
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button("Test Kill Frag Banner", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
+                            UI::TriggerKillBanner("Jett_Main_99", "VANDAL PRIME", 160, true, 3);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        Widgets::Spacing(2.0f);
+
+                        if (Widgets::Button("Copy HWID", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
                             ImGui::SetClipboardText("HWID-SOLAR-7F9A-4B21-99CE-DEV");
                             Notify::Success("HWID Copied", "Client hardware identifier copied to clipboard.");
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Switch Profile", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                        if (Widgets::Button("Profiles & Presets", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
                             m_currentTab = 7; // Profiles tab
                             PushNavHistory(7);
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Themes & Engine", ImVec2(165.0f, 28.0f), ButtonStyle::Secondary)) {
+                        if (Widgets::Button("Themes & Engine", ImVec2(175.0f, 26.0f), ButtonStyle::Secondary)) {
                             m_currentTab = 6; // Themes tab
                             PushNavHistory(6);
                             ImGui::CloseCurrentPopup();
                         }
                         Widgets::Spacing(2.0f);
 
-                        if (Widgets::Button("Sign Out / Lock", ImVec2(165.0f, 28.0f), ButtonStyle::Danger)) {
+                        if (Widgets::Button("Sign Out / Lock", ImVec2(175.0f, 26.0f), ButtonStyle::Danger)) {
                             m_currentTab = 5; // License tab
                             PushNavHistory(5);
                             Notify::Warning("Session Locked", "Authorization locked. Please re-enter license key.");
@@ -696,20 +759,27 @@ namespace Solar {
 
                         if (m_miscSubTab == 0) {
                             if (Widgets::BeginCard("##RadarCard", "2D Tactical Mini-Radar", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                                static Widgets::RadarSettings radarSettings;
-                                static std::vector<Widgets::RadarEntity> radarEntities;
-                                if (radarEntities.empty()) {
-                                    radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
-                                    radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
-                                    radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
-                                    radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
+                                if (m_radarEntities.empty()) {
+                                    m_radarEntities.push_back({ 14.0f, 22.0f, 0.0f, 45.0f, true, false, 1.0f });
+                                    m_radarEntities.push_back({ -18.0f, 12.0f, 2.5f, 120.0f, true, false, 0.65f });
+                                    m_radarEntities.push_back({ -8.0f, -25.0f, -1.0f, 280.0f, false, false, 1.0f });
+                                    m_radarEntities.push_back({ 30.0f, -14.0f, 0.0f, 195.0f, true, true, 0.30f });
                                 }
-                                Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 255.0f), radarSettings, radarEntities);
+                                Widgets::Radar("##TacticalRadarDisplay", ImVec2(cardWidth - 24.0f, 220.0f), m_radarSettings, m_radarEntities);
                                 Widgets::Separator();
 
-                                Widgets::Toggle("Sweep Beam Animation", &radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
-                                Widgets::Toggle("Directional Heading Cones", &radarSettings.showHeadingCones, "Entity orientation vectors");
-                                Widgets::SliderFloat("Radar Radius", &radarSettings.rangeMeters, 15.0f, 80.0f, "%.0f", "m");
+                                const char* radarShapes[] = { "Circular Dial", "Rounded Square", "Square Cartesian" };
+                                int curShape = static_cast<int>(m_radarSettings.shape);
+                                if (Widgets::Combo("Radar Geometry", &curShape, radarShapes, 3)) {
+                                    m_radarSettings.shape = static_cast<Widgets::RadarShape>(curShape);
+                                }
+                                Widgets::SliderFloat("Radar Zoom", &m_radarSettings.zoom, 0.5f, 2.5f, "%.2f", "x");
+                                Widgets::SliderFloat("Blip Marker Size", &m_radarSettings.blipSize, 2.0f, 6.0f, "%.1f", "px");
+                                Widgets::SliderFloat("Radar Radius", &m_radarSettings.rangeMeters, 15.0f, 120.0f, "%.0f", "m");
+                                Widgets::Toggle("Sweep Beam Animation", &m_radarSettings.showSweep, "Continuous rotating phosphorescent sweep");
+                                Widgets::Toggle("Directional Heading Cones", &m_radarSettings.showHeadingCones, "Entity orientation vectors");
+                                Widgets::Toggle("Tactical Cartesian Grid", &m_radarSettings.showGrid);
+                                Widgets::Toggle("Concentric Distance Rings", &m_radarSettings.showRings);
 
                                 Widgets::EndCard();
                             }
@@ -724,20 +794,32 @@ namespace Solar {
                                 Widgets::Toggle("Show Engine Telemetry Profiler", &m_showProfiler);
                                 Widgets::Separator();
 
+                                ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Combat Frag Telemetry:");
+                                Widgets::Spacing(4.0f);
+
+                                if (Widgets::Button("Test Esports Kill Banner (Frag Popup)", ImVec2(0, 34), ButtonStyle::Primary)) {
+                                    static int killStreak = 1;
+                                    killStreak = (killStreak % 5) + 1;
+                                    const char* victims[] = { "Sova_Main_99", "Reyna_Duels", "Jett_Pro_42", "Phoenix_Ace", "Omen_Shadow" };
+                                    const char* weapons[] = { "VANDAL PRIME", "OPERATOR DRAGON", "PHANTOM ONI", "SHERIFF REAVER", "VANDAL REAVER" };
+                                    UI::TriggerKillBanner(victims[killStreak - 1], weapons[killStreak - 1], 160, true, killStreak);
+                                }
+                                Widgets::Spacing(6.0f);
+
                                 ImGui::TextColored(ThemeManager::Get().GetPalette().TextSecondary, "Trigger Notification Toasts:");
                                 Widgets::Spacing(4.0f);
 
-                                if (Widgets::Button("Post Success Notification", ImVec2(0, 34), ButtonStyle::Primary)) {
+                                if (Widgets::Button("Post Success Notification", ImVec2(0, 30), ButtonStyle::Secondary)) {
                                     Notify::Success("Solar Framework", "Operation finished successfully!");
                                 }
                                 Widgets::Spacing(4.0f);
 
-                                if (Widgets::Button("Post Warning Notification", ImVec2(0, 34), ButtonStyle::Secondary)) {
+                                if (Widgets::Button("Post Warning Notification", ImVec2(0, 30), ButtonStyle::Secondary)) {
                                     Notify::Warning("Security Alert", "High memory signature detected.");
                                 }
                                 Widgets::Spacing(4.0f);
 
-                                if (Widgets::Button("Post Error Notification", ImVec2(0, 34), ButtonStyle::Danger)) {
+                                if (Widgets::Button("Post Error Notification", ImVec2(0, 30), ButtonStyle::Danger)) {
                                     Notify::Error("Hook Failure", "Failed to resolve swapchain pointer.");
                                 }
 
@@ -1127,6 +1209,11 @@ namespace Solar {
                                 if (Widgets::Toggle("Cyber Glowing Cursor", &cursorEnabled, "Theme-reactive neon core with trailing ghost and click ripple")) {
                                     UI::CustomCursor::Get().SetEnabled(cursorEnabled);
                                 }
+                                const char* cursorStyles[] = { "Cyber Arrow", "Crosshair Dot", "Cyber Dot", "Precision Triangle", "Minimal Ring" };
+                                int curStyle = static_cast<int>(UI::CustomCursor::Get().GetStyle());
+                                if (Widgets::Combo("Cursor Visual Style", &curStyle, cursorStyles, 5)) {
+                                    UI::CustomCursor::Get().SetStyle(static_cast<UI::CursorStyle>(curStyle));
+                                }
                                 Widgets::Toggle("Rotating Glowing Borders", &m_enableRotatingBorders);
                                 if (Widgets::Button("Launch Luxury Welcome Screen", ImVec2(0, 34), ButtonStyle::Primary)) {
                                     UI::WelcomeScreen::Get().Show();
@@ -1395,6 +1482,17 @@ namespace Solar {
                 }
             }
         }
+
+        // Tactical Radar External HUD Window
+        if (m_showRadarWindow) {
+            Game::RadarWindow::Render(&m_showRadarWindow, m_radarSettings, m_radarEntities);
+        }
+
+        // Esports Kill Frag Banner Notification Popup
+        UI::KillBanner::Get().Render();
+
+        // High-Tech Quick Command Palette (Ctrl + P)
+        UI::CommandPalette::Get().Render();
 
         UI::CustomCursor::Get().Render();
     }

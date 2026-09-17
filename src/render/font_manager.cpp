@@ -25,28 +25,7 @@ namespace Solar::Render {
         float titleSize = 18.0f * m_dpiScale;
         float iconSize = 14.5f * m_dpiScale;
 
-        // Try Segoe UI SemiBold
-        if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
-            m_bold = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", baseSize, &fontConfig);
-        }
-
-        if (GetFileAttributesA("C:\\Windows\\Fonts\\segoeui.ttf") != INVALID_FILE_ATTRIBUTES) {
-            m_regular = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseSize, &fontConfig);
-        } else {
-            m_regular = io.Fonts->AddFontDefault(&fontConfig);
-        }
-
-        if (!m_bold) m_bold = m_regular;
-
-        // Title font
-        if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
-            m_title = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", titleSize, &fontConfig);
-        } else {
-            m_title = m_bold;
-        }
-
-        // Merge FontAwesome 6 icons into primary font
-        // Search multiple paths (cwd, exe directory, parent directory)
+        // Helper lambda to merge FontAwesome 6 icons into a font
         char exePath[MAX_PATH] = {};
         GetModuleFileNameA(nullptr, exePath, MAX_PATH);
         char* lastSlash = strrchr(exePath, '\\');
@@ -69,19 +48,45 @@ namespace Solar::Render {
             }
         }
 
-        ImFontConfig iconConfig;
-        iconConfig.MergeMode = true;
-        iconConfig.PixelSnapH = true;
-        iconConfig.OversampleH = 3;
-        iconConfig.OversampleV = 3;
-        iconConfig.RasterizerMultiply = 1.15f;
-        static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
+        auto mergeIconsInto = [&](ImFont* fontTarget) {
+            if (!fontTarget) return;
+            ImFontConfig iconConfig;
+            iconConfig.MergeMode = true;
+            iconConfig.PixelSnapH = true;
+            iconConfig.OversampleH = 3;
+            iconConfig.OversampleV = 3;
+            iconConfig.RasterizerMultiply = 1.15f;
+            static const ImWchar icon_ranges[] = { 0xe000, 0xf8ff, 0 };
 
-        if (!foundFontPath.empty()) {
-            m_icons = io.Fonts->AddFontFromFileTTF(foundFontPath.c_str(), iconSize, &iconConfig, icon_ranges);
-        } else {
-            m_icons = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconSize, &iconConfig, icon_ranges);
+            if (!foundFontPath.empty()) {
+                io.Fonts->AddFontFromFileTTF(foundFontPath.c_str(), iconSize, &iconConfig, icon_ranges);
+            } else {
+                io.Fonts->AddFontFromMemoryCompressedBase85TTF(FontAwesomeSolid_compressed_data_base85, iconSize, &iconConfig, icon_ranges);
+            }
+        };
+
+        // Try Segoe UI SemiBold (Default Base Font)
+        if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
+            m_bold = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", baseSize, &fontConfig);
         }
+        if (!m_bold) m_bold = io.Fonts->AddFontDefault(&fontConfig);
+        mergeIconsInto(m_bold);
+
+        if (GetFileAttributesA("C:\\Windows\\Fonts\\segoeui.ttf") != INVALID_FILE_ATTRIBUTES) {
+            m_regular = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", baseSize, &fontConfig);
+        } else {
+            m_regular = m_bold;
+        }
+        if (m_regular != m_bold) mergeIconsInto(m_regular);
+
+        // Title font
+        if (GetFileAttributesA("C:\\Windows\\Fonts\\seguisb.ttf") != INVALID_FILE_ATTRIBUTES) {
+            m_title = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\seguisb.ttf", titleSize, &fontConfig);
+        } else {
+            m_title = m_bold;
+        }
+        if (m_title != m_bold) mergeIconsInto(m_title);
+        m_icons = m_bold;
 
         // Load Video Game Fonts at Medium and Large scales for Watermarks
         struct GamingFontDef {

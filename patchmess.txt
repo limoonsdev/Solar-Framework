@@ -1,0 +1,14 @@
+[#] - Version & numéro de commit : v1.0.3-dev [commit: 02c474d]
+[+] - ajout : Palette de commande rapide Ctrl + P (CommandPalette) avec fuzzy-search, navigation clavier fluide (flèches haut/bas, Entrée, Échap), catégorisation et actions globales
+[+] - ajout : Système de popup Kill Banner Esports (KillBanner) avec animation spring, badge headshot critique, télémétrie de dégâts, nom d'arme, streak badge multi-kill et barre de vie résiduelle
+[+] - ajout : 5 styles de curseurs custom ultra-fluides (CyberArrow, CrosshairDot, CyberDot, PrecisionTriangle, MinimalRing) sélectionnables dans l'onglet Préférences
+[+] - ajout : Grip de redimensionnement de fenêtre interactif et stylisé dans le coin inférieur droit (Window::RenderResizeGrip) avec hachures lumineuses
+[+] - ajout : Moteur de radar tactique ultra configurable avec géométries au choix (Cercle, Carré arrondi, Carré cartésien), curseur de zoom, taille des blips, grille cartésienne et fenêtre HUD externe dédiée
+[+] - ajout : Menu contextuel moderne au clic sur le profil utilisateur SolarDev en bas de la sidebar avec liste d'options (palette Ctrl+P, test kill banner, copie HWID, profils, thèmes, verrouillage)
+[+] - ajout : Chargement et intégration native de la typographie tactique Valorant (ValorantTactical / Bahnschrift)
+[-] - retrait : Suppression complète du répertoire Solar Studio [BETA v0.1.2] et de launch_studio.bat à la demande de l'utilisateur pour une liberté totale de personnalisation en C++ natif
+[-] - retrait : Nettoyage de la cible de compilation solar_studio dans CMakeLists.txt
+[\] - fix : Alignement optique et centrage parfait des textes dans les pilules de raccourcis/keybinds pour éviter tout contact avec les bordures
+[\] - fix : Correction définitive des glyphes manquants et icônes "?" dans les hexagones grâce à la fusion des fontes FontAwesome et détection IsGlyphInFont avec fallback vectoriel automatique
+[\] - fix : Optimisation des performances du mannequin 3D ESP Preview pour garantir une fluidité absolue sans perte de fidélité visuelle
+[\] - fix : Correction du clipping en bas de page pour que la fin de tous les menus et cartes soit parfaitement visible
