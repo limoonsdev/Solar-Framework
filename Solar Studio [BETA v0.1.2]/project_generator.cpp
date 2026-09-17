@@ -99,10 +99,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     
     // Apply Studio Visual Calibration
     auto& theme = Solar::ThemeManager::Get();
-    Solar::Palette customPal = theme.GetPalette();
-    customPal.Accent = Solar::Color()" << config.accentColor[0] << "f, " << config.accentColor[1] << "f, " << config.accentColor[2] << "f, " << config.accentColor[3] << R"(f);
-    customPal.Card = Solar::Color()" << config.cardColor[0] << "f, " << config.cardColor[1] << "f, " << config.cardColor[2] << "f, " << config.cardColor[3] << R"(f);
-    theme.SetCustomPalette(customPal);
+    theme.GetPalette().Accent = Solar::Color()" << config.accentColor[0] << "f, " << config.accentColor[1] << "f, " << config.accentColor[2] << "f, " << config.accentColor[3] << R"(f);
+    theme.GetPalette().Card = Solar::Color()" << config.cardColor[0] << "f, " << config.cardColor[1] << "f, " << config.cardColor[2] << "f, " << config.cardColor[3] << R"(f);
+    theme.SyncWithImGui();
 
     auto& style = theme.GetStyle();
     style.WindowRounding = )" << config.borderRounding << R"(f;
@@ -266,9 +265,8 @@ void RenderInProcessOverlay(IDXGISwapChain* pSwapChain) {
         
         // Apply Studio Visual Settings
         auto& theme = Solar::ThemeManager::Get();
-        Solar::Palette customPal = theme.GetPalette();
-        customPal.Accent = Solar::Color()" << config.accentColor[0] << "f, " << config.accentColor[1] << "f, " << config.accentColor[2] << "f, " << config.accentColor[3] << R"(f);
-        theme.SetCustomPalette(customPal);
+        theme.GetPalette().Accent = Solar::Color()" << config.accentColor[0] << "f, " << config.accentColor[1] << "f, " << config.accentColor[2] << "f, " << config.accentColor[3] << R"(f);
+        theme.SyncWithImGui();
         theme.GetStyle().WindowRounding = )" << config.borderRounding << R"(f;
         theme.GetStyle().CardRounding = )" << config.borderRounding << R"(f;
 

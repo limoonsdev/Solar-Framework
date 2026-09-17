@@ -166,6 +166,7 @@ target_include_directories(solar_demo PRIVATE
 set(STUDIO_SOURCES
     "Solar Studio [BETA v0.1.2]/main.cpp"
     "Solar Studio [BETA v0.1.2]/studio_app.cpp"
+    "Solar Studio [BETA v0.1.2]/solar_ai.cpp"
     "Solar Studio [BETA v0.1.2]/project_generator.cpp"
     "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
     "${IMGUI_DIR}/backends/imgui_impl_dx11.cpp"
