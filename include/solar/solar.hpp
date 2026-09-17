@@ -119,6 +119,8 @@
 #include "game/recoil_visualizer.hpp"
 #include "game/trajectory_renderer.hpp"
 #include "game/obb_renderer.hpp"
+#include "game/fov_renderer.hpp"
+#include "game/skin_changer.hpp"
 
 // ==============================================================================
 // 9. Security & Anti-Cheat Utilities
@@ -203,6 +205,11 @@ namespace Solar {
     using TrajectoryRenderer = Game::TrajectoryRenderer;
     using RecoilWeapon = Game::RecoilWeapon;
     using ProjectileType = Game::ProjectileType;
+    using FOVSettings = Game::FOVSettings;
+    using FOVRenderer = Game::FOVRenderer;
+    using SkinRarity = Game::SkinRarity;
+    using SkinItem = Game::SkinItem;
+    using SkinChangerPreview = Game::SkinChangerPreview;
 
     namespace Widgets {
         inline bool BeginWindow(const char* name, bool* p_open, const ImVec2& size = ImVec2(940, 620)) {
@@ -273,7 +280,24 @@ namespace Solar {
         inline void SpooferPanel(Security::SpooferState& state) {
             Security::SpooferPanel::Render(state);
         }
+
+        inline void FOVPreview(const char* id, const ImVec2& size, Game::FOVSettings& settings) {
+            Game::FOVRenderer::RenderPreview(id, size, settings);
+        }
+
+        inline void SkinChanger(const char* id, const ImVec2& size, Game::SkinItem& item, std::vector<Game::SkinItem>& inventory) {
+            Game::SkinChangerPreview::Render(id, size, item, inventory);
+        }
     }
+
+    // Engine Mode (External Overlay vs Internal DLL with full DX11 Isolation)
+    enum class FrameworkMode {
+        External = 0, // Standalone desktop window / external overlay
+        Internal = 1  // In-process SwapChain hook / DLL mode with full DirectX 11 pipeline isolation
+    };
+
+    void SetMode(FrameworkMode mode);
+    FrameworkMode GetMode();
 
     // Engine Lifecycle
     void Initialize();

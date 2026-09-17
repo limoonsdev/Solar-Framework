@@ -10,10 +10,10 @@
  |____/ \___/|_____/_/   \_\_| \_\  |_|   |_| \_\/_/   \_\_|  |_|_____|  \_/\_/  \___/|_| \_\_|\_\
 ```
 
-**Production-grade C++20 Dear ImGui & DirectX 11/12 Engine for Game Security Tools, Cheats, and Loaders**
+**Production-grade C++20 Dear ImGui & DirectX 11/12 GUI & Simulation Engine for Games, Overlays, Telemetry, and Interactive Tools**
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square&logo=github)](https://github.com/mp0b/Solar-Framework)
-[![Version](https://img.shields.io/badge/Version-v0.0.2--dev-orange?style=flat-square)](https://github.com/mp0b/Solar-Framework/tree/dev)
+[![Version](https://img.shields.io/badge/Version-v1.0.2--dev-orange?style=flat-square)](https://github.com/mp0b/Solar-Framework/tree/dev)
 [![Standard](https://img.shields.io/badge/Standard-C%2B%2B20-blue?style=flat-square&logo=c%2B%2B)](https://en.cppreference.com/w/cpp/20)
 [![Graphics](https://img.shields.io/badge/Backend-DirectX%2011%20%2F%2012-informational?style=flat-square&logo=windows)](https://learn.microsoft.com/en-us/windows/win32/direct3d11/)
 [![GUI Core](https://img.shields.io/badge/Core-Dear%20ImGui%20Docking-purple?style=flat-square)](https://github.com/ocornut/imgui)
@@ -26,65 +26,186 @@
 ## 📌 Index
 
 1. [Overview](#-overview)
-2. [Key Architecture Subsystems](#-key-architecture-subsystems)
-3. [Quickstart & Build](#-quickstart--build)
-4. [Internal DirectX 11 Hook Guide](#-internal-directx-11-hook-guide)
-5. [Visuals 2.0 & ESP Engine](#-visuals-20--esp-engine)
-6. [Studio 3D Mannequin Preview (`ESPPreview`)](#-studio-3d-mannequin-preview-esppreview)
-7. [Motion Physics Engine (`Solar::Anim`)](#-motion-physics-engine-solaranim)
-8. [UI Widget Suite (100+ Controls)](#-ui-widget-suite-100-controls)
-9. [AOB Memory Pattern Scanner (`PatternScanner`)](#-aob-memory-pattern-scanner-patternscanner)
-10. [Recoil Pattern & Ballistics Engines](#-recoil-pattern--ballistics-engines)
-11. [Modded ImGui Engine (`ImGuiExt`)](#-modded-imgui-engine-imguiext)
-12. [Procedural Audio Engine (Zero WAV Files)](#-procedural-audio-engine-zero-wav-files)
-13. [HWID Spoofer & Trace Cleaner](#-hwid-spoofer--trace-cleaner)
-14. [Repository Layout](#-repository-layout)
+2. [What's New in v1.0.2](#-whats-new-in-v102)
+3. [Solar Studio [BETA v0.1.2]](#-solar-studio-beta-v012)
+4. [Solar-Render & Crash-Proof UE4/UE5 Engine](#-solar-render--crash-proof-ue4ue5-engine)
+5. [Creamy Tactile Audio Engine](#-creamy-tactile-audio-engine)
+6. [Dynamic FOV & Reticle Engine (`FOVRenderer`)](#-dynamic-fov--reticle-engine-fovrenderer)
+7. [Cosmetic & Skin Changer Suite (`SkinChangerPreview`)](#-cosmetic--skin-changer-suite-skinchangerpreview)
+8. [Visuals & Simulation Subsystems](#-visuals--simulation-subsystems)
+9. [UI Widget Suite (100+ Controls)](#-ui-widget-suite-100-controls)
+10. [Quickstart & Build Instructions](#-quickstart--build-instructions)
+11. [Repository Layout](#-repository-layout)
 
 ---
 
 ## 📖 Overview
 
-**Solar Framework** is an engineered C++20 application framework built on top of **Dear ImGui (docking branch)** and native **DirectX 11 / 12**.
+**Solar Framework** is an engineered, industrial-strength C++20 user interface and simulation engine built on top of **Dear ImGui (docking branch)** and native **DirectX 11 & DirectX 12**.
 
-Unlike basic UI skins, Solar provides a complete native ecosystem for cheat developers, reverse engineers, and tool creators:
+Designed for telemetry dashboards, game tools, simulation software, and high-performance interactive graphics:
 - **Zero-DWM Blur**: Physical 1:1 Per-Monitor DPI Aware v2 scaling with 3x subpixel font oversampling.
-- **Visuals 2.0 Engine**: World-to-Screen primitives including 3D Oriented Bounding Boxes (OBB), gradient boxes, glow contours, capsule hitboxes, acoustic wave rings, dynamic spread crosshairs, and floating damage numbers.
-- **Studio 3D ESP Preview**: Real-time 360-degree interactive orbital preview via mouse drag with a 5-stance mannequin state machine.
-- **Motion Physics Solver (`Solar::Anim`)**: 4th-order Runge-Kutta (RK4) spring integration, multi-dimensional `Spring2D`, game-camera `SmoothDamp`, and keyframe `Timeline` sequencer.
-- **Expanded UI Widgets**: Segmented controls, range sliders, number steppers, search filters, tag multi-selectors, 270° rotary knobs, collapsible accordions, and KPI stat cards with live sparklines.
-- **Cheating & Reversing Subsystems**: Multi-byte IDA signature scanner (`PatternScanner`), weapon recoil visualizer with mouse compensation curves (`RecoilVisualizer`), and parabolic grenade trajectory predictor (`TrajectoryRenderer`).
-- **Procedural Audio**: In-memory 16-bit 44.1 kHz PCM synthesizer (`winmm.lib`) producing click, toggle, and alert chimes without shipping a single `.wav` file on disk.
+- **Solar-Render Pipeline**: Full 6-stage DirectX 11 pipeline isolation protecting Vertex, Pixel, Geometry, Hull, Domain, and Compute shaders along with 14 constant buffer slots for zero-crash stability in Unreal Engine 4/5 and modern game engines.
+- **Solar Studio [BETA v0.1.2]**: Built-in native C++20 studio application with an interactive drag-and-drop widget palette, live pixel-accurate canvas, pre-designed templates, and MSBuild code generator.
+- **Creamy Tactile Audio**: Rich harmonic in-memory sound synthesis replicating lubricated premium mechanical switches (warm pops, smooth glides, velvet triad chimes).
+- **Motion Physics Dynamics (`Solar::Anim`)**: 4th-order Runge-Kutta (RK4) numerical spring solver, multi-dimensional `Spring2D`, game-camera `SmoothDamp`, and multi-keyframe `Timeline` sequencer.
 
 ---
 
-## 🧩 Key Architecture Subsystems
+## 🚀 What's New in v1.0.2
 
-| Subsystem | Namespace | Description |
-| :--- | :--- | :--- |
-| **DirectX Hook Bridge** | `Solar::Render::HookBridge` | Thread-safe D3D11/D3D12 render target, rasterizer, blend state, and viewport preservation. |
-| **Visuals 2.0 Engine** | `Solar::Visuals` | 3D OBBs, gradient boxes, glow outlines, capsule hitboxes, acoustic sound waves, spread crosshairs, floating damage. |
-| **3D ESP Studio** | `Solar::Game::ESPPreview` | 360° orbital rotation mannequin with standing, crouching, scoped, jumping, and defusing stances. |
-| **Motion Dynamics** | `Solar::Anim` | RK4 numerical spring solver, 2D vector springs, critically damped `SmoothDamp`, and keyframe timeline sequencer. |
-| **Widget Suite** | `Solar::Widgets` | Segmented controls, dual-thumb range sliders, number steppers, search inputs, dropdown multi-selects, rotary knobs, accordions, and stat cards. |
-| **Modded ImGui** | `Solar::Render::ImGuiExt` | Anti-crash vertex reservation, crash-proof text, custom pills, glowing capsules, conic gradient rects. |
-| **AOB Pattern Scanner** | `Solar::Security::PatternScanner`| IDA pattern scanner (`"48 8B ? ? 74"`), relative displacement resolver, module bounds query. |
-| **Recoil Engine** | `Solar::Game::RecoilVisualizer` | Ballistic spray pattern tracker for AK-47, M4A4, Vandal, Phantom with mouse compensation curves. |
-| **Trajectory Simulator**| `Solar::Game::TrajectoryRenderer`| Parabolic grenade arc simulator with surface bounce collision points and blast radiuses. |
-| **Procedural Audio** | `Solar::Audio` | Algorithmic in-memory waveform generator (Square, Sine, Sawtooth) via `winmm`. |
-| **Security Suite** | `Solar::Security` | HWID Spoofer (SMBIOS, MAC, Disk Serial, GPU GUID) and Anti-Cheat log cleaner. |
-| **Theme Engine** | `Solar::ThemeManager` | 8 PastOwl-inspired obsidian presets, live dual-color RGB accent tuner, particle backgrounds. |
+- **Solar Studio [BETA v0.1.2]**: Standalone native IDE tool located in `Solar Studio [BETA v0.1.2]/`. Build your interfaces visually, configure pixel rounding from 0px to 30px, adjust palettes, and compile directly with MSBuild.
+- **UE4 / UE5 Crash Prevention**: Complete rewrite of `DX11StateGuard` to unbind and restore all 6 shader stages (VS, PS, GS, HS, DS, CS), 14 constant buffers, 16 SRVs/samplers, and Compute UAVs.
+- **FrameworkMode API**: Seamless switching between `FrameworkMode::External` (desktop window) and `FrameworkMode::Internal` (in-process hook DLL).
+- **Creamy Acoustic Synthesis**: Completely revamped sound bank replacing harsh tones with warm, low-resonance linear mechanical switch acoustics.
+- **Dynamic FOV Engine (`FOVRenderer`)**: Radial gradient falloff, multi-pass Gaussian glow bloom, cyber tick notches, and target acquisition states.
+- **Cosmetic & Skin Changer Suite (`SkinChangerPreview`)**: Weapon inspect card with silhouette rendering, procedural holographic shimmer, float wear degradation bar, and rarity tiers.
 
 ---
 
-## ⚡ Quickstart & Build
+## 🎨 Solar Studio [BETA v0.1.2]
+
+`Solar Studio` is a dedicated standalone C++20 / DirectX 11 application for designing and compiling Solar Framework user interfaces.
+
+### Core Features:
+- **Component Palette**: Click to add interactive widgets directly to the layout (Buttons, Sliders, Toggles, Combos, Radial Gauges, Chip Selectors, Watermarks, FOV Circles, and Skin Changers).
+- **Live WYSIWYG Canvas**: Real-time blueprint canvas showing your interface with pixel-precise borders, ambient drop shadows, and responsive controls.
+- **Property Inspector**:
+  - Border Rounding Slider: Adjust corner curvature with 1px precision (0px sharp to 30px rounded).
+  - Theme Nuancier: Real-time RGB calibration for accents, card backgrounds, and specular sheen.
+  - Typography: Live editing of window titles, subtitles, and labels.
+- **Pre-Built Design Templates**:
+  - *Tactical Overlay* (Cyber Blue & High Contrast)
+  - *Obsidian Luxury* (Deep Gold & Smoked Glass)
+  - *Cyberpunk 2077 Neon* (Vivid Pink & Dark Grid)
+  - *Minimalist Streamer HUD* (Emerald Green & Clean Lines)
+  - *Esports Pro Telemetry* (Safety Orange & Angular Accents)
+- **MSBuild Compiler Pipeline**:
+  - Auto-detection of `MSBuild.exe` across Visual Studio 2022 and 2019 installations.
+  - Generates production-ready C++20 `main.cpp`, `CMakeLists.txt`, and project configurations.
+  - Targets either **Standalone Executable (.exe)** or **Internal In-Process Hook (.dll)**.
+  - Built-in live compilation terminal displaying real-time compiler logs.
+
+---
+
+## 🛡️ Solar-Render & Crash-Proof UE4/UE5 Engine
+
+In complex rendering engines like **Unreal Engine 4 & 5** (Fortnite, Arc Raiders, Valorant), rendering an in-process ImGui menu typically crashes the GPU driver (`DXGI_ERROR_DEVICE_REMOVED`) due to residual geometry or compute shaders.
+
+**Solar-Render** resolves this by completely isolating the DirectX 11 pipeline:
+1. **6-Stage Shader Preservation**: Captures and restores `VS`, `PS`, `GS`, `HS`, `DS`, and `CS`.
+2. **Hull/Domain/Geometry Unbinding**: Explicitly detaches active tessellation and geometry shaders before ImGui draw calls.
+3. **14 Constant Buffer Slots**: Captures all 14 D3D11 constant buffers (`D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT`) across Vertex, Pixel, and Geometry stages.
+4. **Compute Shader UAV Isolation**: Captures and restores up to 8 Unordered Access Views.
+
+```cpp
+#include <solar/solar.hpp>
+#include <d3d11.h>
+
+void RenderHook(IDXGISwapChain* pSwapChain) {
+    static Solar::Hook::DX11StateGuard stateGuard;
+    
+    ID3D11Device* device = nullptr;
+    ID3D11DeviceContext* context = nullptr;
+    pSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&device);
+    device->GetImmediateContext(&context);
+
+    // 1. Full 6-Stage DirectX 11 Pipeline Isolation
+    stateGuard.Capture(context);
+
+    // 2. Solar Rendering Pass
+    Solar::NewFrame();
+    bool open = true;
+    if (Solar::Widgets::BeginWindow("##Overlay", &open)) {
+        Solar::Widgets::RenderTitlebar("Telemetry HUD", "UE5 Engine Compatible", &open);
+        // Render UI...
+        Solar::Widgets::EndWindow();
+    }
+
+    // 3. Clean State Restoration
+    stateGuard.Restore();
+
+    context->Release();
+    device->Release();
+}
+```
+
+---
+
+## 🔊 Creamy Tactile Audio Engine
+
+Solar synthesizes sound procedurally in RAM via 16-bit 44.1 kHz PCM with zero external audio assets:
+- **Creamy Mechanical Click**: 440 Hz -> 240 Hz warm low-mid sweep replicating lubricated linear switch bottom-out.
+- **Creamy Toggle Slide**: Warm rising switch glide (340 Hz -> 520 Hz).
+- **Muted Bottom-Out Thock**: Gentle descending tactile feedback (480 Hz -> 260 Hz).
+- **Velvet Triad Chime**: Warm harmonic chord (Ab4, C5, Eb5) for non-piercing notifications.
+- **Creamy Slider Micro-Tap**: 380 Hz tactile buttery micro-step without high-pitch clicks.
+
+```cpp
+#include <solar/solar.hpp>
+
+Solar::Audio::PlayClick();        // Creamy switch pop
+Solar::Audio::PlayToggle(true);   // Rising switch slide
+Solar::Audio::PlayNotification(); // Warm velvet chime
+Solar::Audio::PlaySliderTick();   // Micro-tap
+```
+
+---
+
+## 🎯 Dynamic FOV & Reticle Engine (`FOVRenderer`)
+
+Vector-smooth field-of-view indicators and tactical reticles:
+- **Radial Gradient Disk**: Volumetric colored falloff fading into the center.
+- **Multi-Pass Gaussian Bloom**: Radiant glow rings expanding around the perimeter.
+- **Cyber Tick Notches**: Cardinal and diagonal ticks with distance/degree badges.
+- **Dynamic Breathing Pulse**: Smooth sine-wave rhythmic breathing.
+- **Target Lock-On**: Dynamic color shift and rapid status feedback upon target acquisition.
+
+```cpp
+#include <solar/solar.hpp>
+
+Solar::Game::FOVSettings fovSettings;
+fovSettings.radius = 125.0f;
+fovSettings.enableGlow = true;
+fovSettings.enableCyberMarks = true;
+
+// Render standalone preview or on custom draw list
+Solar::Game::FOVRenderer::RenderPreview("##FovPreview", ImVec2(320, 320), fovSettings);
+```
+
+---
+
+## 🗡️ Cosmetic & Skin Changer Suite (`SkinChangerPreview`)
+
+Comprehensive weapon cosmetic customization widget:
+- **Vector Silhouette Rendering**: Scalable polygonal rendering of rifles, snipers, and curved blades.
+- **Procedural Shimmer**: Dynamic holographic sheen sweeping across the showcase card.
+- **Rarity Tier Badging**: Select (Blue), Deluxe (Green), Premium (Purple), Ultra (Pink), Exclusive (Gold).
+- **Float Wear Degradation Bar**: Visual indicator covering Factory New, Minimal Wear, Field-Tested, Well-Worn, and Battle-Scarred tiers with real-time needle indicator.
+- **StatTrak Module**: Integrated kill counter with illuminated LED styling.
+
+```cpp
+#include <solar/solar.hpp>
+
+Solar::Game::SkinItem activeSkin;
+activeSkin.weapon = "Vandal";
+activeSkin.skinName = "Prime 2.0";
+activeSkin.rarity = Solar::Game::SkinRarity::Ultra;
+activeSkin.floatWear = 0.0210f; // Factory New
+
+Solar::Game::SkinChangerPreview::Render("##SkinCustomizer", ImVec2(0, 420), activeSkin, inventory);
+```
+
+---
+
+## ⚡ Quickstart & Build Instructions
 
 ### Prerequisites
 - Windows 10 / 11 64-bit
 - Visual Studio 2022 (MSVC v143 / v144) with C++20 toolset
 - CMake 3.16 or newer
-- Windows SDK (DirectX 11 headers included by default)
 
-### Compilation
+### Build Everything (Library, Demo, and Solar Studio)
 ```powershell
 # Clone repository
 git clone https://github.com/mp0b/Solar-Framework.git
@@ -93,246 +214,14 @@ cd "Solar Framework"
 # Generate build files (x64 Release)
 cmake -B build -A x64
 
-# Compile static library and standalone demonstration binary
+# Compile static library, demonstration app, and Solar Studio
 cmake --build build --config Release
 ```
 
 The build produces:
-- `build/Release/solar_lib.lib`: Reusable static library.
-- `build/Release/solar_demo.exe`: Standalone showcase application.
-
----
-
-## 🔌 Internal DirectX 11 Hook Guide
-
-Solar provides `StateGuard` and `HookBridge` to safely hijack a game's DirectX 11 swap chain without breaking the game's internal render states.
-
-```cpp
-#include <solar/solar.hpp>
-#include <d3d11.h>
-
-// Called inside your hooked IDXGISwapChain::Present
-HRESULT __stdcall HookedPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
-    // 1. Automatically saves and restores all D3D11 state (OMRenderTargets, BlendState, Viewports)
-    Solar::Render::StateGuard guard(pSwapChain);
-
-    // 2. Initialize ImGui and Solar on first call
-    static bool initialized = false;
-    if (!initialized) {
-        Solar::Render::HookBridge::Get().Initialize(pSwapChain);
-        Solar::Initialize();
-        initialized = true;
-    }
-
-    // 3. Render Solar Menu and Game Visuals
-    Solar::Render::HookBridge::Get().BeginFrame();
-    
-    // Draw in-game ESP and menu widgets here
-    Solar::DemoApp::Get().Render();
-
-    Solar::Render::HookBridge::Get().EndFrame();
-
-    return oPresent(pSwapChain, SyncInterval, Flags);
-}
-```
-
----
-
-## 🎯 Visuals 2.0 & ESP Engine
-
-Solar contains an extensive visuals rendering suite located in `Solar::Visuals` (`solar/game/visuals_renderer.hpp`). All methods draw directly to any `ImDrawList*`:
-
-```cpp
-#include <solar/solar.hpp>
-
-void DrawGameVisuals(ImDrawList* drawList, const Vector2& screenMin, const Vector2& screenMax) {
-    using namespace Solar;
-
-    // 1. Multi-Stop Gradient Bounding Box
-    Visuals::DrawGradientBox2D(drawList, screenMin, screenMax, Color(1.0f, 0.45f, 0.1f, 1.0f), Color(1.0f, 0.15f, 0.1f, 1.0f));
-
-    // 2. Multi-Pass Outer Contoured Glow
-    Visuals::DrawGlowOutlineBox2D(drawList, screenMin, screenMax, Color(1.0f, 0.45f, 0.1f, 1.0f), Color(1.0f, 0.45f, 0.1f, 0.4f), 10.0f);
-
-    // 3. 3D Oriented Bounding Box (OBB)
-    Matrix3x3 rot = Matrix3x3::FromEuler(0.0f, 45.0f, 0.0f);
-    Game::OBB3D obb(Vector3(0, 0, 0), Vector3(32, 72, 32), rot);
-    Game::OBBRenderer::DrawOBB(drawList, obb, viewProjectionMatrix, Color(1.0f, 0.8f, 0.2f, 0.9f), true, 0.15f);
-
-    // 4. Acoustic Ground Wave Radar Ring
-    Visuals::DrawAcousticWave(drawList, screenCenter, 35.0f, 18.0f, 0.0f, Color(1.0f, 0.45f, 0.1f, 0.7f));
-
-    // 5. Dynamic Spread Crosshair
-    Visuals::DrawSpreadCrosshair(drawList, screenCenter, 4.0f, 24.0f, 8.0f, Color(1.0f, 0.75f, 0.15f, 1.0f), true);
-
-    // 6. Physics Floating Damage Numbers
-    Visuals::DrawFloatingDamage(drawList, damagePos, 84.0f, Color(1.0f, 0.25f, 0.25f, 1.0f), 0.9f, true);
-}
-```
-
----
-
-## 🧍 Studio 3D Mannequin Preview (`ESPPreview`)
-
-The `ESPPreview` widget supports real-time 360-degree orbital rotation via left-click mouse dragging and a 5-stance skeletal state machine:
-- **Standing**: Standard combat pose with upright spine and balanced stance.
-- **Crouching**: Compressed torso, bent knees, and lower center of mass.
-- **Scoped**: Tilted upper torso with rifle raised to eye level.
-- **Jumping**: Tucked legs and elevated arms for airborne entities.
-- **Defusing**: Kneeling angle facing downward with interaction hands.
-
-```cpp
-#include <solar/solar.hpp>
-
-// Render preview in your ESP settings tab
-Solar::Game::ESPSettings settings;
-settings.enable3DBox = true;
-settings.enableGlowOutline = true;
-settings.enableBarrelRay = true;
-settings.stance = 1; // Crouching
-
-Solar::Game::ESPPreview::Render("##StudioMannequin", ImVec2(340.0f, 320.0f), settings);
-```
-
----
-
-## 🌀 Motion Physics Engine (`Solar::Anim`)
-
-Solar replaces basic linear easing with numerical physics solvers:
-- **RK4 Numerical Spring Solver**: 4-substep Runge-Kutta numerical integration for mass-spring-damper equations without overshoot instability.
-- **`Spring2D`**: Dual independent RK4 solver for smooth 2D canvas translation, reticle lead, and cursor tracking.
-- **`SmoothDamp`**: Critically damped spring solver ensuring smooth game-camera tracking without oscillation.
-- **`Timeline`**: Multi-keyframe animation sequencer supporting custom easing curves (`Linear`, `InQuad`, `OutQuad`, `InOutQuad`, `InCubic`, `OutCubic`, `InOutCubic`, `OutBack`, `OutExpo`).
-
-```cpp
-#include <solar/solar.hpp>
-
-// RK4 Spring Dynamics
-Solar::Anim::Spring spring(0.0f);
-spring.stiffness = 180.0f;
-spring.damping = 22.0f;
-spring.mass = 1.0f;
-spring.SetTarget(100.0f);
-spring.Update(deltaTime);
-
-// Critically Damped SmoothDamp
-float currentPos = 0.0f;
-float velocity = 0.0f;
-currentPos = Solar::Anim::SmoothDamp(currentPos, 100.0f, velocity, 0.25f, 1000.0f, deltaTime);
-```
-
----
-
-## 🎛️ UI Widget Suite (100+ Controls)
-
-Solar provides a large selection of modern UI components styled with PastOwl aesthetics:
-- **`SegmentedControl`**: Animated pill selector with smooth sliding highlights.
-- **`RangeSlider`**: Dual-thumb range slider for min/max value selection.
-- **`NumberStepper`**: Compact numeric stepper with `[-]` and `[+]` action buttons.
-- **`SearchInput`**: Search field with integrated magnifying glass and `[X]` clear button.
-- **`DropdownMultiSelect`**: Multi-tag popover dropdown with active chip badges.
-- **`KnobSlider`**: 270-degree rotary dial with radial progress arc and drag tuning.
-- **`BeginAccordion` / `EndAccordion`**: Collapsible container sections with animated chevron rotation.
-- **`StatCard`**: KPI metric card with title, numeric readout, delta percentage badge, and mini sparkline trend.
-
----
-
-## 🔍 AOB Memory Pattern Scanner (`PatternScanner`)
-
-High-speed byte pattern scanning supporting standard IDA signatures (`?` and `??` wildcards) and relative RIP displacement calculation.
-
-```cpp
-#include <solar/solar.hpp>
-
-void ScanGameOffsets() {
-    using namespace Solar::Security;
-
-    // 1. Retrieve module boundaries without opening external handles
-    uintptr_t base = 0;
-    size_t size = 0;
-    if (PatternScanner::GetModuleBounds("client.dll", base, size)) {
-        printf("client.dll mapped at 0x%llX (Size: %zu bytes)\n", base, size);
-    }
-
-    // 2. Scan IDA-style pattern across module
-    uintptr_t match = PatternScanner::FindPattern("client.dll", "48 8B 05 ? ? ? ? 48 85 C0 74 12");
-    if (match) {
-        // 3. Resolve 32-bit RIP-relative displacement: mov rax, [rip + offset]
-        uintptr_t resolvedAddress = PatternScanner::ResolveRelative(match, 3, 7);
-        printf("Pattern found at: 0x%llX -> Target: 0x%llX\n", match, resolvedAddress);
-    }
-}
-```
-
----
-
-## 🔫 Recoil Pattern & Ballistics Engines
-
-### 1. Recoil Spray Visualizer (`RecoilVisualizer`)
-Renders weapon recoil patterns with shot indices and mouse compensation paths for AK-47, M4A4, Vandal, and Phantom.
-
-```cpp
-#include <solar/solar.hpp>
-
-Solar::Game::RecoilVisualizer::Render(
-    "##RecoilView",
-    ImVec2(320.0f, 320.0f),
-    Solar::Game::RecoilWeapon::AK47,
-    currentBulletIndex,
-    true /* showCompensationPath */
-);
-```
-
-### 2. Ballistic Trajectory Predictor (`TrajectoryRenderer`)
-Calculates projectile arcs taking gravity, velocity scale, throw angle, and collision bounce damping into account.
-
-```cpp
-#include <solar/solar.hpp>
-
-Solar::Game::TrajectoryRenderer::Render(
-    "##TrajSimCanvas",
-    ImVec2(320.0f, 320.0f),
-    Solar::Game::ProjectileType::HighExplosive,
-    45.0f /* pitchAngle */,
-    1.0f  /* velocityScale */
-);
-```
-
----
-
-## 🛡️ Modded ImGui Engine (`ImGuiExt`)
-
-Custom render primitives and stability enhancements that extend Dear ImGui's native pipeline:
-- `ImGuiExt::ReserveDrawlistBuffers(drawList, vtxCount, idxCount)`: Pre-allocates buffer memory, eliminating mid-frame reallocation spikes.
-- `ImGuiExt::SafeText(drawList, pos, color, text)`: Strict bounds-checked string drawer immune to format exploits.
-- `ImGuiExt::AddPill`: High-definition anti-aliased capsule primitive.
-- `ImGuiExt::AddGlowCapsule`: Multi-pass blurred volumetric glow capsule.
-- `ImGuiExt::AddConicGradientRect`: Dynamic rotating angular gradient shader rectangle.
-
----
-
-## 🔊 Procedural Audio Engine (Zero WAV Files)
-
-Generates audio purely through mathematical synthesis in system RAM:
-- **Harmonics**: Sine, triangle, square, and sawtooth waveform algorithms.
-- **Audio Primitives**: Mechanical click, toggle switch, success harmonic chime, alert notification, and error frequencies.
-- **Zero Assets**: Operates without external audio files on disk.
-
-```cpp
-#include <solar/solar.hpp>
-
-Solar::Audio::PlayClick();
-Solar::Audio::PlayToggle(true);
-Solar::Audio::PlayNotification();
-Solar::Audio::PlayError();
-```
-
----
-
-## 🔒 HWID Spoofer & Trace Cleaner
-
-- **Hardware ID Randomizer**: Dynamic generation of SMBIOS UUIDs, Motherboard Serial Numbers, Network MAC addresses, Physical Drive serials, and GPU Device GUIDs.
-- **Trace Cleaning Engine**: Eradication of DirectX shader caches, crash dumps, telemetry ETW logs, USN journals, and prefetch signatures.
+- `build/Release/solar_lib.lib`: Core static library.
+- `build/Release/solar_demo.exe`: Full feature demonstration application.
+- `build/Release/solar_studio.exe`: Standalone Solar Studio [BETA v0.1.2] IDE.
 
 ---
 
@@ -340,24 +229,27 @@ Solar::Audio::PlayError();
 
 ```
 Solar Framework/
-├── CMakeLists.txt              # Unified build definition (solar_lib & solar_demo)
-├── README.md                   # Technical documentation
+├── CMakeLists.txt                      # Root build configuration
+├── README.md                           # Documentation & specifications
+├── Solar Studio [BETA v0.1.2]/        # Standalone Native Studio Application
+│   ├── main.cpp                        # Studio WinMain & DirectX 11 runner
+│   ├── studio_app.hpp / .cpp           # Studio canvas, toolbox, inspector
+│   └── project_generator.hpp / .cpp    # MSBuild runner & C++20 code generator
 ├── include/solar/
-│   ├── solar.hpp               # Master umbrella include
-│   ├── core/                   # Math, Color, Timer, Logger, Crypto, Types
-│   ├── render/                 # D3D11/D3D12 renderers, HookBridge, StateGuard, ImGuiExt
-│   ├── anim/                   # RK4 Spring, Spring2D, SmoothDamp, Timeline, Easing
-│   ├── audio/                  # In-memory WaveSynth, SoundEffects, AudioEngine
-│   ├── theme/                  # Palette, Style, Presets, ThemeManager
-│   ├── ui/                     # Window, Titlebar, Sidebar, Card, Modal, Splash, Welcome
-│   ├── widgets/                # Segmented, RangeSlider, Stepper, Search, Dropdown, Knob, Accordion, StatCard
-│   ├── game/                   # VisualsRenderer, ESPPreview, OBBRenderer, Radar, Recoil, Trajectory
-│   ├── security/               # PatternScanner, HWIDSpoofer, TraceCleaner, MemoryTools
-│   ├── auth/                   # LicenseScreen, HWIDGenerator, AuthManager
-│   └── notifications/          # Toast, NotificationSystem
-├── src/                        # Implementation files for all subsystems
-├── demo/                       # Standalone showcase application (main.cpp, demo_app.cpp)
-└── vendor/imgui/               # Dear ImGui docking source distribution
+│   ├── solar.hpp                       # Umbrella master include
+│   ├── core/                           # Math, Color, Timer, Logger, Crypto, Types
+│   ├── render/                         # D3D11/D3D12 renderers, ImGuiExt, GlowEngine
+│   ├── anim/                           # RK4 Spring, Spring2D, SmoothDamp, Timeline
+│   ├── audio/                          # WaveSynth, SoundEffects, AudioEngine
+│   ├── theme/                          # Palette, Style, Presets, ThemeManager
+│   ├── ui/                             # Window, Titlebar, Sidebar, Card, Groupbox, Modal
+│   ├── widgets/                        # 100+ UI controls (Slider, Toggle, Combo, etc.)
+│   ├── game/                           # FOVRenderer, SkinChanger, ESPPreview, OBBRenderer
+│   ├── hook/                           # DX11StateGuard (6-stage isolation), HookBridge
+│   └── notifications/                  # Toast & NotificationSystem
+├── src/                                # Subsystem implementation sources
+├── demo/                               # Demonstration application
+└── vendor/imgui/                       # Dear ImGui docking source distribution
 ```
 
 ---

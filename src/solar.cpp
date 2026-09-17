@@ -3,6 +3,16 @@
 
 namespace Solar {
 
+    static FrameworkMode s_frameworkMode = FrameworkMode::External;
+
+    void SetMode(FrameworkMode mode) {
+        s_frameworkMode = mode;
+    }
+
+    FrameworkMode GetMode() {
+        return s_frameworkMode;
+    }
+
     void Initialize() {
         // Initialize Theme System & Palette
         ThemeManager::Get().Initialize();

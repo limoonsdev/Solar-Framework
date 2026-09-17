@@ -138,6 +138,11 @@ namespace Solar {
         WatermarkInfo m_watermarkInfo;
         ScreenWatermarkSettings m_screenWatermark;
         char m_customLinkInput[128] = "discord.gg/solarud";
+
+        // FOV & Skin Changer State
+        Game::FOVSettings m_fovSettings;
+        Game::SkinItem m_activeSkin = { "Vandal", "Prime 2.0", Game::SkinRarity::Ultra, 0.0210f, 661, true, 1337, ImVec4(1.0f, 0.28f, 0.55f, 1.0f), true };
+        std::vector<Game::SkinItem> m_skinInventory;
         char m_screenWatermarkTextInput[128] = ".gg/solarud";
         int  m_watermarkPosIndex = 0;
         int  m_screenFontIndex = 0;

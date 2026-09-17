@@ -64,14 +64,14 @@ namespace Solar::UI {
         float titleY = cardMin.y + (headerH - lv.size.y) * 0.5f;
         draw->AddText(ImVec2(curX, titleY), pal.TextPrimary.ToU32(), lv.textBegin, lv.textEnd);
 
-        // 7. Child container for inner elements (border = false to eliminate ugly ImGui grey borders)
+        // 7. Child container for inner elements (generous 18px padding for breathing room)
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f, 14.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(18.0f, 16.0f));
 
         ImGui::BeginChild(str_id, ImVec2(w, h), false, ImGuiWindowFlags_NoBackground);
-        ImGui::SetCursorPosY(headerH + 12.0f);
-        ImGui::SetCursorPosX(14.0f);
+        ImGui::SetCursorPosY(headerH + 14.0f);
+        ImGui::SetCursorPosX(18.0f);
 
         return true;
     }

@@ -543,6 +543,7 @@ namespace Solar {
                         Widgets::SubTab("Player ESP", 0, &m_visualsSubTab);
                         Widgets::SubTab("In-Game Engine & FOV", 1, &m_visualsSubTab);
                         Widgets::SubTab("World & Ballistics", 2, &m_visualsSubTab);
+                        Widgets::SubTab("Cosmetics & Skin Changer", 3, &m_visualsSubTab);
                         ImGui::NewLine();
                         Widgets::Spacing(6.0f);
 
@@ -619,170 +620,15 @@ namespace Solar {
                         }
                         // SUBTAB 1: IN-GAME COMBAT OVERLAYS & FOV
                         else if (m_visualsSubTab == 1) {
-                            if (Widgets::BeginCard("##CombatEngineCard", "Visuals Engine Settings", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                                Widgets::Toggle("Draw Aim FOV Circle", &m_drawFOVCircle);
-                                Widgets::SliderFloat("FOV Radius", &m_fovRadius, 30.0f, 220.0f, "%.0f", "px");
-                                Widgets::Toggle("FOV Corona Glow", &m_fovGlow);
-                                float fovCol[4] = { m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w };
-                                if (Widgets::ColorPicker("FOV Ring Tint", fovCol)) {
-                                    m_fovColor = ImVec4(fovCol[0], fovCol[1], fovCol[2], fovCol[3]);
-                                }
-
-                                Widgets::Separator();
-                                Widgets::Toggle("Dynamic Spread Crosshair", &m_drawSpreadCrosshair);
-                                Widgets::SliderFloat("Weapon Spread Gap", &m_currentSpread, 10.0f, 60.0f, "%.0f", "px");
-
-                                Widgets::Separator();
-                                const char* snapOrigins[] = { "Screen Bottom", "Screen Center", "Screen Top" };
-                                Widgets::Combo("Snapline Origin", &m_snaplineOrigin, snapOrigins, 3);
-                                Widgets::Toggle("Dashed Snapline Mode", &m_snaplineDashed);
-                                Widgets::Toggle("Offscreen Enemy Arrows", &m_offscreenArrows);
-
-                                Widgets::Separator();
-                                Widgets::SliderFloat("Test Hit DMG", &m_hitmarkerDamage, 10.0f, 150.0f, "%.0f", "HP");
-                                if (Widgets::Button("Trigger Damage Impact", ImVec2(0, 36), ButtonStyle::Primary)) {
-                                    m_hitmarkerProgress = 1.0f;
-                                    Audio::PlayClick();
-                                    FloatingDmg dmg;
-                                    ImVec2 winPos = ImGui::GetWindowPos();
-                                    dmg.screenPos = ImVec2(winPos.x + cardWidth + 150.0f, winPos.y + 200.0f);
-                                    dmg.damage = m_hitmarkerDamage;
-                                    dmg.isCrit = (m_hitmarkerDamage > 90.0f);
-                                    dmg.lifetime = 1.2f;
-                                    dmg.initialLifetime = 1.2f;
-                                    dmg.velocity = ImVec2(static_cast<float>((rand() % 40) - 20) * 1.5f, -65.0f);
-                                    m_floatingDamages.push_back(dmg);
-                                }
-
+                            if (Widgets::BeginCard("##CombatEngineCard", "Dynamic FOV Engine & Reticle", IconType::Crosshair, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                Game::FOVRenderer::RenderControls(m_fovSettings);
                                 Widgets::EndCard();
                             }
 
                             ImGui::SameLine(0, 10.0f);
 
-                            if (Widgets::BeginCard("##LiveGameSimCard", "In-Game Combat Simulation", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
-                                ImGuiIO& io = ImGui::GetIO();
-                                ImVec2 canvasPos = ImGui::GetCursorScreenPos();
-                                ImVec2 canvasSize(cardWidth - 24.0f, 430.0f);
-                                ImGui::InvisibleButton("##CombatViewport", canvasSize);
-
-                                ImDrawList* draw = ImGui::GetWindowDrawList();
-
-                                // Viewport dark obsidian field
-                                draw->AddRectFilled(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(11, 12, 16, 255), 6.0f);
-                                draw->AddRect(canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y), IM_COL32(255, 255, 255, 18), 6.0f);
-
-                                ImVec2 viewCenter(canvasPos.x + canvasSize.x * 0.5f, canvasPos.y + canvasSize.y * 0.5f);
-
-                                // Dynamic Spread Crosshair
-                                if (m_drawSpreadCrosshair) {
-                                    Visuals::DrawSpreadCrosshair(draw, viewCenter, 4.0f, m_currentSpread, 8.0f,
-                                                                 Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w), true);
-                                } else {
-                                    draw->AddCircleFilled(viewCenter, 2.0f, IM_COL32(255, 255, 255, 220), 8);
-                                    draw->AddLine(ImVec2(viewCenter.x - 7, viewCenter.y), ImVec2(viewCenter.x - 3, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x + 3, viewCenter.y), ImVec2(viewCenter.x + 7, viewCenter.y), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y - 7), ImVec2(viewCenter.x, viewCenter.y - 3), IM_COL32(255, 255, 255, 180), 1.2f);
-                                    draw->AddLine(ImVec2(viewCenter.x, viewCenter.y + 3), ImVec2(viewCenter.x, viewCenter.y + 7), IM_COL32(255, 255, 255, 180), 1.2f);
-                                }
-
-                                // FOV Circle
-                                if (m_drawFOVCircle) {
-                                    Visuals::DrawFOVCircle(draw, viewCenter, m_fovRadius,
-                                                           Color(m_fovColor.x, m_fovColor.y, m_fovColor.z, m_fovColor.w),
-                                                           1.5f, m_fovGlow);
-                                }
-
-                                // Animated Enemy Target 1 (Close Target)
-                                m_targetOscillate += static_cast<float>(io.DeltaTime) * 1.8f;
-                                float shiftX = std::sin(m_targetOscillate) * 32.0f;
-                                ImVec2 e1Pos(viewCenter.x - 55.0f + shiftX, viewCenter.y - 40.0f);
-                                ImVec2 e1BoxMin(e1Pos.x - 22.0f, e1Pos.y - 35.0f);
-                                ImVec2 e1BoxMax(e1Pos.x + 22.0f, e1BoxMin.y + 115.0f);
-
-                                // Acoustic sound wave rings
-                                m_acousticWaveTimer += io.DeltaTime * 0.7f;
-                                if (m_acousticWaveTimer >= 1.0f) m_acousticWaveTimer = 0.0f;
-                                Visuals::DrawAcousticWave(draw, e1Pos, 15.0f + m_acousticWaveTimer * 50.0f,
-                                                          (15.0f + m_acousticWaveTimer * 50.0f) * 0.45f, 0.0f,
-                                                          Color(1.0f, 0.45f, 0.1f, 1.0f - m_acousticWaveTimer), 1.5f);
-
-                                // 2D Corner Bounding Box
-                                Visuals::DrawBoundingBox2D(draw, e1BoxMin, e1BoxMax, BoxStyle::Corner,
-                                                           Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, m_espSettings.boxColor.w));
-
-                                // Head Circle
-                                Visuals::DrawHeadCircle(draw, ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), 7.5f, Color(1.0f, 1.0f, 1.0f, 0.9f));
-
-                                // Skeleton
-                                std::vector<std::pair<ImVec2, ImVec2>> bones = {
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 12.0f), ImVec2(e1Pos.x, e1BoxMin.y + 35.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x - 14.0f, e1BoxMin.y + 40.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 20.0f), ImVec2(e1Pos.x + 14.0f, e1BoxMin.y + 40.0f) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x - 10.0f, e1BoxMax.y) },
-                                    { ImVec2(e1Pos.x, e1BoxMin.y + 35.0f), ImVec2(e1Pos.x + 10.0f, e1BoxMax.y) }
-                                };
-                                Visuals::DrawSkeleton(draw, bones, Color(m_espSettings.skeletonColor.x, m_espSettings.skeletonColor.y, m_espSettings.skeletonColor.z, 0.85f));
-
-                                // Health, Armor, Ammo Status Bars
-                                Visuals::DrawHealthBar(draw, e1BoxMin, e1BoxMax, 74.0f, 100.0f, BarPosition::Left, true, true);
-                                Visuals::DrawArmorBar(draw, e1BoxMin, e1BoxMax, 60.0f, 100.0f, BarPosition::Left);
-                                Visuals::DrawAmmoBar(draw, e1BoxMin, e1BoxMax, 22, 30, BarPosition::Bottom);
-
-                                // Name, Weapon, and Stacked Badge Flags
-                                Visuals::DrawNameTag(draw, ImVec2(e1Pos.x, e1BoxMin.y - 4.0f), "Phantom_01");
-                                Visuals::DrawWeaponTag(draw, ImVec2(e1Pos.x, e1BoxMax.y + 8.0f), "Vandal", 22, 30);
-
-                                std::vector<std::pair<std::string, Color>> flags = {
-                                    { "SCOPED", Color(0.24f, 0.70f, 1.0f, 1.0f) },
-                                    { "FLASHED", Color(1.0f, 0.75f, 0.15f, 1.0f) },
-                                    { "ARMOR", Color(0.35f, 0.85f, 0.40f, 1.0f) }
-                                };
-                                Visuals::DrawFlagTags(draw, e1BoxMax, flags);
-
-                                // Targeting Snapline
-                                SnaplineOrigin snapOrig = static_cast<SnaplineOrigin>(m_snaplineOrigin);
-                                Visuals::DrawSnapline(draw, ImVec2(e1Pos.x, e1BoxMax.y), snapOrig,
-                                                      Color(m_espSettings.boxColor.x, m_espSettings.boxColor.y, m_espSettings.boxColor.z, 0.75f),
-                                                      1.4f, m_snaplineDashed);
-
-                                // Target 2 (Far Enemy)
-                                ImVec2 e2Pos(viewCenter.x + 95.0f, viewCenter.y - 85.0f);
-                                ImVec2 e2Min(e2Pos.x - 14.0f, e2Pos.y - 20.0f);
-                                ImVec2 e2Max(e2Pos.x + 14.0f, e2Pos.y + 45.0f);
-                                Visuals::DrawBoundingBox2D(draw, e2Min, e2Max, BoxStyle::Corner, Color(1.0f, 0.35f, 0.35f, 0.9f));
-                                Visuals::DrawHealthBar(draw, e2Min, e2Max, 28.0f, 100.0f, BarPosition::Left, true, true);
-                                Visuals::DrawDistanceTag(draw, ImVec2(e2Pos.x, e2Max.y + 4.0f), 58.0f);
-
-                                // Offscreen Indicator
-                                if (m_offscreenArrows) {
-                                    float arrowAngle = -0.75f + std::sin(m_targetOscillate * 0.8f) * 0.20f;
-                                    Visuals::DrawOffscreenIndicator(draw, viewCenter, arrowAngle, 120.0f,
-                                                                    Color(1.0f, 0.30f, 0.30f, 0.95f), 74.0f);
-                                }
-
-                                // Interactive Hitmarker Rendering
-                                if (m_hitmarkerProgress > 0.001f) {
-                                    Visuals::DrawHitmarker(draw, viewCenter, 14.0f,
-                                                           Color(1.0f, 0.22f, 0.22f, 1.0f),
-                                                           m_hitmarkerProgress, m_hitmarkerDamage);
-                                    m_hitmarkerProgress = (std::max)(0.0f, m_hitmarkerProgress - static_cast<float>(io.DeltaTime) * 1.5f);
-                                }
-
-                                // Update & Render Floating Damage Numbers
-                                for (auto it = m_floatingDamages.begin(); it != m_floatingDamages.end(); ) {
-                                    it->lifetime -= io.DeltaTime;
-                                    if (it->lifetime <= 0.0f) {
-                                        it = m_floatingDamages.erase(it);
-                                    } else {
-                                        it->screenPos.x += it->velocity.x * io.DeltaTime;
-                                        it->screenPos.y += it->velocity.y * io.DeltaTime;
-                                        it->velocity.y += 98.0f * io.DeltaTime;
-                                        Color dmgCol = it->isCrit ? Color(1.0f, 0.25f, 0.25f, 1.0f) : Color(1.0f, 0.85f, 0.2f, 1.0f);
-                                        Visuals::DrawFloatingDamage(draw, it->screenPos, it->damage, dmgCol, it->lifetime / 1.2f, it->isCrit);
-                                        ++it;
-                                    }
-                                }
-
+                            if (Widgets::BeginCard("##LiveGameSimCard", "Dynamic FOV Vector Preview", IconType::Eye, ImVec2(cardWidth, 490.0f), ICON_FA_CROSSHAIRS)) {
+                                Game::FOVRenderer::RenderPreview("##FovPreviewCanvas", ImVec2(cardWidth - 36.0f, 430.0f), m_fovSettings);
                                 Widgets::EndCard();
                             }
                         }
@@ -826,6 +672,13 @@ namespace Solar {
                                 }
 
                                 RenderCardPagination(&m_worldPage, 2, "WorldSimCard");
+                                Widgets::EndCard();
+                            }
+                        }
+                        // SUBTAB 3: COSMETICS & WEAPON SKIN CHANGER
+                        else if (m_visualsSubTab == 3) {
+                            if (Widgets::BeginCard("##SkinChangerCard", "Cosmetics & Weapon Skin Changer Suite", IconType::Sparkle, ImVec2(contentWidth, 490.0f), ICON_FA_WAND_MAGIC)) {
+                                Game::SkinChangerPreview::Render("##SkinChangerMain", ImVec2(contentWidth - 36.0f, 440.0f), m_activeSkin, m_skinInventory);
                                 Widgets::EndCard();
                             }
                         }

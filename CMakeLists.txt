@@ -54,6 +54,8 @@ set(SOLAR_SOURCES
     "src/game/visuals_renderer.cpp"
     "src/game/watermark.cpp"
     "src/game/screen_watermark.cpp"
+    "src/game/fov_renderer.cpp"
+    "src/game/skin_changer.cpp"
     "src/hook/hook_bridge.cpp"
     "src/hook/state_guard.cpp"
     "src/icons.cpp"
@@ -158,4 +160,30 @@ target_link_libraries(solar_demo PRIVATE
 
 target_include_directories(solar_demo PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/demo"
+)
+
+# Solar Studio [BETA v0.1.2] Standalone UI Builder Executable
+set(STUDIO_SOURCES
+    "Solar Studio [BETA v0.1.2]/main.cpp"
+    "Solar Studio [BETA v0.1.2]/studio_app.cpp"
+    "Solar Studio [BETA v0.1.2]/project_generator.cpp"
+    "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
+    "${IMGUI_DIR}/backends/imgui_impl_dx11.cpp"
+)
+
+add_executable(solar_studio WIN32
+    ${STUDIO_SOURCES}
+)
+
+target_link_libraries(solar_studio PRIVATE
+    solar_lib
+    d3d11
+    dxgi
+    dwmapi
+    winmm
+    shcore
+)
+
+target_include_directories(solar_studio PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/Solar Studio [BETA v0.1.2]"
 )

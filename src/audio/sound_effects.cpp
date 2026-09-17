@@ -13,88 +13,88 @@ namespace Solar::Audio {
     }
 
     void SoundBank::PrebakeAll() {
-        // Crisp tactile mechanical click
+        // Creamy tactile mechanical switch click (lubed linear bottom-out pop)
         WaveTone clickTone;
-        clickTone.frequencyStart = 2400.0f;
-        clickTone.frequencyEnd = 800.0f;
-        clickTone.durationSeconds = 0.022f;
-        clickTone.volume = 0.28f;
+        clickTone.frequencyStart = 440.0f;
+        clickTone.frequencyEnd = 240.0f;
+        clickTone.durationSeconds = 0.024f;
+        clickTone.volume = 0.22f;
         clickTone.type = WaveType::Sine;
         clickTone.attack = 0.002f;
-        clickTone.decay = 0.016f;
+        clickTone.decay = 0.018f;
         m_click = WaveSynth::SynthesizeTone(clickTone);
 
-        // Toggle On (ascending pitch)
+        // Toggle On (warm rising switch slide)
         WaveTone tonTone;
-        tonTone.frequencyStart = 580.0f;
-        tonTone.frequencyEnd = 940.0f;
-        tonTone.durationSeconds = 0.045f;
-        tonTone.volume = 0.30f;
+        tonTone.frequencyStart = 340.0f;
+        tonTone.frequencyEnd = 520.0f;
+        tonTone.durationSeconds = 0.035f;
+        tonTone.volume = 0.22f;
         tonTone.type = WaveType::Sine;
-        tonTone.attack = 0.005f;
-        tonTone.decay = 0.035f;
+        tonTone.attack = 0.003f;
+        tonTone.decay = 0.028f;
         m_toggleOn = WaveSynth::SynthesizeTone(tonTone);
 
-        // Toggle Off (descending pitch)
+        // Toggle Off (muted warm bottom-out thock)
         WaveTone toffTone;
-        toffTone.frequencyStart = 880.0f;
-        toffTone.frequencyEnd = 460.0f;
-        toffTone.durationSeconds = 0.040f;
-        toffTone.volume = 0.25f;
+        toffTone.frequencyStart = 480.0f;
+        toffTone.frequencyEnd = 260.0f;
+        toffTone.durationSeconds = 0.032f;
+        toffTone.volume = 0.20f;
         toffTone.type = WaveType::Sine;
-        toffTone.attack = 0.005f;
-        toffTone.decay = 0.030f;
+        toffTone.attack = 0.002f;
+        toffTone.decay = 0.026f;
         m_toggleOff = WaveSynth::SynthesizeTone(toffTone);
 
-        // Notification chime (Major triad: C6, E6, G6)
+        // Notification chime (Warm luxurious harmonic triad: Ab4, C5, Eb5)
         std::vector<WaveTone> notifChord;
-        WaveTone c6{ 1046.5f, 1046.5f, 0.18f, 0.22f, WaveType::Sine, 0.01f, 0.15f };
-        WaveTone e6{ 1318.5f, 1318.5f, 0.22f, 0.22f, WaveType::Sine, 0.02f, 0.18f };
-        WaveTone g6{ 1567.98f, 1567.98f, 0.28f, 0.25f, WaveType::Sine, 0.03f, 0.22f };
-        notifChord.push_back(c6);
-        notifChord.push_back(e6);
-        notifChord.push_back(g6);
+        WaveTone ab4{ 415.30f, 415.30f, 0.22f, 0.18f, WaveType::Sine, 0.015f, 0.18f };
+        WaveTone c5 { 523.25f, 523.25f, 0.26f, 0.18f, WaveType::Sine, 0.020f, 0.20f };
+        WaveTone eb5{ 622.25f, 622.25f, 0.32f, 0.20f, WaveType::Sine, 0.025f, 0.24f };
+        notifChord.push_back(ab4);
+        notifChord.push_back(c5);
+        notifChord.push_back(eb5);
         m_notification = WaveSynth::SynthesizeChord(notifChord);
 
-        // Warning buzz
+        // Warning chime (soft rounded double low pulse)
         WaveTone warnTone;
-        warnTone.frequencyStart = 420.0f;
-        warnTone.frequencyEnd = 380.0f;
-        warnTone.durationSeconds = 0.14f;
-        warnTone.volume = 0.32f;
-        warnTone.type = WaveType::Triangle;
+        warnTone.frequencyStart = 280.0f;
+        warnTone.frequencyEnd = 240.0f;
+        warnTone.durationSeconds = 0.10f;
+        warnTone.volume = 0.24f;
+        warnTone.type = WaveType::Sine;
         warnTone.attack = 0.01f;
-        warnTone.decay = 0.12f;
+        warnTone.decay = 0.08f;
         m_warning = WaveSynth::SynthesizeTone(warnTone);
 
-        // Error chord (dissonant tritones)
+        // Error chord (subtle velvet low tension)
         std::vector<WaveTone> errChord;
-        WaveTone eb{ 311.13f, 300.0f, 0.20f, 0.35f, WaveType::Square, 0.01f, 0.18f };
-        WaveTone a{ 440.0f, 420.0f, 0.20f, 0.30f, WaveType::Sine, 0.01f, 0.18f };
-        errChord.push_back(eb);
-        errChord.push_back(a);
+        WaveTone f3 { 174.61f, 165.0f, 0.14f, 0.24f, WaveType::Triangle, 0.01f, 0.11f };
+        WaveTone b3 { 246.94f, 235.0f, 0.14f, 0.20f, WaveType::Sine,     0.01f, 0.11f };
+        errChord.push_back(f3);
+        errChord.push_back(b3);
         m_error = WaveSynth::SynthesizeChord(errChord);
 
-        // Slider tick
+        // Slider creamy micro-tick (tactile buttery tap, zero harsh treble)
         WaveTone tickTone;
-        tickTone.frequencyStart = 1800.0f;
-        tickTone.frequencyEnd = 1600.0f;
-        tickTone.durationSeconds = 0.008f;
-        tickTone.volume = 0.15f;
+        tickTone.frequencyStart = 380.0f;
+        tickTone.frequencyEnd = 320.0f;
+        tickTone.durationSeconds = 0.007f;
+        tickTone.volume = 0.10f;
         tickTone.type = WaveType::Sine;
         tickTone.attack = 0.001f;
-        tickTone.decay = 0.006f;
+        tickTone.decay = 0.005f;
         m_sliderTick = WaveSynth::SynthesizeTone(tickTone);
 
-        // Tab switch swoosh
+        // Tab switch creamy glide
         WaveTone tabTone;
-        tabTone.frequencyStart = 720.0f;
-        tabTone.frequencyEnd = 1100.0f;
-        tabTone.durationSeconds = 0.032f;
-        tabTone.volume = 0.22f;
+        tabTone.frequencyStart = 320.0f;
+        tabTone.frequencyEnd = 460.0f;
+        tabTone.durationSeconds = 0.028f;
+        tabTone.volume = 0.18f;
         tabTone.type = WaveType::Sine;
-        tabTone.attack = 0.004f;
-        tabTone.decay = 0.025f;
+        tabTone.attack = 0.003f;
+        tabTone.decay = 0.022f;
         m_tabSwitch = WaveSynth::SynthesizeTone(tabTone);
     }
 
